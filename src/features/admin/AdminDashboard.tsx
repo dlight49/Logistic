@@ -183,33 +183,39 @@ export default function AdminDashboard() {
                     <p className="text-xs text-slate-500">{s.receiver_name} • {s.receiver_city}</p>
                   </div>
                 </Link>
-                <div className="text-right flex items-center gap-3">
-                  <div className="hidden group-hover:block transition-all">
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setAssigningShipmentId(s.id);
-                      }}
-                      className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center gap-1"
-                    >
-                      <Users className="w-3 h-3" /> Assign
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <div className="hidden group-hover:flex transition-all items-center gap-2">
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setAssigningShipmentId(s.id);
+                        }}
+                        className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-colors flex items-center gap-1"
+                      >
+                        <Users className="w-3 h-3" /> Assign
+                      </button>
+                      <Link 
+                        to={`/admin/shipment/${s.id}`}
+                        className="text-[10px] font-bold bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1 shadow-sm"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                    <div className="group-hover:hidden flex flex-col items-end">
+                      <span className={cn(
+                        "text-[10px] font-bold px-2 py-1 rounded-full uppercase",
+                        s.status === 'Delivered' ? "bg-emerald-500/10 text-emerald-500" : 
+                        s.status === 'Held by Customs' ? "bg-amber-500/10 text-amber-500" :
+                        "bg-primary/10 text-primary"
+                      )}>
+                        {s.status}
+                      </span>
+                      <p className="text-[10px] text-slate-500 mt-1">{new Date(s.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <Link to={`/admin/shipment/${s.id}`} className="group-hover:hidden">
+                      <ChevronRight className="w-4 h-4 text-slate-300" />
+                    </Link>
                   </div>
-                  <div>
-                    <span className={cn(
-                      "text-[10px] font-bold px-2 py-1 rounded-full uppercase",
-                      s.status === 'Delivered' ? "bg-emerald-500/10 text-emerald-500" : 
-                      s.status === 'Held by Customs' ? "bg-amber-500/10 text-amber-500" :
-                      "bg-primary/10 text-primary"
-                    )}>
-                      {s.status}
-                    </span>
-                    <p className="text-[10px] text-slate-500 mt-1">{new Date(s.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <Link to={`/admin/shipment/${s.id}`}>
-                    <ChevronRight className="w-4 h-4 text-slate-300" />
-                  </Link>
-                </div>
               </div>
             ))}
             {filteredShipments.length === 0 && (

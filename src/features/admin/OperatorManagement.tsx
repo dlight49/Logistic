@@ -81,19 +81,27 @@ export default function OperatorManagement() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
-      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/20 p-2 rounded-lg">
-            <Users className="text-primary w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold leading-tight">Operators</h1>
-            <p className="text-xs text-slate-500">Manage Drivers & Staff</p>
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/20 p-2 rounded-lg">
+              <Users className="text-primary w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold leading-tight">Operators</h1>
+              <p className="text-xs text-slate-500">Manage Drivers & Staff</p>
+            </div>
           </div>
         </div>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-primary text-white p-2 rounded-lg shadow-lg shadow-primary/20 md:hidden"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
       </header>
 
       <main className="flex-1 p-4 space-y-6">
@@ -109,9 +117,9 @@ export default function OperatorManagement() {
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="bg-primary text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary/20"
+            className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-xl shadow-primary/30 hover:scale-105 transition-transform active:scale-95"
           >
-            <Plus className="w-5 h-5" /> Add
+            <Plus className="w-5 h-5" /> Add Operator
           </button>
         </div>
 
@@ -140,10 +148,12 @@ export default function OperatorManagement() {
                           {op.name}
                         </Link>
                         <span className={cn(
-                          "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                          (op.assignedShipments?.length || 0) > 3 ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                          "text-xs font-black px-2.5 py-1 rounded-lg shadow-sm",
+                          (op.assignedShipments?.length || 0) > 3 
+                            ? "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400" 
+                            : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
                         )}>
-                          {op.assignedShipments?.length || 0} Active
+                          {op.assignedShipments?.length || 0} ACTIVE LOADS
                         </span>
                       </div>
                       <Link to={`/admin/operator/${op.id}`} className="text-xs text-slate-500 hover:text-primary transition-colors">

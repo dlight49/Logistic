@@ -68,6 +68,11 @@ db.exec(`
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(shipment_id) REFERENCES shipments(id)
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  );
 `);
 
 // Migration: Add phone to users and operator_id to shipments if they don't exist
@@ -77,6 +82,21 @@ try {
 try {
   db.prepare("ALTER TABLE shipments ADD COLUMN operator_id TEXT").run();
 } catch (e) {}
+
+// Seed default settings
+const settingsCount = db.prepare("SELECT count(*) as count FROM settings").get() as { count: number };
+if (settingsCount.count === 0) {
+  const defaultSettings = [
+    { key: 'notify_sms', value: 'true' },
+    { key: 'notify_email', value: 'true' },
+    { key: 'alert_created', value: 'true' },
+    { key: 'alert_arrived', value: 'true' },
+    { key: 'alert_customs', value: 'true' },
+    { key: 'alert_delivered', value: 'true' }
+  ];
+  const insertSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
+  defaultSettings.forEach(s => insertSetting.run(s.key, s.value));
+}
 
 // Seed initial data if empty
 const userCount = db.prepare("SELECT count(*) as count FROM users").get() as { count: number };
@@ -123,7 +143,7 @@ async function startServer() {
     }
     if (end_date) {
       query += " AND created_at <= ?";
-      params.push(end_date);
+      params.push(`${end_date} 23:59:59`);
     }
     if (sender_country) {
       query += " AND sender_country = ?";
@@ -191,6 +211,32 @@ async function startServer() {
     res.json({ ...shipment, updates, docs });
   });
 
+  app.post("/api/shipments/:id/docs", (req, res) => {
+    const { doc_type } = req.body;
+    const shipmentId = req.params.id;
+    const uploaded_at = new Date().toISOString();
+    
+    try {
+      db.prepare("INSERT INTO customs_docs (shipment_id, doc_type, status, uploaded_at) VALUES (?, ?, 'pending', ?)")
+        .run(shipmentId, doc_type, uploaded_at);
+      res.status(201).json({ success: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.patch("/api/docs/:id", (req, res) => {
+    const { status } = req.body;
+    const docId = req.params.id;
+    
+    try {
+      db.prepare("UPDATE customs_docs SET status = ? WHERE id = ?").run(status, docId);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   app.post("/api/shipments", (req, res) => {
     const { 
       sender_name, sender_city, sender_country, sender_address,
@@ -206,7 +252,8 @@ async function startServer() {
         receiver_name, receiver_city, receiver_country, receiver_address, receiver_phone, receiver_email,
         status, weight, type, est_delivery
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    );
+  `);
 
     insert.run(
       id, sender_name, sender_city, sender_country, sender_address,
@@ -263,6 +310,29 @@ async function startServer() {
       pending: pending.count,
       done: done.count
     });
+  });
+
+  app.get("/api/settings", (req, res) => {
+    const settings = db.prepare("SELECT * FROM settings").all();
+    const settingsObj = settings.reduce((acc: any, s: any) => {
+      acc[s.key] = s.value === 'true';
+      return acc;
+    }, {});
+    res.json(settingsObj);
+  });
+
+  app.patch("/api/settings", (req, res) => {
+    const updates = req.body;
+    const updateStmt = db.prepare("UPDATE settings SET value = ? WHERE key = ?");
+    Object.entries(updates).forEach(([key, value]) => {
+      updateStmt.run(String(value), key);
+    });
+    res.json({ success: true });
+  });
+
+  app.get("/api/notifications/logs", (req, res) => {
+    const logs = db.prepare("SELECT * FROM notification_logs ORDER BY timestamp DESC LIMIT 20").all();
+    res.json(logs);
   });
 
   // Vite middleware for development
