@@ -24,6 +24,7 @@ export default function OperatorManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newOperator, setNewOperator] = useState({ name: "", email: "", phone: "", password: "" });
   const [editingOperator, setEditingOperator] = useState<Operator | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchOperators();
@@ -101,7 +102,9 @@ export default function OperatorManagement() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input 
               className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary/50"
-              placeholder="Search operators..."
+              placeholder="Search by name, email, or ID..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
           <button 
@@ -118,7 +121,13 @@ export default function OperatorManagement() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {operators.map(op => (
+            {operators
+              .filter(op => 
+                op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                op.id.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+              .map(op => (
               <div key={op.id} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex gap-3">
@@ -127,7 +136,9 @@ export default function OperatorManagement() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-slate-900 dark:text-slate-100">{op.name}</h3>
+                        <Link to={`/admin/operator/${op.id}`} className="font-bold text-slate-900 dark:text-slate-100 hover:text-primary transition-colors">
+                          {op.name}
+                        </Link>
                         <span className={cn(
                           "text-[10px] font-bold px-2 py-0.5 rounded-full",
                           (op.assignedShipments?.length || 0) > 3 ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
@@ -135,7 +146,9 @@ export default function OperatorManagement() {
                           {op.assignedShipments?.length || 0} Active
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500">ID: {op.id}</p>
+                      <Link to={`/admin/operator/${op.id}`} className="text-xs text-slate-500 hover:text-primary transition-colors">
+                        ID: {op.id}
+                      </Link>
                     </div>
                   </div>
                   <button 
@@ -176,6 +189,16 @@ export default function OperatorManagement() {
                 </div>
               </div>
             ))}
+            {operators.length > 0 && operators.filter(op => 
+                op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                op.id.toLowerCase().includes(searchQuery.toLowerCase())
+              ).length === 0 && (
+              <div className="py-20 text-center text-slate-400 italic">
+                <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p>No operators found matching "{searchQuery}"</p>
+              </div>
+            )}
           </div>
         )}
       </main>

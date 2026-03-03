@@ -10,6 +10,7 @@ import ShipmentDetails from "./features/driver/ShipmentDetails";
 import CustomsPortal from "./features/driver/CustomsPortal";
 import Login from "./features/auth/Login";
 import NotificationSettings from "./features/admin/NotificationSettings";
+import OperatorProfileView from "./features/admin/OperatorProfileView";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/admin/create" element={<CreateShipment />} />
           <Route path="/admin/notifications" element={<NotificationSettings />} />
           <Route path="/admin/operators" element={<OperatorManagement />} />
+          <Route path="/admin/operator/:id" element={<OperatorProfileView />} />
           <Route path="/admin/shipment/:id" element={<ShipmentDetailView />} />
 
           {/* Driver Routes */}
