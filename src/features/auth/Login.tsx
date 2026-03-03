@@ -7,13 +7,37 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.includes("admin")) {
-      navigate("/admin");
-    } else {
-      navigate("/driver");
+    setError("");
+    setLoading(true);
+    
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      
+      if (res.ok) {
+        const user = await res.json();
+        localStorage.setItem("user", JSON.stringify(user));
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/driver");
+        }
+      } else {
+        const data = await res.json();
+        setError(data.error || "Login failed");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,6 +64,12 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
+            {error && (
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                <HelpCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Driver ID or Email</label>
               <div className="relative">
@@ -83,8 +113,17 @@ export default function Login() {
               <a className="text-sm font-semibold text-accent hover:text-accent/80 transition-colors" href="#">Forgot Password?</a>
             </div>
 
-            <button className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-accent/20 transition-all transform active:scale-[0.98] mt-4" type="submit">
-              Login to Dashboard
+            <button 
+              disabled={loading}
+              className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-accent/20 transition-all transform active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
+              type="submit"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Signing in...
+                </>
+              ) : "Login to Dashboard"}
             </button>
           </form>
 

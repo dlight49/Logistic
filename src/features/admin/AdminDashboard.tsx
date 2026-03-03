@@ -12,7 +12,8 @@ import {
   AlertTriangle, 
   CheckCircle2,
   Plus,
-  ChevronRight
+  ChevronRight,
+  Truck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Stats, Shipment } from "@/src/types";
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
   const [filterReceiverCountry, setFilterReceiverCountry] = useState("");
   const [filterType, setFilterType] = useState("");
   const [assigningShipmentId, setAssigningShipmentId] = useState<string | null>(null);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     fetch("/api/stats").then(res => res.json()).then(setStats);
@@ -66,7 +68,7 @@ export default function AdminDashboard() {
           </div>
           <div>
             <h1 className="text-lg font-bold leading-tight">Global Logistics</h1>
-            <p className="text-xs text-slate-500">Admin Command Center</p>
+            <p className="text-xs text-slate-500">{user.name || "Admin"} • Command Center</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -156,8 +158,8 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Total Shipments" value={stats?.total || 0} trend="+12%" />
-          <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Package className="text-primary" />} />
+          <StatCard label="Total Shipments" value={stats?.total || 0} icon={<Package className="text-primary" />} />
+          <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="text-accent" />} />
           <StatCard label="In Customs" value={stats?.inCustoms || 0} icon={<Gavel className="text-amber-500" />} color="text-amber-500" />
           <StatCard label="Issues" value={stats?.issues || 0} icon={<AlertTriangle className="text-rose-500" />} color="text-rose-500" />
         </div>

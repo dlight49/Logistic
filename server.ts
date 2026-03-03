@@ -96,8 +96,20 @@ async function startServer() {
   app.use(express.json());
 
   // API Routes
+  app.post("/api/login", (req, res) => {
+    const { email, password } = req.body;
+    const user = db.prepare("SELECT id, email, name, role, phone FROM users WHERE (email = ? OR id = ?) AND password = ?")
+      .get(email, email, password);
+    
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(401).json({ error: "Invalid credentials" });
+    }
+  });
+
   app.get("/api/shipments", (req, res) => {
-    const { status, start_date, end_date, sender_country, receiver_country, type } = req.query;
+    const { status, start_date, end_date, sender_country, receiver_country, type, operator_id } = req.query;
     let query = "SELECT * FROM shipments WHERE 1=1";
     const params: any[] = [];
 
@@ -124,6 +136,10 @@ async function startServer() {
     if (type) {
       query += " AND type = ?";
       params.push(type);
+    }
+    if (operator_id) {
+      query += " AND operator_id = ?";
+      params.push(operator_id);
     }
 
     query += " ORDER BY created_at DESC";
@@ -233,6 +249,19 @@ async function startServer() {
       inCustoms: inCustoms.count,
       issues: issues.count,
       delivered: delivered.count
+    });
+  });
+
+  app.get("/api/stats/driver/:id", (req, res) => {
+    const id = req.params.id;
+    const active = db.prepare("SELECT count(*) as count FROM shipments WHERE operator_id = ? AND status NOT IN ('Delivered', 'Cancelled')").get(id) as any;
+    const pending = db.prepare("SELECT count(*) as count FROM shipments WHERE operator_id = ? AND status = 'Order Created'").get(id) as any;
+    const done = db.prepare("SELECT count(*) as count FROM shipments WHERE operator_id = ? AND status = 'Delivered'").get(id) as any;
+
+    res.json({
+      active: active.count,
+      pending: pending.count,
+      done: done.count
     });
   });
 

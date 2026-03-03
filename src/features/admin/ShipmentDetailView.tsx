@@ -15,11 +15,15 @@ import {
   ChevronRight,
   MoreVertical,
   Edit3,
-  Users
+  Users,
+  Sparkles,
+  Loader2
 } from "lucide-react";
+import Markdown from "react-markdown";
 import { Shipment, Operator } from "@/src/types";
 import { cn } from "@/src/utils";
 import AssignOperatorModal from "@/src/components/AssignOperatorModal";
+import { generateShipmentSummary } from "@/src/services/geminiService";
 
 export default function ShipmentDetailView() {
   const { id } = useParams();
@@ -28,6 +32,8 @@ export default function ShipmentDetailView() {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [generatingAi, setGeneratingAi] = useState(false);
 
   useEffect(() => {
     fetchShipment();
@@ -53,6 +59,19 @@ export default function ShipmentDetailView() {
       setOperators(data);
     } catch (err) {
       console.error("Failed to fetch operators", err);
+    }
+  };
+
+  const handleGenerateAiSummary = async () => {
+    if (!shipment) return;
+    setGeneratingAi(true);
+    try {
+      const summary = await generateShipmentSummary(shipment);
+      setAiSummary(summary || "No summary generated.");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGeneratingAi(false);
     }
   };
 
@@ -173,6 +192,43 @@ export default function ShipmentDetailView() {
                 Assign Now
               </button>
             </div>
+          )}
+        </div>
+
+        {/* AI Summary Section */}
+        <div className="bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-2xl border border-primary/20 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-primary">
+              <Sparkles className="w-4 h-4" />
+              <h3 className="text-xs font-bold uppercase tracking-wider">AI Shipment Summary</h3>
+            </div>
+            {!aiSummary && !generatingAi && (
+              <button 
+                onClick={handleGenerateAiSummary}
+                className="text-[10px] font-bold bg-primary text-white px-3 py-1.5 rounded-lg shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-1"
+              >
+                Generate
+              </button>
+            )}
+          </div>
+          
+          {generatingAi ? (
+            <div className="flex flex-col items-center justify-center py-6 gap-3">
+              <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              <p className="text-xs text-slate-500 font-medium italic">Analyzing logistics data...</p>
+            </div>
+          ) : aiSummary ? (
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+              <Markdown>{aiSummary}</Markdown>
+              <button 
+                onClick={handleGenerateAiSummary}
+                className="mt-4 text-[10px] font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-1"
+              >
+                <Sparkles className="w-3 h-3" /> Regenerate Summary
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500 italic">Get an AI-powered overview of this shipment's status and potential risks.</p>
           )}
         </div>
 
