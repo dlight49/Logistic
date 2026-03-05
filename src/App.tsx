@@ -1,43 +1,80 @@
+import React, { ReactNode } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { AuthProvider } from "./features/auth/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LandingPage from "./features/public/LandingPage";
 import TrackingPage from "./features/public/TrackingPage";
+import CustomerDashboard from "./features/customer/CustomerDashboard";
+import RequestQuote from "./features/customer/RequestQuote";
+import ShipmentHistory from "./features/customer/ShipmentHistory";
 import AdminDashboard from "./features/admin/AdminDashboard";
 import CreateShipment from "./features/admin/CreateShipment";
+import DriverDirectory from "./features/admin/DriverDirectory";
 import OperatorManagement from "./features/admin/OperatorManagement";
 import ShipmentDetailView from "./features/admin/ShipmentDetailView";
 import DriverDashboard from "./features/driver/DriverDashboard";
 import ShipmentDetails from "./features/driver/ShipmentDetails";
 import CustomsPortal from "./features/driver/CustomsPortal";
 import Login from "./features/auth/Login";
+import AdminLogin from "./features/auth/AdminLogin";
+import DriverLogin from "./features/auth/DriverLogin";
+import CustomerLogin from "./features/auth/CustomerLogin";
+import Register from "./features/auth/Register";
+import CustomerSettings from "./features/customer/CustomerSettings";
 import NotificationSettings from "./features/admin/NotificationSettings";
 import OperatorProfileView from "./features/admin/OperatorProfileView";
+import AdminSupport from "./features/admin/AdminSupport";
+import AdminTicketDetail from "./features/admin/AdminTicketDetail";
+import AdminChat from "./features/admin/AdminChat";
+import DriverChat from "./features/driver/DriverChat";
+import TicketList from "./features/customer/TicketList";
+import TicketDetail from "./features/customer/TicketDetail";
 
-export default function App() {
+export default function App(): ReactNode {
   return (
-    <Router>
-      <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
-        <Routes>
-          {/* Public Route */}
-          <Route path="/" element={<TrackingPage />} />
-          <Route path="/login" element={<Login />} />
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/track" element={<TrackingPage />} />
+            <Route path="/login" element={<CustomerLogin />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/driver/login" element={<DriverLogin />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/create" element={<CreateShipment />} />
-          <Route path="/admin/notifications" element={<NotificationSettings />} />
-          <Route path="/admin/operators" element={<OperatorManagement />} />
-          <Route path="/admin/operator/:id" element={<OperatorProfileView />} />
-          <Route path="/admin/shipment/:id" element={<ShipmentDetailView />} />
+            {/* Customer Routes */}
+            <Route path="/customer" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerDashboard /></ProtectedRoute>} />
+            <Route path="/customer/quote" element={<ProtectedRoute allowedRoles={["customer"]}><RequestQuote /></ProtectedRoute>} />
+            <Route path="/customer/history" element={<ProtectedRoute allowedRoles={["customer"]}><ShipmentHistory /></ProtectedRoute>} />
+            <Route path="/customer/settings" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerSettings /></ProtectedRoute>} />
+            <Route path="/customer/tickets" element={<ProtectedRoute allowedRoles={["customer"]}><TicketList /></ProtectedRoute>} />
+            <Route path="/customer/tickets/:id" element={<ProtectedRoute allowedRoles={["customer"]}><TicketDetail /></ProtectedRoute>} />
 
-          {/* Driver Routes */}
-          <Route path="/driver" element={<DriverDashboard />} />
-          <Route path="/driver/shipment/:id" element={<ShipmentDetails />} />
-          <Route path="/driver/customs/:id" element={<CustomsPortal />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/create" element={<ProtectedRoute allowedRoles={["admin"]}><CreateShipment /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationSettings /></ProtectedRoute>} />
+            <Route path="/admin/operators" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorManagement /></ProtectedRoute>} />
+            <Route path="/admin/drivers" element={<ProtectedRoute allowedRoles={["admin"]}><DriverDirectory /></ProtectedRoute>} />
+            <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSupport /></ProtectedRoute>} />
+            <Route path="/admin/support/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTicketDetail /></ProtectedRoute>} />
+            <Route path="/admin/chat" element={<ProtectedRoute allowedRoles={["admin"]}><AdminChat /></ProtectedRoute>} />
+            <Route path="/admin/operator/:id" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorProfileView /></ProtectedRoute>} />
+            <Route path="/admin/shipment/:id" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentDetailView /></ProtectedRoute>} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+            {/* Driver Routes */}
+            <Route path="/driver" element={<ProtectedRoute allowedRoles={["operator"]}><DriverDashboard /></ProtectedRoute>} />
+            <Route path="/driver/documents" element={<ProtectedRoute allowedRoles={["operator"]}><CustomsPortal /></ProtectedRoute>} />
+            <Route path="/driver/chat" element={<ProtectedRoute allowedRoles={["operator"]}><DriverChat /></ProtectedRoute>} />
+            <Route path="/driver/profile" element={<ProtectedRoute allowedRoles={["operator"]}><OperatorProfileView /></ProtectedRoute>} />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }

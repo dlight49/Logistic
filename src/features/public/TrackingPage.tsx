@@ -1,11 +1,14 @@
-import React, { useState } from "react";
-import { Search, Package, MapPin, Calendar, CheckCircle2, AlertCircle, Clock, ChevronRight, Headset } from "lucide-react";
-import { cn } from "@/src/utils";
-import { Shipment } from "@/src/types";
+import React, { useState, ReactNode } from "react";
+import { Search, Package, MapPin, Calendar, CheckCircle2, AlertCircle, Clock, ChevronRight, Headset, User, LogOut, LayoutDashboard } from "lucide-react";
+import { cn } from "../../utils";
+import { Shipment } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../features/auth/AuthContext";
 
-export default function TrackingPage() {
-  const [trackingId, setTrackingId] = useState("");
+export default function TrackingPage(): ReactNode {
+  const { user, logout } = useAuth();
+  const [trackingId, setTrackingId] = useState<string>("");
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,16 +40,38 @@ export default function TrackingPage() {
 
       <header className="p-4 sm:p-6 lg:p-8 z-50 sticky top-0 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-xl border-b border-white/10 dark:border-slate-800/50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
-          >
+          <Link to="/" className="flex items-center gap-3">
             <div className="bg-gradient-to-tr from-primary to-primary-light p-2 rounded-xl shadow-lg shadow-primary/20">
               <Package className="text-white w-6 h-6" />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gradient">Lumin Logistics</h1>
-          </motion.div>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                <Link
+                  to={user.role === 'admin' ? '/admin' : user.role === 'operator' ? '/driver' : '/customer'}
+                  className="hidden sm:flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
+                >
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </Link>
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                >
+                  <LogOut className="w-4 h-4 text-rose-500" /> <span className="hidden sm:inline">Logout</span>
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="bg-primary text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -309,9 +334,9 @@ export default function TrackingPage() {
                 <p className="text-sm text-slate-600 dark:text-slate-400">Our support team is available 24/7.</p>
               </div>
             </div>
-            <button className="w-full sm:w-auto bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2">
+            <Link to="/customer/tickets" className="w-full sm:w-auto bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2">
               Contact Support <ChevronRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
         </motion.div>
       )}
@@ -319,7 +344,7 @@ export default function TrackingPage() {
   );
 }
 
-function ProgressStep({ active, completed, label }: { active: boolean; completed: boolean; label: string }) {
+function ProgressStep({ active, completed, label }: { active: boolean; completed: boolean; label: string }): ReactNode {
   return (
     <div className="flex flex-col items-center gap-3 w-16 sm:w-24">
       <div className={cn(

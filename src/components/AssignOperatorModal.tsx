@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { X, Search, User, CheckCircle2, Loader2 } from "lucide-react";
-import { Operator } from "@/src/types";
-import { cn } from "@/src/utils";
+import { Operator } from "../types";
+import { cn } from "../utils";
+import { apiFetch } from "../utils/api";
 
 interface AssignOperatorModalProps {
   shipmentId: string;
@@ -10,11 +11,11 @@ interface AssignOperatorModalProps {
   onAssign: (operatorId: string) => void;
 }
 
-export default function AssignOperatorModal({ 
-  shipmentId, 
-  currentOperatorId, 
-  onClose, 
-  onAssign 
+export default function AssignOperatorModal({
+  shipmentId,
+  currentOperatorId,
+  onClose,
+  onAssign
 }: AssignOperatorModalProps) {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +28,7 @@ export default function AssignOperatorModal({
 
   const fetchOperators = async () => {
     try {
-      const res = await fetch("/api/operators");
+      const res = await apiFetch("/api/operators");
       const data = await res.json();
       setOperators(data);
     } catch (err) {
@@ -40,9 +41,8 @@ export default function AssignOperatorModal({
   const handleAssign = async (operatorId: string) => {
     setAssigningId(operatorId);
     try {
-      const res = await fetch(`/api/shipments/${shipmentId}/assign`, {
+      const res = await apiFetch(`/api/shipments/${shipmentId}/assign`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ operator_id: operatorId })
       });
       if (res.ok) {
@@ -56,7 +56,7 @@ export default function AssignOperatorModal({
     }
   };
 
-  const filteredOperators = operators.filter(op => 
+  const filteredOperators = operators.filter(op =>
     op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     op.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,7 +78,7 @@ export default function AssignOperatorModal({
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input 
+            <input
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/50"
               placeholder="Search by name, email, or ID..."
               value={searchQuery}
@@ -96,14 +96,14 @@ export default function AssignOperatorModal({
             </div>
           ) : filteredOperators.length > 0 ? (
             filteredOperators.map(op => (
-              <button 
+              <button
                 key={op.id}
                 onClick={() => handleAssign(op.id)}
                 disabled={assigningId !== null}
                 className={cn(
                   "w-full p-4 rounded-xl border flex items-center justify-between transition-all text-left group",
-                  currentOperatorId === op.id 
-                    ? "border-primary bg-primary/5" 
+                  currentOperatorId === op.id
+                    ? "border-primary bg-primary/5"
                     : "border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
                 )}
               >
@@ -122,6 +122,14 @@ export default function AssignOperatorModal({
                       <span className="text-[10px] font-bold text-primary">
                         {op.assignedShipments?.length || 0} Active Loads
                       </span>
+                      {op.current_lat && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-slate-300" />
+                          <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

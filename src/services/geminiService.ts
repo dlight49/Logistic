@@ -1,9 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
 export async function generateShipmentSummary(shipmentData: any) {
   try {
+    // Determine API key depending on environment (Vite browser vs Node)
+    // @ts-ignore
+    const apiKey = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) || (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) || "";
+
+    if (!apiKey) {
+      console.warn("Gemini API key is missing. Skipping AI summary generation.");
+      return "AI summary is currently unavailable due to missing API key configuration.";
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
     const model = "gemini-3-flash-preview";
     const prompt = `
       As a logistics expert, provide a concise, professional summary and risk assessment for the following shipment:

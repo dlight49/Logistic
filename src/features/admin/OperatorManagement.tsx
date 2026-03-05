@@ -1,30 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { 
-  ArrowLeft, 
-  Users, 
-  Plus, 
-  Search, 
-  Phone, 
-  Mail, 
-  Package, 
-  Edit3, 
-  Save, 
+import React, { useState, useEffect, ReactNode } from "react";
+import {
+  ArrowLeft,
+  Users,
+  Plus,
+  Search,
+  Phone,
+  Mail,
+  Package,
+  Edit3,
+  Save,
   X,
   UserPlus
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { Operator } from "@/src/types";
-import { cn } from "@/src/utils";
-import AdminNav from "@/src/components/AdminNav";
+import { Operator } from "../../types";
+import { cn } from "../../utils";
+import { apiFetch } from "../../utils/api";
+import AdminNav from "../../components/AdminNav";
 
-export default function OperatorManagement() {
+export default function OperatorManagement(): ReactNode {
   const navigate = useNavigate();
   const [operators, setOperators] = useState<Operator[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [newOperator, setNewOperator] = useState({ name: "", email: "", phone: "", password: "" });
   const [editingOperator, setEditingOperator] = useState<Operator | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     fetchOperators();
@@ -33,7 +34,7 @@ export default function OperatorManagement() {
   const fetchOperators = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/operators");
+      const res = await apiFetch("/api/operators");
       const data = await res.json();
       setOperators(data);
     } catch (err) {
@@ -46,9 +47,8 @@ export default function OperatorManagement() {
   const handleAddOperator = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/operators", {
+      const res = await apiFetch("/api/operators", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newOperator)
       });
       if (res.ok) {
@@ -65,9 +65,8 @@ export default function OperatorManagement() {
     e.preventDefault();
     if (!editingOperator) return;
     try {
-      const res = await fetch(`/api/operators/${editingOperator.id}`, {
+      const res = await apiFetch(`/api/operators/${editingOperator.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingOperator)
       });
       if (res.ok) {
@@ -96,7 +95,7 @@ export default function OperatorManagement() {
             </div>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setShowAddModal(true)}
           className="bg-primary text-white p-2 rounded-lg shadow-lg shadow-primary/20 md:hidden"
         >
@@ -108,14 +107,14 @@ export default function OperatorManagement() {
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input 
+            <input
               className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary/50"
               placeholder="Search by name, email, or ID..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
-          <button 
+          <button
             onClick={() => setShowAddModal(true)}
             className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-xl shadow-primary/30 hover:scale-105 transition-transform active:scale-95"
           >
@@ -130,85 +129,85 @@ export default function OperatorManagement() {
         ) : (
           <div className="grid gap-4">
             {operators
-              .filter(op => 
+              .filter(op =>
                 op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 op.id.toLowerCase().includes(searchQuery.toLowerCase())
               )
               .map(op => (
-              <div key={op.id} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex gap-3">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
-                      <Users className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Link to={`/admin/operator/${op.id}`} className="font-bold text-slate-900 dark:text-slate-100 hover:text-primary transition-colors">
-                          {op.name}
+                <div key={op.id} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex gap-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                        <Users className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/admin/operator/${op.id}`} className="font-bold text-slate-900 dark:text-slate-100 hover:text-primary transition-colors">
+                            {op.name}
+                          </Link>
+                          <span className={cn(
+                            "text-xs font-black px-2.5 py-1 rounded-lg shadow-sm",
+                            (op.assignedShipments?.length || 0) > 3
+                              ? "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
+                              : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+                          )}>
+                            {op.assignedShipments?.length || 0} ACTIVE LOADS
+                          </span>
+                        </div>
+                        <Link to={`/admin/operator/${op.id}`} className="text-xs text-slate-500 hover:text-primary transition-colors">
+                          ID: {op.id}
                         </Link>
-                        <span className={cn(
-                          "text-xs font-black px-2.5 py-1 rounded-lg shadow-sm",
-                          (op.assignedShipments?.length || 0) > 3 
-                            ? "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400" 
-                            : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
-                        )}>
-                          {op.assignedShipments?.length || 0} ACTIVE LOADS
-                        </span>
                       </div>
-                      <Link to={`/admin/operator/${op.id}`} className="text-xs text-slate-500 hover:text-primary transition-colors">
-                        ID: {op.id}
-                      </Link>
+                    </div>
+                    <button
+                      onClick={() => setEditingOperator(op)}
+                      className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                      <Mail className="w-3 h-3" /> {op.email}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                      <Phone className="w-3 h-3" /> {op.phone || "No phone"}
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setEditingOperator(op)}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                    <Mail className="w-3 h-3" /> {op.email}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                    <Phone className="w-3 h-3" /> {op.phone || "No phone"}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assigned Shipments</p>
-                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      {op.assignedShipments?.length || 0} Active
-                    </span>
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {op.assignedShipments?.map(s => (
-                      <div key={s.id} className="flex-shrink-0 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <p className="text-[10px] font-bold">{s.id}</p>
-                        <p className="text-[8px] text-slate-500 uppercase">{s.status}</p>
-                      </div>
-                    ))}
-                    {(!op.assignedShipments || op.assignedShipments.length === 0) && (
-                      <p className="text-[10px] text-slate-400 italic">No shipments assigned</p>
-                    )}
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assigned Shipments</p>
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        {op.assignedShipments?.length || 0} Active
+                      </span>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {op.assignedShipments?.map(s => (
+                        <div key={s.id} className="flex-shrink-0 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                          <p className="text-[10px] font-bold">{s.id}</p>
+                          <p className="text-[8px] text-slate-500 uppercase">{s.status}</p>
+                        </div>
+                      ))}
+                      {(!op.assignedShipments || op.assignedShipments.length === 0) && (
+                        <p className="text-[10px] text-slate-400 italic">No shipments assigned</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {operators.length > 0 && operators.filter(op => 
-                op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                op.id.toLowerCase().includes(searchQuery.toLowerCase())
-              ).length === 0 && (
-              <div className="py-20 text-center text-slate-400 italic">
-                <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No operators found matching "{searchQuery}"</p>
-              </div>
-            )}
+              ))}
+            {operators.length > 0 && operators.filter(op =>
+              op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              op.id.toLowerCase().includes(searchQuery.toLowerCase())
+            ).length === 0 && (
+                <div className="py-20 text-center text-slate-400 italic">
+                  <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                  <p>No operators found matching "{searchQuery}"</p>
+                </div>
+              )}
           </div>
         )}
       </main>
@@ -226,42 +225,42 @@ export default function OperatorManagement() {
             <form onSubmit={handleAddOperator} className="p-6 space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
-                <input 
+                <input
                   required
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   placeholder="e.g. John Doe"
                   value={newOperator.name}
-                  onChange={e => setNewOperator({...newOperator, name: e.target.value})}
+                  onChange={e => setNewOperator({ ...newOperator, name: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
-                <input 
+                <input
                   required
                   type="email"
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   placeholder="john@logistics.com"
                   value={newOperator.email}
-                  onChange={e => setNewOperator({...newOperator, email: e.target.value})}
+                  onChange={e => setNewOperator({ ...newOperator, email: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Phone Number</label>
-                <input 
+                <input
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   placeholder="+1 (555) 000-0000"
                   value={newOperator.phone}
-                  onChange={e => setNewOperator({...newOperator, phone: e.target.value})}
+                  onChange={e => setNewOperator({ ...newOperator, phone: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Initial Password</label>
-                <input 
+                <input
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   placeholder="Leave blank for default"
                   type="password"
                   value={newOperator.password}
-                  onChange={e => setNewOperator({...newOperator, password: e.target.value})}
+                  onChange={e => setNewOperator({ ...newOperator, password: e.target.value })}
                 />
               </div>
               <button className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
@@ -285,33 +284,33 @@ export default function OperatorManagement() {
             <form onSubmit={handleUpdateOperator} className="p-6 space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
-                <input 
+                <input
                   required
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   value={editingOperator.name}
-                  onChange={e => setEditingOperator({...editingOperator, name: e.target.value})}
+                  onChange={e => setEditingOperator({ ...editingOperator, name: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
-                <input 
+                <input
                   required
                   type="email"
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   value={editingOperator.email}
-                  onChange={e => setEditingOperator({...editingOperator, email: e.target.value})}
+                  onChange={e => setEditingOperator({ ...editingOperator, email: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Phone Number</label>
-                <input 
+                <input
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
                   value={editingOperator.phone || ""}
-                  onChange={e => setEditingOperator({...editingOperator, phone: e.target.value})}
+                  onChange={e => setEditingOperator({ ...editingOperator, phone: e.target.value })}
                 />
               </div>
               <div className="flex gap-3 pt-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setEditingOperator(null)}
                   className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"

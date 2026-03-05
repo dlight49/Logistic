@@ -1,45 +1,41 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, ReactNode } from "react";
+import { useAuth } from "../auth/AuthContext";
 import {
   LayoutDashboard,
   Package,
   Users,
-  Settings,
   Bell,
   Search,
-  TrendingUp,
-  TrendingDown,
   Gavel,
   AlertTriangle,
   CheckCircle2,
   Plus,
-  ChevronRight,
-  Truck
+  Truck,
+  MessageSquare,
+  MessageCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Stats, Shipment } from "@/src/types";
-import { cn } from "@/src/utils";
-import AdminNav from "@/src/components/AdminNav";
-import AssignOperatorModal from "@/src/components/AssignOperatorModal";
+import { Stats, Shipment } from "../../types";
+import { cn } from "../../utils";
+import { apiFetch } from "../../utils/api";
+import AdminNav from "../../components/AdminNav";
+import AssignOperatorModal from "../../components/AssignOperatorModal";
+import LiveDispatchMap from "../../components/LiveDispatchMap";
 
-export default function AdminDashboard() {
+export default function AdminDashboard(): ReactNode {
+  const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [shipments, setShipments] = useState<Shipment[]>([]);
-  const [filterStatus, setFilterStatus] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterSenderCountry, setFilterSenderCountry] = useState("");
-  const [filterReceiverCountry, setFilterReceiverCountry] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filterSenderCountry, setFilterSenderCountry] = useState<string>("");
+  const [filterReceiverCountry, setFilterReceiverCountry] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
   const [assigningShipmentId, setAssigningShipmentId] = useState<string | null>(null);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  useEffect(() => {
-    fetch("/api/stats").then(res => res.json()).then(setStats);
-    fetchShipments();
-  }, [filterStatus, startDate, endDate, filterSenderCountry, filterReceiverCountry, filterType]);
-
-  const fetchShipments = async () => {
+  const fetchShipments = useCallback(async () => {
     const params = new URLSearchParams();
     if (filterStatus) params.append("status", filterStatus);
     if (startDate) params.append("start_date", startDate);
@@ -48,16 +44,29 @@ export default function AdminDashboard() {
     if (filterReceiverCountry) params.append("receiver_country", filterReceiverCountry);
     if (filterType) params.append("type", filterType);
 
-    fetch(`/api/shipments?${params.toString()}`)
+    apiFetch(`/api/shipments?${params.toString()}`)
       .then(res => res.json())
-      .then(setShipments);
-  };
+      .then(setShipments)
+      .catch(console.error);
+  }, [filterStatus, startDate, endDate, filterSenderCountry, filterReceiverCountry, filterType]);
 
-  const filteredShipments = shipments.filter(s =>
-    s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.receiver_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.receiver_city.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    apiFetch("/api/stats")
+      .then(res => res.json())
+      .then(setStats)
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    fetchShipments();
+  }, [fetchShipments]);
+
+  const filteredShipments = shipments.filter(s => {
+    const query = searchQuery.toLowerCase();
+    return (s.id || "").toLowerCase().includes(query) ||
+      (s.receiver_name || "").toLowerCase().includes(query) ||
+      (s.receiver_city || "").toLowerCase().includes(query);
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark font-sans relative overflow-hidden pb-20">
@@ -95,12 +104,23 @@ export default function AdminDashboard() {
         {/* Analytics Overview Section */}
         <section>
           <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 px-1">Network Status</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 sm:gap-6">
             <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="text-primary-light" />} />
             <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="text-accent" />} />
             <StatCard label="Customs Hold" value={stats?.inCustoms || 0} icon={<Gavel className="text-amber-500" />} color="text-amber-500" />
             <StatCard label="Exceptions" value={stats?.issues || 0} icon={<AlertTriangle className="text-rose-500" />} color="text-rose-500" />
+            <Link to="/admin/support" className="contents">
+              <StatCard label="Active Tickets" value={4} icon={<MessageSquare className="text-primary" />} color="text-primary" />
+            </Link>
+            <Link to="/admin/chat" className="contents">
+              <StatCard label="Fleet Messages" value={12} icon={<MessageCircle className="text-indigo-500" />} color="text-indigo-500" />
+            </Link>
           </div>
+        </section>
+
+        {/* Live Dispatch Map */}
+        <section>
+          <LiveDispatchMap />
         </section>
 
         {/* Filters & Search */}
@@ -266,7 +286,15 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ label, value, trend, icon, color = "text-slate-900 dark:text-white" }: any) {
+interface StatCardProps {
+  label: string;
+  value: number;
+  trend?: string;
+  icon: ReactNode;
+  color?: string;
+}
+
+function StatCard({ label, value, trend, icon, color = "text-slate-900 dark:text-white" }: StatCardProps): ReactNode {
   return (
     <div className="glass-panel p-5 rounded-2xl hover:-translate-y-1 transition-transform duration-300 group">
       <div className="flex justify-between items-start mb-4">

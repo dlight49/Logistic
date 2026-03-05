@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id
+  email     String?    @unique
+  role      String?
+  name      String?
+  phone     String?
+  current_lat Float?   // For drivers
+  current_lng Float?   // For drivers
+  shipments Shipment[] @relation("OperatorShipments")
+  tickets   SupportTicket[]
+}
+
+model SupportTicket {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id])
+  subject     String
+  status      String   @default("OPEN") // OPEN, CLOSED
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  created_at  DateTime @default(now())
+  messages    TicketMessage[]
+}
+
+model TicketMessage {
+  id          Int      @id @default(autoincrement())
+  ticket_id   String
+  ticket      SupportTicket @relation(fields: [ticket_id], references: [id])
+  sender_id   String
+  text        String
+  timestamp   DateTime @default(now())
+}
+
+model DirectMessage {
+  id          Int      @id @default(autoincrement())
+  sender_id   String
+  receiver_id String
+  text        String
+  timestamp   DateTime @default(now())
+}
+
+model Shipment {
+  id                String            @id
+  sender_name       String?
+  sender_city       String?
+  sender_country    String?
+  sender_address    String?
+  receiver_name     String?
+  receiver_city     String?
+  receiver_country  String?
+  receiver_address  String?
+  receiver_phone    String?
+  receiver_email    String?
+  status            String?
+  weight            Float?
+  type              String?
+  est_delivery      String?
+  estimated_cost    Float?            // For quotes
+  insurance_selected Boolean?         // For quotes
+  package_details   String?           // For quotes
+  operator_id       String?
+  operator          User?             @relation("OperatorShipments", fields: [operator_id], references: [id])
+  created_at        DateTime?         @default(now())
+  tracking_updates  TrackingUpdate[]
+  customs_docs      CustomsDoc[]
+  notification_logs NotificationLog[]
+}
+
+model TrackingUpdate {
+  id          Int       @id @default(autoincrement())
+  shipment_id String?
+  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
+  status      String?
+  location    String?
+  notes       String?
+  timestamp   DateTime? @default(now())
+}
+
+model CustomsDoc {
+  id          Int       @id @default(autoincrement())
+  shipment_id String?
+  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
+  doc_type    String?
+  status      String? // verified, pending, missing
+  file_url    String? // Link to uploaded document
+  uploaded_at DateTime?
+}
+
+model NotificationLog {
+  id          Int       @id @default(autoincrement())
+  user_id     String?
+  shipment_id String?
+  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
+  channel     String?   // EMAIL, SMS, PUSH
+  message     String?
+  status      String?   // SENT, FAILED, DELIVERED
+  timestamp   DateTime? @default(now())
+}
+
+model Setting {
+  key   String  @id
+  value String?
+}

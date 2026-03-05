@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Users, 
-  Mail, 
-  Phone, 
-  Package, 
-  Clock, 
+import {
+  ArrowLeft,
+  Users,
+  Mail,
+  Phone,
+  Package,
+  Clock,
   MapPin,
   AlertCircle
 } from "lucide-react";
-import { Operator } from "@/src/types";
-import AdminNav from "@/src/components/AdminNav";
+import { Operator } from "../../types";
+import { apiFetch } from "../../utils/api";
+import AdminNav from "../../components/AdminNav";
 
 export default function OperatorProfileView() {
   const { id } = useParams();
@@ -25,7 +26,7 @@ export default function OperatorProfileView() {
 
   const fetchOperator = async () => {
     try {
-      const res = await fetch("/api/operators");
+      const res = await apiFetch("/api/operators");
       const data = await res.json();
       const found = data.find((op: Operator) => op.id === id);
       setOperator(found || null);
@@ -70,7 +71,7 @@ export default function OperatorProfileView() {
           </div>
           <h2 className="text-2xl font-bold">{operator.name}</h2>
           <p className="text-sm text-slate-500 mb-4">ID: {operator.id}</p>
-          
+
           <div className="flex gap-4 w-full pt-4 border-t border-slate-100 dark:border-slate-800">
             <div className="flex-1 text-center">
               <p className="text-xl font-bold text-primary">{operator.assignedShipments?.length || 0}</p>

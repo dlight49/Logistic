@@ -1,338 +1,108 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import Database from "better-sqlite3";
+import { prisma } from "./src/backend/config/db.js";
+import apiRoutes from "./src/backend/routes/index.js";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db = new Database("logistics.db");
+async function seedDatabase() {
+  try {
+    const settingsCount = await prisma.setting.count();
+    if (settingsCount === 0) {
+      await prisma.setting.createMany({
+        data: [
+          { key: 'notify_sms', value: 'true' },
+          { key: 'notify_email', value: 'true' },
+          { key: 'alert_created', value: 'true' },
+          { key: 'alert_arrived', value: 'true' },
+          { key: 'alert_customs', value: 'true' },
+          { key: 'alert_delivered', value: 'true' }
+        ]
+      });
+    }
 
-// Initialize Database Schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    email TEXT UNIQUE,
-    password TEXT,
-    role TEXT,
-    name TEXT,
-    phone TEXT
-  );
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      await prisma.user.createMany({
+        data: [
+          { id: "1", email: "admin@logistics.com", role: "admin", name: "Alex Rivera", phone: "555-0100" },
+          { id: "2", email: "driver@logistics.com", role: "operator", name: "John Driver", phone: "555-0101" },
+          { id: "3", email: "customer@logistics.com", role: "customer", name: "Jane Customer", phone: "555-0202" }
+        ]
+      });
 
-  CREATE TABLE IF NOT EXISTS shipments (
-    id TEXT PRIMARY KEY,
-    sender_name TEXT,
-    sender_city TEXT,
-    sender_country TEXT,
-    sender_address TEXT,
-    receiver_name TEXT,
-    receiver_city TEXT,
-    receiver_country TEXT,
-    receiver_address TEXT,
-    receiver_phone TEXT,
-    receiver_email TEXT,
-    status TEXT,
-    weight REAL,
-    type TEXT,
-    est_delivery TEXT,
-    operator_id TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(operator_id) REFERENCES users(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS tracking_updates (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    shipment_id TEXT,
-    status TEXT,
-    location TEXT,
-    notes TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(shipment_id) REFERENCES shipments(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS customs_docs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    shipment_id TEXT,
-    doc_type TEXT,
-    status TEXT, -- verified, pending, missing
-    uploaded_at DATETIME,
-    FOREIGN KEY(shipment_id) REFERENCES shipments(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS notification_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    shipment_id TEXT,
-    channel TEXT,
-    message TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(shipment_id) REFERENCES shipments(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS settings (
-    key TEXT PRIMARY KEY,
-    value TEXT
-  );
-`);
-
-// Migration: Add phone to users and operator_id to shipments if they don't exist
-try {
-  db.prepare("ALTER TABLE users ADD COLUMN phone TEXT").run();
-} catch (e) {}
-try {
-  db.prepare("ALTER TABLE shipments ADD COLUMN operator_id TEXT").run();
-} catch (e) {}
-
-// Seed default settings
-const settingsCount = db.prepare("SELECT count(*) as count FROM settings").get() as { count: number };
-if (settingsCount.count === 0) {
-  const defaultSettings = [
-    { key: 'notify_sms', value: 'true' },
-    { key: 'notify_email', value: 'true' },
-    { key: 'alert_created', value: 'true' },
-    { key: 'alert_arrived', value: 'true' },
-    { key: 'alert_customs', value: 'true' },
-    { key: 'alert_delivered', value: 'true' }
-  ];
-  const insertSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
-  defaultSettings.forEach(s => insertSetting.run(s.key, s.value));
+      // Give the customer some dummy shipments to look at
+      await prisma.shipment.createMany({
+        data: [
+          {
+            id: "GS-2026-X8Y2",
+            sender_name: "Acme Corp", sender_city: "New York", sender_country: "USA", sender_address: "123 Broad St",
+            receiver_name: "Jane Customer", receiver_city: "London", receiver_country: "UK", receiver_address: "456 Narrow St", receiver_email: "customer@logistics.com", receiver_phone: "555-0202",
+            status: "In Transit", weight: 15, type: "Standard", est_delivery: "Oct 12, 2026"
+          },
+          {
+            id: "GS-2026-A1B2",
+            sender_name: "Tech Flow", sender_city: "Berlin", sender_country: "GER", sender_address: "789 Tech Ave",
+            receiver_name: "Jane Customer", receiver_city: "Paris", receiver_country: "FRA", receiver_address: "101 River Rd", receiver_email: "customer@logistics.com", receiver_phone: "555-0202",
+            status: "Delivered", weight: 2.5, type: "Express", est_delivery: "Oct 10, 2026"
+          },
+        ]
+      });
+    }
+  } catch (error) {
+    console.error("Failed to seed database:", error);
+  }
 }
 
-// Seed initial data if empty
-const userCount = db.prepare("SELECT count(*) as count FROM users").get() as { count: number };
-if (userCount.count === 0) {
-  db.prepare("INSERT INTO users (id, email, password, role, name) VALUES (?, ?, ?, ?, ?)").run(
-    "1", "admin@logistics.com", "admin123", "admin", "Alex Rivera"
-  );
-  db.prepare("INSERT INTO users (id, email, password, role, name) VALUES (?, ?, ?, ?, ?)").run(
-    "2", "driver@logistics.com", "driver123", "operator", "John Driver"
-  );
-}
+seedDatabase();
 
 async function startServer() {
+  console.log("=== Server Starting with Catch-All Fix ===");
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
 
-  // API Routes
-  app.post("/api/login", (req, res) => {
-    const { email, password } = req.body;
-    const user = db.prepare("SELECT id, email, name, role, phone FROM users WHERE (email = ? OR id = ?) AND password = ?")
-      .get(email, email, password);
-    
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
+  // Artificial Delay for Premium UI feel
+  app.use(async (req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.path}`);
+    if (req.path.startsWith('/api/')) {
+      await new Promise(r => setTimeout(r, 500));
     }
+    next();
   });
 
-  app.get("/api/shipments", (req, res) => {
-    const { status, start_date, end_date, sender_country, receiver_country, type, operator_id } = req.query;
-    let query = "SELECT * FROM shipments WHERE 1=1";
-    const params: any[] = [];
+  // Modular routes
+  app.use('/api', apiRoutes);
 
-    if (status) {
-      query += " AND status = ?";
-      params.push(status);
+  // Real GPS Tracking Endpoint
+  app.put('/api/driver/location', async (req, res) => {
+    const { userId, lat, lng } = req.body;
+    if (!userId || lat === undefined || lng === undefined) {
+      return res.status(400).json({ error: "Missing userId, lat, or lng" });
     }
-    if (start_date) {
-      query += " AND created_at >= ?";
-      params.push(start_date);
-    }
-    if (end_date) {
-      query += " AND created_at <= ?";
-      params.push(`${end_date} 23:59:59`);
-    }
-    if (sender_country) {
-      query += " AND sender_country = ?";
-      params.push(sender_country);
-    }
-    if (receiver_country) {
-      query += " AND receiver_country = ?";
-      params.push(receiver_country);
-    }
-    if (type) {
-      query += " AND type = ?";
-      params.push(type);
-    }
-    if (operator_id) {
-      query += " AND operator_id = ?";
-      params.push(operator_id);
-    }
-
-    query += " ORDER BY created_at DESC";
-    const shipments = db.prepare(query).all(...params);
-    res.json(shipments);
-  });
-
-  app.get("/api/operators", (req, res) => {
-    const operators = db.prepare("SELECT id, name, email, phone, role FROM users WHERE role = 'operator'").all();
-    const operatorsWithShipments = operators.map((op: any) => {
-      const assignedShipments = db.prepare("SELECT id, status FROM shipments WHERE operator_id = ?").all(op.id);
-      return { ...op, assignedShipments };
-    });
-    res.json(operatorsWithShipments);
-  });
-
-  app.post("/api/operators", (req, res) => {
-    const { name, email, phone, password } = req.body;
-    const id = Math.random().toString(36).substring(2, 10);
     try {
-      db.prepare("INSERT INTO users (id, name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, 'operator')")
-        .run(id, name, email, phone, password || "driver123");
-      res.status(201).json({ id });
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
-  app.patch("/api/operators/:id", (req, res) => {
-    const { name, email, phone } = req.body;
-    db.prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ? AND role = 'operator'")
-      .run(name, email, phone, req.params.id);
-    res.json({ success: true });
-  });
-
-  app.post("/api/shipments/:id/assign", (req, res) => {
-    const { operator_id } = req.body;
-    db.prepare("UPDATE shipments SET operator_id = ? WHERE id = ?").run(operator_id, req.params.id);
-    res.json({ success: true });
-  });
-
-  app.get("/api/shipments/:id", (req, res) => {
-    const shipment = db.prepare("SELECT * FROM shipments WHERE id = ?").get(req.params.id);
-    if (!shipment) return res.status(404).json({ error: "Shipment not found" });
-    
-    const updates = db.prepare("SELECT * FROM tracking_updates WHERE shipment_id = ? ORDER BY timestamp DESC").all(req.params.id);
-    const docs = db.prepare("SELECT * FROM customs_docs WHERE shipment_id = ?").all(req.params.id);
-    
-    res.json({ ...shipment, updates, docs });
-  });
-
-  app.post("/api/shipments/:id/docs", (req, res) => {
-    const { doc_type } = req.body;
-    const shipmentId = req.params.id;
-    const uploaded_at = new Date().toISOString();
-    
-    try {
-      db.prepare("INSERT INTO customs_docs (shipment_id, doc_type, status, uploaded_at) VALUES (?, ?, 'pending', ?)")
-        .run(shipmentId, doc_type, uploaded_at);
-      res.status(201).json({ success: true });
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
-  app.patch("/api/docs/:id", (req, res) => {
-    const { status } = req.body;
-    const docId = req.params.id;
-    
-    try {
-      db.prepare("UPDATE customs_docs SET status = ? WHERE id = ?").run(status, docId);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { current_lat: lat, current_lng: lng }
+      });
       res.json({ success: true });
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
+    } catch (err) {
+      console.error("Failed to update location:", err);
+      res.status(500).json({ error: "Database update failed" });
     }
   });
 
-  app.post("/api/shipments", (req, res) => {
-    const { 
-      sender_name, sender_city, sender_country, sender_address,
-      receiver_name, receiver_city, receiver_country, receiver_address, receiver_phone, receiver_email,
-      weight, type, est_delivery 
-    } = req.body;
+  console.log("[Server] API routes registered");
 
-    const id = `GS-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    
-    const insert = db.prepare(`
-      INSERT INTO shipments (
-        id, sender_name, sender_city, sender_country, sender_address,
-        receiver_name, receiver_city, receiver_country, receiver_address, receiver_phone, receiver_email,
-        status, weight, type, est_delivery
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    );
-  `);
-
-    insert.run(
-      id, sender_name, sender_city, sender_country, sender_address,
-      receiver_name, receiver_city, receiver_country, receiver_address, receiver_phone, receiver_email,
-      "Order Created", weight, type, est_delivery
-    );
-
-    db.prepare("INSERT INTO tracking_updates (shipment_id, status, location, notes) VALUES (?, ?, ?, ?)")
-      .run(id, "Order Created", `${sender_city}, ${sender_country}`, "Shipment information received");
-
-    res.status(201).json({ id });
-  });
-
-  app.post("/api/shipments/:id/updates", (req, res) => {
-    const { status, location, notes } = req.body;
-    const shipmentId = req.params.id;
-
-    db.prepare("INSERT INTO tracking_updates (shipment_id, status, location, notes) VALUES (?, ?, ?, ?)")
-      .run(shipmentId, status, location, notes);
-
-    db.prepare("UPDATE shipments SET status = ? WHERE id = ?").run(status, shipmentId);
-
-    // Mock Notification Trigger
-    db.prepare("INSERT INTO notification_logs (shipment_id, channel, message) VALUES (?, ?, ?)")
-      .run(shipmentId, "Email", `Status update for ${shipmentId}: ${status}`);
-
-    res.json({ success: true });
-  });
-
-  app.get("/api/stats", (req, res) => {
-    const total = db.prepare("SELECT count(*) as count FROM shipments").get() as any;
-    const inTransit = db.prepare("SELECT count(*) as count FROM shipments WHERE status = 'In Transit'").get() as any;
-    const inCustoms = db.prepare("SELECT count(*) as count FROM shipments WHERE status = 'Held by Customs'").get() as any;
-    const issues = db.prepare("SELECT count(*) as count FROM shipments WHERE status = 'Delayed'").get() as any;
-    const delivered = db.prepare("SELECT count(*) as count FROM shipments WHERE status = 'Delivered'").get() as any;
-
-    res.json({
-      total: total.count,
-      inTransit: inTransit.count,
-      inCustoms: inCustoms.count,
-      issues: issues.count,
-      delivered: delivered.count
-    });
-  });
-
-  app.get("/api/stats/driver/:id", (req, res) => {
-    const id = req.params.id;
-    const active = db.prepare("SELECT count(*) as count FROM shipments WHERE operator_id = ? AND status NOT IN ('Delivered', 'Cancelled')").get(id) as any;
-    const pending = db.prepare("SELECT count(*) as count FROM shipments WHERE operator_id = ? AND status = 'Order Created'").get(id) as any;
-    const done = db.prepare("SELECT count(*) as count FROM shipments WHERE operator_id = ? AND status = 'Delivered'").get(id) as any;
-
-    res.json({
-      active: active.count,
-      pending: pending.count,
-      done: done.count
-    });
-  });
-
-  app.get("/api/settings", (req, res) => {
-    const settings = db.prepare("SELECT * FROM settings").all();
-    const settingsObj = settings.reduce((acc: any, s: any) => {
-      acc[s.key] = s.value === 'true';
-      return acc;
-    }, {});
-    res.json(settingsObj);
-  });
-
-  app.patch("/api/settings", (req, res) => {
-    const updates = req.body;
-    const updateStmt = db.prepare("UPDATE settings SET value = ? WHERE key = ?");
-    Object.entries(updates).forEach(([key, value]) => {
-      updateStmt.run(String(value), key);
-    });
-    res.json({ success: true });
-  });
-
-  app.get("/api/notifications/logs", (req, res) => {
-    const logs = db.prepare("SELECT * FROM notification_logs ORDER BY timestamp DESC LIMIT 20").all();
-    res.json(logs);
+  // Global Error Handler
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("API Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   });
 
   // Vite middleware for development
@@ -342,6 +112,22 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
+
+    app.get('*', async (req, res, next) => {
+      if (req.path.startsWith('/api/')) return next();
+
+      const url = req.originalUrl;
+      console.log(`[Dev Server] Serving index.html for ${url}`);
+      try {
+        let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        console.error(`[Dev Server] Error transformation HTML:`, e);
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     app.use(express.static(path.join(__dirname, "dist")));
     app.get("*", (req, res) => {
@@ -354,4 +140,6 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("Critical Server Start Failure:", err);
+});

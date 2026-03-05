@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, InputHTMLAttributes, ReactNode } from "react";
 import { ArrowLeft, User, MapPin, Package, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { apiFetch } from "../../utils/api";
 
-export default function CreateShipment() {
+export default function CreateShipment(): ReactNode {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     sender_name: "",
@@ -20,14 +21,17 @@ export default function CreateShipment() {
     est_delivery: ""
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const res = await fetch("/api/shipments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
-    });
-    if (res.ok) navigate("/admin");
+    try {
+      const res = await apiFetch("/api/shipments", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) navigate("/admin");
+    } catch (error) {
+      console.error("Failed to create shipment:", error);
+    }
   };
 
   return (
@@ -49,10 +53,10 @@ export default function CreateShipment() {
               <h2 className="text-lg font-semibold">Customer Information</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Customer Name" placeholder="John Doe" value={formData.receiver_name} onChange={v => setFormData({...formData, receiver_name: v})} />
-              <Input label="Phone Number" placeholder="+1 (555) 000-0000" value={formData.receiver_phone} onChange={v => setFormData({...formData, receiver_phone: v})} />
+              <Input label="Customer Name" placeholder="John Doe" value={formData.receiver_name} onChange={v => setFormData({ ...formData, receiver_name: v })} />
+              <Input label="Phone Number" placeholder="+1 (555) 000-0000" value={formData.receiver_phone} onChange={v => setFormData({ ...formData, receiver_phone: v })} />
               <div className="md:col-span-2">
-                <Input label="Email Address" placeholder="customer@example.com" value={formData.receiver_email} onChange={v => setFormData({...formData, receiver_email: v})} />
+                <Input label="Email Address" placeholder="customer@example.com" value={formData.receiver_email} onChange={v => setFormData({ ...formData, receiver_email: v })} />
               </div>
             </div>
           </section>
@@ -63,19 +67,19 @@ export default function CreateShipment() {
               <h2 className="text-lg font-semibold">Logistics Details</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Origin City" placeholder="Lagos" value={formData.sender_city} onChange={v => setFormData({...formData, sender_city: v})} />
-              <Input label="Origin Country" placeholder="Nigeria" value={formData.sender_country} onChange={v => setFormData({...formData, sender_country: v})} />
-              <Input label="Destination City" placeholder="New York" value={formData.receiver_city} onChange={v => setFormData({...formData, receiver_city: v})} />
-              <Input label="Destination Country" placeholder="USA" value={formData.receiver_country} onChange={v => setFormData({...formData, receiver_country: v})} />
+              <Input label="Origin City" placeholder="Lagos" value={formData.sender_city} onChange={v => setFormData({ ...formData, sender_city: v })} />
+              <Input label="Origin Country" placeholder="Nigeria" value={formData.sender_country} onChange={v => setFormData({ ...formData, sender_country: v })} />
+              <Input label="Destination City" placeholder="New York" value={formData.receiver_city} onChange={v => setFormData({ ...formData, receiver_city: v })} />
+              <Input label="Destination Country" placeholder="USA" value={formData.receiver_country} onChange={v => setFormData({ ...formData, receiver_country: v })} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Destination Address</label>
-              <textarea 
+              <textarea
                 className="w-full rounded-lg border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Street Address, City, State, ZIP"
                 rows={3}
                 value={formData.receiver_address}
-                onChange={e => setFormData({...formData, receiver_address: e.target.value})}
+                onChange={e => setFormData({ ...formData, receiver_address: e.target.value })}
               />
             </div>
           </section>
@@ -88,18 +92,18 @@ export default function CreateShipment() {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Shipment Type</label>
-                <select 
+                <select
                   className="w-full rounded-lg border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3"
                   value={formData.type}
-                  onChange={e => setFormData({...formData, type: e.target.value})}
+                  onChange={e => setFormData({ ...formData, type: e.target.value })}
                 >
                   <option>Air Freight</option>
                   <option>Sea Freight</option>
                   <option>Road Transport</option>
                 </select>
               </div>
-              <Input label="Weight (kg)" type="number" placeholder="0.00" value={formData.weight.toString()} onChange={v => setFormData({...formData, weight: parseFloat(v)})} />
-              <Input label="Est. Delivery" type="date" value={formData.est_delivery} onChange={v => setFormData({...formData, est_delivery: v})} />
+              <Input label="Weight (kg)" type="number" placeholder="0.00" value={formData.weight.toString()} onChange={v => setFormData({ ...formData, weight: parseFloat(v) })} />
+              <Input label="Est. Delivery" type="date" value={formData.est_delivery} onChange={v => setFormData({ ...formData, est_delivery: v })} />
             </div>
           </section>
 
@@ -117,14 +121,25 @@ export default function CreateShipment() {
   );
 }
 
-function Input({ label, ...props }: any) {
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+  label: string;
+  onChange?: (value: string) => void;
+}
+
+function Input({ label, onChange, ...props }: InputProps): ReactNode {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(e.target.value);
+  };
+
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
-      <input 
+      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        {label}
+      </label>
+      <input
         className="w-full rounded-lg border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
         {...props}
-        onChange={e => props.onChange(e.target.value)}
+        onChange={handleChange}
       />
     </div>
   );

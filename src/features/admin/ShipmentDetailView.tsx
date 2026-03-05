@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Package, 
-  User, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Gavel, 
-  FileText, 
-  Truck, 
+import {
+  ArrowLeft,
+  Package,
+  User,
+  MapPin,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Gavel,
+  FileText,
+  Truck,
   ChevronRight,
   MoreVertical,
   Edit3,
@@ -20,20 +20,21 @@ import {
   Loader2
 } from "lucide-react";
 import Markdown from "react-markdown";
-import { Shipment, Operator } from "@/src/types";
-import { cn } from "@/src/utils";
-import AssignOperatorModal from "@/src/components/AssignOperatorModal";
-import { generateShipmentSummary } from "@/src/services/geminiService";
+import { Shipment, Operator } from "../../types";
+import { cn } from "../../utils";
+import { apiFetch } from "../../utils/api";
+import AssignOperatorModal from "../../components/AssignOperatorModal";
+import { generateShipmentSummary } from "../../services/geminiService";
 
-export default function ShipmentDetailView() {
+export default function ShipmentDetailView(): ReactNode {
   const { id } = useParams();
   const navigate = useNavigate();
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [operators, setOperators] = useState<Operator[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showAssignModal, setShowAssignModal] = useState<boolean>(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [generatingAi, setGeneratingAi] = useState(false);
+  const [generatingAi, setGeneratingAi] = useState<boolean>(false);
 
   useEffect(() => {
     fetchShipment();
@@ -42,7 +43,7 @@ export default function ShipmentDetailView() {
 
   const fetchShipment = async () => {
     try {
-      const res = await fetch(`/api/shipments/${id}`);
+      const res = await apiFetch(`/api/shipments/${id}`);
       const data = await res.json();
       setShipment(data);
     } catch (err) {
@@ -54,7 +55,7 @@ export default function ShipmentDetailView() {
 
   const fetchOperators = async () => {
     try {
-      const res = await fetch("/api/operators");
+      const res = await apiFetch("/api/operators");
       const data = await res.json();
       setOperators(data);
     } catch (err) {
@@ -112,9 +113,9 @@ export default function ShipmentDetailView() {
         {/* Status Banner */}
         <div className={cn(
           "p-4 rounded-2xl border flex items-center justify-between",
-          shipment.status === 'Delivered' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : 
-          shipment.status === 'Held by Customs' ? "bg-amber-500/10 border-amber-500/20 text-amber-600" :
-          "bg-primary/10 border-primary/20 text-primary"
+          shipment.status === 'Delivered' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" :
+            shipment.status === 'Held by Customs' ? "bg-amber-500/10 border-amber-500/20 text-amber-600" :
+              "bg-primary/10 border-primary/20 text-primary"
         )}>
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-6 h-6" />
@@ -165,7 +166,7 @@ export default function ShipmentDetailView() {
               <Users className="w-4 h-4" />
               <h3 className="text-xs font-bold uppercase tracking-wider">Assigned Operator</h3>
             </div>
-            <button 
+            <button
               onClick={() => setShowAssignModal(true)}
               className="text-xs font-bold text-primary hover:underline"
             >
@@ -185,7 +186,7 @@ export default function ShipmentDetailView() {
           ) : (
             <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
               <p className="text-xs text-slate-500 italic">No operator assigned yet</p>
-              <button 
+              <button
                 onClick={() => setShowAssignModal(true)}
                 className="bg-primary text-white px-3 py-1 rounded-lg text-[10px] font-bold"
               >
@@ -203,7 +204,7 @@ export default function ShipmentDetailView() {
               <h3 className="text-xs font-bold uppercase tracking-wider">AI Shipment Summary</h3>
             </div>
             {!aiSummary && !generatingAi && (
-              <button 
+              <button
                 onClick={handleGenerateAiSummary}
                 className="text-[10px] font-bold bg-primary text-white px-3 py-1.5 rounded-lg shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-1"
               >
@@ -211,7 +212,7 @@ export default function ShipmentDetailView() {
               </button>
             )}
           </div>
-          
+
           {generatingAi ? (
             <div className="flex flex-col items-center justify-center py-6 gap-3">
               <Loader2 className="w-6 h-6 text-primary animate-spin" />
@@ -220,7 +221,7 @@ export default function ShipmentDetailView() {
           ) : aiSummary ? (
             <div className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
               <Markdown>{aiSummary}</Markdown>
-              <button 
+              <button
                 onClick={handleGenerateAiSummary}
                 className="mt-4 text-[10px] font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-1"
               >
@@ -255,8 +256,8 @@ export default function ShipmentDetailView() {
                 </div>
                 <span className={cn(
                   "text-[10px] font-bold px-2 py-1 rounded-full uppercase",
-                  doc.status === 'verified' ? "bg-emerald-500/10 text-emerald-500" : 
-                  doc.status === 'pending' ? "bg-amber-500/10 text-amber-500" : "bg-rose-500/10 text-rose-500"
+                  doc.status === 'verified' ? "bg-emerald-500/10 text-emerald-500" :
+                    doc.status === 'pending' ? "bg-amber-500/10 text-amber-500" : "bg-rose-500/10 text-rose-500"
                 )}>
                   {doc.status}
                 </span>
@@ -303,7 +304,7 @@ export default function ShipmentDetailView() {
 
       {/* Assign Operator Modal */}
       {showAssignModal && (
-        <AssignOperatorModal 
+        <AssignOperatorModal
           shipmentId={shipment.id}
           currentOperatorId={shipment.operator_id}
           onClose={() => setShowAssignModal(false)}

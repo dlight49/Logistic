@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode, HTMLAttributes, Key } from "react";
 import { ArrowLeft, Search, MessageSquare, Mail, Bell, Edit3, Truck, AlertTriangle, CheckCircle2, Package, LayoutDashboard, BarChart4, Settings as SettingsIcon } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
-import { cn } from "@/src/utils";
-import AdminNav from "@/src/components/AdminNav";
+import { cn } from "../../utils";
+import { apiFetch } from "../../utils/api";
+import AdminNav from "../../components/AdminNav";
 
 export default function NotificationSettings() {
   const navigate = useNavigate();
@@ -12,8 +13,8 @@ export default function NotificationSettings() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/settings").then(res => res.json()),
-      fetch("/api/notifications/logs").then(res => res.json())
+      apiFetch("/api/settings").then(res => res.json()),
+      apiFetch("/api/notifications/logs").then(res => res.json())
     ]).then(([settingsData, logsData]) => {
       setSettings(settingsData);
       setLogs(logsData);
@@ -24,9 +25,8 @@ export default function NotificationSettings() {
   const toggleSetting = async (key: string) => {
     const newValue = !settings[key];
     setSettings({ ...settings, [key]: newValue });
-    await fetch("/api/settings", {
+    await apiFetch("/api/settings", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [key]: newValue })
     });
   };
@@ -53,17 +53,17 @@ export default function NotificationSettings() {
         <section className="p-4">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 px-1">Global Channels</h2>
           <div className="space-y-3">
-            <ChannelCard 
-              icon={<MessageSquare className="w-6 h-6" />} 
-              title="SMS Notifications" 
-              desc="Primary gateway for instant alerts" 
+            <ChannelCard
+              icon={<MessageSquare className="w-6 h-6" />}
+              title="SMS Notifications"
+              desc="Primary gateway for instant alerts"
               checked={settings.notify_sms}
               onChange={() => toggleSetting('notify_sms')}
             />
-            <ChannelCard 
-              icon={<Mail className="w-6 h-6" />} 
-              title="Email Notifications" 
-              desc="Detailed reports and documentation" 
+            <ChannelCard
+              icon={<Mail className="w-6 h-6" />}
+              title="Email Notifications"
+              desc="Detailed reports and documentation"
               checked={settings.notify_email}
               onChange={() => toggleSetting('notify_email')}
             />
@@ -73,27 +73,27 @@ export default function NotificationSettings() {
         <section className="p-4">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 px-1">Shipment Status Alerts</h2>
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
-            <AlertToggle 
-              icon={<Bell className="text-accent w-4 h-4" />} 
-              title="Order Created" 
+            <AlertToggle
+              icon={<Bell className="text-accent w-4 h-4" />}
+              title="Order Created"
               checked={settings.alert_created}
               onChange={() => toggleSetting('alert_created')}
             />
-            <AlertToggle 
-              icon={<Truck className="text-accent w-4 h-4" />} 
-              title="Arrived at Destination" 
+            <AlertToggle
+              icon={<Truck className="text-accent w-4 h-4" />}
+              title="Arrived at Destination"
               checked={settings.alert_arrived}
               onChange={() => toggleSetting('alert_arrived')}
             />
-            <AlertToggle 
-              icon={<AlertTriangle className="text-red-500 w-4 h-4" />} 
-              title="Held by Customs" 
+            <AlertToggle
+              icon={<AlertTriangle className="text-red-500 w-4 h-4" />}
+              title="Held by Customs"
               checked={settings.alert_customs}
               onChange={() => toggleSetting('alert_customs')}
             />
-            <AlertToggle 
-              icon={<CheckCircle2 className="text-green-500 w-4 h-4" />} 
-              title="Delivered" 
+            <AlertToggle
+              icon={<CheckCircle2 className="text-green-500 w-4 h-4" />}
+              title="Delivered"
               checked={settings.alert_delivered}
               onChange={() => toggleSetting('alert_delivered')}
             />
@@ -110,11 +110,11 @@ export default function NotificationSettings() {
               <p className="text-sm text-slate-500 italic text-center py-4">No notification logs yet</p>
             ) : (
               logs.map(log => (
-                <LogItem 
+                <LogItem
                   key={log.id}
-                  color={log.channel === 'Email' ? "bg-primary" : "bg-accent"} 
-                  text={log.message} 
-                  sub={`${log.channel} • ${new Date(log.timestamp).toLocaleString()}`} 
+                  color={log.channel === 'Email' ? "bg-primary" : "bg-accent"}
+                  text={log.message}
+                  sub={`${log.channel} • ${new Date(log.timestamp).toLocaleString()}`}
                 />
               ))
             )}
@@ -127,7 +127,15 @@ export default function NotificationSettings() {
   );
 }
 
-function ChannelCard({ icon, title, desc, checked, onChange }: any) {
+interface ChannelCardProps {
+  icon: ReactNode;
+  title: string;
+  desc: string;
+  checked: boolean;
+  onChange: () => void;
+}
+
+function ChannelCard({ icon, title, desc, checked, onChange }: ChannelCardProps) {
   return (
     <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
       <div className="flex items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent shrink-0 size-12">
@@ -142,7 +150,14 @@ function ChannelCard({ icon, title, desc, checked, onChange }: any) {
   );
 }
 
-function AlertToggle({ icon, title, checked, onChange }: any) {
+interface AlertToggleProps {
+  icon: ReactNode;
+  title: string;
+  checked: boolean;
+  onChange: () => void;
+}
+
+function AlertToggle({ icon, title, checked, onChange }: AlertToggleProps) {
   return (
     <div className="p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -159,7 +174,14 @@ function AlertToggle({ icon, title, checked, onChange }: any) {
   );
 }
 
-function LogItem({ color, text, sub }: any) {
+interface LogItemProps {
+  key?: Key;
+  color: string;
+  text: string;
+  sub: string;
+}
+
+function LogItem({ color, text, sub }: LogItemProps) {
   return (
     <div className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
       <div className={cn("size-2 rounded-full", color)}></div>
@@ -172,7 +194,13 @@ function LogItem({ color, text, sub }: any) {
   );
 }
 
-function Switch({ small, checked, onChange }: any) {
+interface SwitchProps {
+  small?: boolean;
+  checked: boolean;
+  onChange: () => void;
+}
+
+function Switch({ small, checked, onChange }: SwitchProps) {
   return (
     <label className={cn("relative flex cursor-pointer items-center rounded-full bg-slate-300 dark:bg-slate-800 p-1 has-[:checked]:bg-accent transition-colors", small ? "h-6 w-10" : "h-7 w-12")}>
       <input checked={checked} className="sr-only peer" type="checkbox" onChange={onChange} />
@@ -181,10 +209,10 @@ function Switch({ small, checked, onChange }: any) {
   );
 }
 
-function ChevronRight(props: any) {
-  return <span className="material-symbols-outlined">chevron_right</span>;
+function ChevronRight(props: HTMLAttributes<HTMLSpanElement>) {
+  return <span {...props} className="material-symbols-outlined">chevron_right</span>;
 }
 
-function Warning(props: any) {
-  return <span className="material-symbols-outlined">warning</span>;
+function Warning(props: HTMLAttributes<HTMLSpanElement>) {
+  return <span {...props} className="material-symbols-outlined">warning</span>;
 }

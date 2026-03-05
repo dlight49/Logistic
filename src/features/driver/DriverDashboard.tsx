@@ -1,34 +1,42 @@
-import { useState, useEffect } from "react";
-import { 
-  Truck, 
-  Package, 
-  MapPin, 
-  ChevronRight, 
-  TrendingUp, 
-  TrendingDown, 
+import { useState, useEffect, ReactNode } from "react";
+import { useAuth } from "../auth/AuthContext";
+import {
+  Truck,
+  Package,
+  MapPin,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
   Minus,
   Bell,
   Menu,
   Clock,
-  LogOut
+  LogOut,
+  MessageCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Shipment } from "@/src/types";
-import { cn } from "@/src/utils";
+import { motion, Variants } from "motion/react";
+import { Shipment } from "../../types";
+import { cn } from "../../utils";
+import { apiFetch } from "../../utils/api";
 
-export default function DriverDashboard() {
+import { useDriverTracking } from "../../hooks/useDriverTracking";
+
+export default function DriverDashboard(): ReactNode {
+  const { user, logout } = useAuth();
+  useDriverTracking(); // Start real-time GPS sync
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [stats, setStats] = useState({ active: 0, pending: 0, done: 0 });
   const [loading, setLoading] = useState(true);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    if (!user.id) return;
-    
+    if (!user?.id) return;
+
     setLoading(true);
     Promise.all([
-      fetch(`/api/shipments?operator_id=${user.id}`).then(res => res.json()),
-      fetch(`/api/stats/driver/${user.id}`).then(res => res.json())
+      apiFetch(`/api/shipments?operator_id=${user.id}`).then(res => res.json()),
+      apiFetch(`/api/stats/driver/${user.id}`).then(res => res.json()),
+      new Promise(r => setTimeout(r, 600)) // smooth delay
     ]).then(([shipmentData, statData]) => {
       setShipments(shipmentData);
       setStats(statData);
@@ -37,111 +45,141 @@ export default function DriverDashboard() {
       console.error("Failed to fetch driver data", err);
       setLoading(false);
     });
-  }, [user.id]);
+  }, [user?.id]);
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } as const }
+  };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
-      <header className="flex items-center bg-background-light dark:bg-background-dark p-4 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex size-12 shrink-0 items-center justify-start text-primary dark:text-slate-100">
+    <div className="bg-slate-950 font-display text-slate-100 min-h-screen flex flex-col relative overflow-hidden">
+      {/* Premium Background Effects */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[50%] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[40%] bg-accent/20 rounded-full blur-[100px] pointer-events-none mix-blend-screen animate-pulse-slow" />
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
+
+      <header className="flex items-center glass-panel rounded-none border-x-0 border-t-0 border-b border-white/10 p-4 sticky top-0 z-30">
+        <div className="flex size-12 shrink-0 items-center justify-start text-primary">
           <Menu className="w-6 h-6" />
         </div>
         <div className="flex-1 text-center">
-          <h1 className="text-lg font-bold leading-tight tracking-tight">Driver Dashboard</h1>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user.name || "Driver"}</p>
+          <h1 className="text-xl font-bold leading-tight tracking-tight text-white drop-shadow-sm flex items-center justify-center gap-2">
+            <Truck className="w-5 h-5 text-primary" /> Driver Center
+          </h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user.name || "Operator"}</p>
         </div>
         <div className="flex w-12 items-center justify-end">
-          <button className="relative flex items-center justify-center rounded-lg h-10 w-10 bg-transparent text-primary dark:text-slate-100">
-            <Bell className="w-6 h-6" />
-            <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-accent"></span>
+          <button className="relative flex items-center justify-center rounded-xl h-10 w-10 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(249,115,22,0.8)]"></span>
           </button>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-24">
-        <div className="grid grid-cols-3 gap-3 p-4">
-          <DriverStat label="Active" value={stats.active.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+2%" trendColor="text-emerald-500" />
-          <DriverStat label="Pending" value={stats.pending.toString().padStart(2, '0')} trend={<Minus className="w-3 h-3" />} trendValue="0%" trendColor="text-slate-400" />
-          <DriverStat label="Done" value={stats.done.toString().padStart(2, '0')} trend={<TrendingDown className="w-3 h-3" />} trendValue="-5%" trendColor="text-accent" />
-        </div>
+      <main className="flex-1 overflow-y-auto pb-28 relative z-10">
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="p-4 space-y-6">
+          <div className="grid grid-cols-3 gap-3">
+            <motion.div variants={itemVariants}>
+              <DriverStat label="Active" value={stats.active.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+2%" trendColor="text-emerald-500" glow="bg-emerald-500/10" />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <DriverStat label="Pending" value={stats.pending.toString().padStart(2, '0')} trend={<Minus className="w-3 h-3" />} trendValue="0%" trendColor="text-slate-400" glow="bg-white/5" />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <DriverStat label="Done" value={stats.done.toString().padStart(2, '0')} trend={<TrendingDown className="w-3 h-3" />} trendValue="-5%" trendColor="text-accent" glow="bg-accent/10" />
+            </motion.div>
+          </div>
 
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight">Assigned Shipments</h2>
-          <button className="text-primary dark:text-slate-300 text-sm font-semibold flex items-center gap-1">
-            View All <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+          <motion.div variants={itemVariants} className="pt-2 flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-white">Assigned Routes</h2>
+            <button className="text-primary text-sm font-bold flex items-center gap-1 hover:text-primary/80 transition-colors">
+              View All <ChevronRight className="w-4 h-4" />
+            </button>
+          </motion.div>
 
-        <div className="px-4 space-y-4">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-4">
-              <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-              <p className="text-sm text-slate-500 font-medium">Loading your route...</p>
-            </div>
-          ) : shipments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800">
-              <div className="bg-slate-200 dark:bg-slate-800 p-4 rounded-full mb-4">
-                <Truck className="w-8 h-8 text-slate-400" />
+          <div className="space-y-4">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                <p className="text-sm text-slate-400 font-medium animate-pulse">Syncing routes...</p>
               </div>
-              <h3 className="text-lg font-bold">No Shipments Assigned</h3>
-              <p className="text-sm text-slate-500 mt-1">You don't have any active shipments at the moment. Contact dispatch if this is an error.</p>
-            </div>
-          ) : (
-            shipments.map(s => (
-              <div key={s.id} className="group flex flex-col rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="relative h-32 w-full bg-slate-200 dark:bg-primary/20 overflow-hidden">
-                  <img src={`https://picsum.photos/seed/${s.id}/400/200`} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-50" alt="Route" />
-                  <div className="absolute top-3 left-3 px-3 py-1 bg-accent text-white text-xs font-bold rounded-full uppercase">
-                    {s.status}
-                  </div>
+            ) : shipments.length === 0 ? (
+              <motion.div variants={itemVariants} className="flex flex-col items-center justify-center py-20 text-center px-6 glass-panel rounded-3xl border border-dashed border-white/20">
+                <div className="bg-white/5 p-4 rounded-full mb-4 ring-1 ring-white/10">
+                  <Package className="w-8 h-8 text-slate-400" />
                 </div>
-                <div className="p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-bold text-primary dark:text-slate-100">{s.id}</h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-1">
-                        <MapPin className="w-4 h-4" /> {s.receiver_city}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-slate-400 font-medium">ETA</p>
-                      <p className="text-sm font-bold text-primary dark:text-slate-200">{s.est_delivery}</p>
+                <h3 className="text-lg font-bold text-white">No Routes Assigned</h3>
+                <p className="text-sm text-slate-400 mt-2">You don't have any active shipments at the moment. Contact dispatch if this is an error.</p>
+              </motion.div>
+            ) : (
+              shipments.map((s) => (
+                <motion.div key={s.id} variants={itemVariants} className="group flex flex-col rounded-2xl overflow-hidden glass-panel border border-white/10 hover:border-primary/30 transition-all duration-300">
+                  <div className="relative h-32 w-full bg-slate-900 overflow-hidden">
+                    <img src={`https://picsum.photos/seed/${s.id}/400/200`} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-60 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" alt="Route Map" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+                    <div className="absolute top-3 left-3 px-3 py-1.5 bg-background-dark/80 backdrop-blur-md text-accent text-xs font-black tracking-wider rounded-lg border border-accent/20 uppercase shadow-lg">
+                      {s.status}
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-slate-400" />
-                      <span className="text-xs text-slate-500">{s.type}</span>
+                  <div className="p-5 flex flex-col gap-4 relative z-10 -mt-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-extrabold text-white tracking-tight">{s.id}</h3>
+                        <p className="text-slate-400 text-sm flex items-center gap-1.5 mt-1">
+                          <MapPin className="w-4 h-4 text-primary" /> {s.receiver_city}
+                        </p>
+                      </div>
+                      <div className="text-right glass-panel bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">ETA</p>
+                        <p className="text-sm font-bold text-white leading-none">{s.est_delivery}</p>
+                      </div>
                     </div>
-                    <Link to={`/driver/shipment/${s.id}`} className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-bold transition-colors">
-                      Update Status
-                    </Link>
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                        <Package className="w-4 h-4 text-slate-400" />
+                        <span className="text-xs font-medium text-slate-300">{s.type}</span>
+                      </div>
+                      <Link to={`/driver/shipment/${s.id}`} className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2">
+                        Update Status
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </motion.div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-6 pt-2">
-        <div className="flex justify-around items-center max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none">
+        <div className="max-w-md mx-auto glass-panel rounded-2xl border border-white/10 px-6 py-3 flex justify-around items-center shadow-2xl pointer-events-auto">
           <Link to="/driver" className="flex flex-col items-center gap-1 text-primary">
-            <span className="material-symbols-outlined text-[28px] fill-1">home</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
+            <span className="material-symbols-outlined text-[28px] fill-1 drop-shadow-[0_0_12px_rgba(59,130,246,0.6)]">home</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-primary">Home</span>
           </Link>
-          <Link to="/driver" className="flex flex-col items-center gap-1 text-slate-400">
+          <Link to="/driver" className="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
             <Truck className="w-7 h-7" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Shipments</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest">Routes</span>
           </Link>
-          <button 
-            onClick={() => {
-              localStorage.removeItem("user");
-              window.location.href = "/login";
-            }}
+          <Link to="/driver/chat" className="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
+            <MessageCircle className="w-7 h-7" />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Messages</span>
+          </Link>
+          <button
+            onClick={logout}
             className="flex flex-col items-center gap-1 text-slate-400 hover:text-rose-500 transition-colors"
           >
             <LogOut className="w-7 h-7" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Logout</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest">Logout</span>
           </button>
         </div>
       </nav>
@@ -149,14 +187,26 @@ export default function DriverDashboard() {
   );
 }
 
-function DriverStat({ label, value, trend, trendValue, trendColor }: any) {
+interface DriverStatProps {
+  label: string;
+  value: string;
+  trend: ReactNode;
+  trendValue: string;
+  trendColor: string;
+  glow?: string;
+}
+
+function DriverStat({ label, value, trend, trendValue, trendColor, glow }: DriverStatProps): ReactNode {
   return (
-    <div className="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800">
-      <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">{label}</p>
-      <p className="text-primary dark:text-slate-100 text-2xl font-bold">{value}</p>
-      <div className={cn("flex items-center gap-1 text-xs font-bold", trendColor)}>
-        {trend}
-        <span>{trendValue}</span>
+    <div className="relative flex flex-col gap-2 rounded-2xl p-4 glass-panel border border-white/10 overflow-hidden group h-full">
+      <div className={cn("absolute -inset-4 blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-500", glow)}></div>
+      <div className="relative z-10 flex flex-col h-full justify-between">
+        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-white text-3xl font-black">{value}</p>
+        <div className={cn("flex items-center gap-1 text-[10px] font-bold mt-2 bg-white/5 w-fit px-2 py-1 rounded-md border border-white/5", trendColor)}>
+          {trend}
+          <span>{trendValue}</span>
+        </div>
       </div>
     </div>
   );

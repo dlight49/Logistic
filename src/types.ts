@@ -1,3 +1,15 @@
+export type UserRole = 'admin' | 'customer' | 'operator';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  phone?: string;
+  current_lat?: number;
+  current_lng?: number;
+}
+
 export interface Shipment {
   id: string;
   sender_name: string;
@@ -26,6 +38,8 @@ export interface Operator {
   email: string;
   phone?: string;
   role: 'operator';
+  current_lat?: number;
+  current_lng?: number;
   assignedShipments?: { id: string; status: string }[];
 }
 

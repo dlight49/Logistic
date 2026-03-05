@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import { auth, db } from "../../services/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -14,28 +19,29 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
+
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+      // REAL FIREBASE LOGIN
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      const profile = userDoc.exists() ? userDoc.data() : null;
+
+      const userRole = (profile?.role as any) || 'customer';
+
+      // Update local context
+      login({
+        id: userCredential.user.uid,
+        email: userCredential.user.email || '',
+        name: profile?.name || 'User',
+        role: userRole
       });
-      
-      if (res.ok) {
-        const user = await res.json();
-        localStorage.setItem("user", JSON.stringify(user));
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/driver");
-        }
-      } else {
-        const data = await res.json();
-        setError(data.error || "Login failed");
-      }
-    } catch (err) {
-      setError("Network error. Please try again.");
+
+      // Navigate based on role
+      if (userRole === 'admin') navigate('/admin');
+      else if (userRole === 'operator') navigate('/driver');
+      else navigate('/customer');
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -74,7 +80,7 @@ export default function Login() {
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Driver ID or Email</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input 
+                <input
                   className="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 dark:border-primary/30 bg-white dark:bg-primary/10 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                   placeholder="Enter your ID or email"
                   type="text"
@@ -88,14 +94,14 @@ export default function Login() {
               <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input 
+                <input
                   className="w-full pl-12 pr-12 py-4 rounded-xl border border-slate-200 dark:border-primary/30 bg-white dark:bg-primary/10 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                   placeholder="Enter your password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-accent transition-colors"
@@ -107,15 +113,15 @@ export default function Login() {
 
             <div className="flex items-center justify-between px-1 py-1">
               <label className="flex items-center gap-2 cursor-pointer group">
-                <input className="rounded border-slate-300 dark:border-primary/50 text-accent focus:ring-accent bg-transparent" type="checkbox"/>
+                <input className="rounded border-slate-300 dark:border-primary/50 text-accent focus:ring-accent bg-transparent" type="checkbox" />
                 <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Remember me</span>
               </label>
               <a className="text-sm font-semibold text-accent hover:text-accent/80 transition-colors" href="#">Forgot Password?</a>
             </div>
 
-            <button 
+            <button
               disabled={loading}
-              className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-accent/20 transition-all transform active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" 
+              className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-accent/20 transition-all transform active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               type="submit"
             >
               {loading ? (
@@ -137,7 +143,7 @@ export default function Login() {
 
       <footer className="p-6 text-center">
         <p className="text-slate-400 dark:text-slate-600 text-xs">
-          © 2024 LogisticsPro Solutions Inc. All rights reserved. <br/>
+          © 2024 LogisticsPro Solutions Inc. All rights reserved. <br />
           System Version 4.2.0-stable
         </p>
       </footer>
