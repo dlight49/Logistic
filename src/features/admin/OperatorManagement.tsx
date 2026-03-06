@@ -90,7 +90,7 @@ export default function OperatorManagement(): ReactNode {
               <Users className="text-primary w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight">Operators</h1>
+              <h1 className="text-lg font-bold leading-tight">Drivers</h1>
               <p className="text-xs text-slate-500">Manage Drivers & Staff</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function OperatorManagement(): ReactNode {
             onClick={() => setShowAddModal(true)}
             className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-xl shadow-primary/30 hover:scale-105 transition-transform active:scale-95"
           >
-            <Plus className="w-5 h-5" /> Add Operator
+            <Plus className="w-5 h-5" /> Add Driver
           </button>
         </div>
 
@@ -205,7 +205,7 @@ export default function OperatorManagement(): ReactNode {
             ).length === 0 && (
                 <div className="py-20 text-center text-slate-400 italic">
                   <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p>No operators found matching "{searchQuery}"</p>
+                  <p>No drivers found matching "{searchQuery}"</p>
                 </div>
               )}
           </div>
@@ -217,7 +217,7 @@ export default function OperatorManagement(): ReactNode {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="text-xl font-bold">Add New Operator</h3>
+              <h3 className="text-xl font-bold">Add New Driver</h3>
               <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
                 <X className="w-5 h-5" />
               </button>
@@ -276,7 +276,7 @@ export default function OperatorManagement(): ReactNode {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="text-xl font-bold">Edit Operator</h3>
+              <h3 className="text-xl font-bold">Edit Driver</h3>
               <button onClick={() => setEditingOperator(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
                 <X className="w-5 h-5" />
               </button>

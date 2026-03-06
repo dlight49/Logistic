@@ -13,6 +13,7 @@ import {
   Truck,
   MessageSquare,
   MessageCircle,
+  FileText,
   TrendingUp,
   MapPin,
   Calendar,
@@ -164,6 +165,9 @@ export default function AdminDashboard(): ReactNode {
               </Link>
               <Link to="/admin/chat" className="contents">
                 <StatCard label="Fleet Ops" value={stats?.fleetMessages || 0} icon={<MessageCircle className="text-fuchsia-400" />} gradient="from-fuchsia-500/10 to-fuchsia-500/5" border="border-fuchsia-500/20" color="text-fuchsia-400" />
+              </Link>
+              <Link to="/admin/quotes" className="contents">
+                <StatCard label="Quotes" value={stats?.quotes || 0} icon={<FileText className="text-pink-400" />} gradient="from-pink-500/10 to-pink-500/5" border="border-pink-500/20" color="text-pink-400" />
               </Link>
             </div>
           </motion.section>

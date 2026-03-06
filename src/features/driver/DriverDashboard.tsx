@@ -77,7 +77,7 @@ export default function DriverDashboard(): ReactNode {
           <h1 className="text-xl font-bold leading-tight tracking-tight text-white drop-shadow-sm flex items-center justify-center gap-2">
             <Truck className="w-5 h-5 text-primary" /> Driver Center
           </h1>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user.name || "Operator"}</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user.name || "Driver"}</p>
         </div>
         <div className="flex w-12 items-center justify-end">
           <button className="relative flex items-center justify-center rounded-xl h-10 w-10 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all">

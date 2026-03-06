@@ -67,7 +67,7 @@ export default function AssignOperatorModal({
       <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
           <div>
-            <h3 className="text-xl font-bold">Assign Operator</h3>
+            <h3 className="text-xl font-bold">Assign Driver</h3>
             <p className="text-xs text-slate-500 mt-1">Shipment ID: {shipmentId}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
@@ -92,7 +92,7 @@ export default function AssignOperatorModal({
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3 opacity-50">
               <Loader2 className="w-8 h-8 animate-spin" />
-              <p className="text-sm">Loading operators...</p>
+              <p className="text-sm">Loading drivers...</p>
             </div>
           ) : filteredOperators.length > 0 ? (
             filteredOperators.map(op => (
@@ -143,7 +143,7 @@ export default function AssignOperatorModal({
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center opacity-50">
               <Search className="w-12 h-12 mb-2" />
-              <p className="text-sm font-bold">No operators found</p>
+              <p className="text-sm font-bold">No drivers found</p>
               <p className="text-xs">Try a different search term</p>
             </div>
           )}

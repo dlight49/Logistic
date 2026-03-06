@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, Users, Settings, LogOut, MessageSquare, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Package, Users, Settings, LogOut, MessageSquare, MessageCircle, FileText } from "lucide-react";
 import { cn } from "@/src/utils";
 import { motion } from "motion/react";
 
@@ -16,6 +16,7 @@ export default function AdminNav() {
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/admin" },
     { icon: Package, label: "Registry", id: "shipments", path: "/admin" },
+    { icon: FileText, label: "Quotes", id: "quotes", path: "/admin/quotes" },
     { icon: Users, label: "Fleet", id: "drivers", path: "/admin/drivers" },
     { icon: MessageSquare, label: "Support", id: "tickets", path: "/admin/support" },
     { icon: MessageCircle, label: "Operations", id: "messages", path: "/admin/chat" },

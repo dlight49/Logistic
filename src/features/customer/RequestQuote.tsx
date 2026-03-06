@@ -3,7 +3,7 @@ import { ArrowLeft, Calculator, MapPin, Package, CheckCircle2, ChevronRight, Dol
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
-import { apiFetch } from "../../utils/api";
+import { quoteService } from "../../services/quoteService";
 
 export default function RequestQuote(): ReactNode {
     const navigate = useNavigate();
@@ -28,16 +28,14 @@ export default function RequestQuote(): ReactNode {
     const handleBook = async () => {
         setLoading(true);
         try {
-            await apiFetch('/api/shipments/quotes', {
-                method: 'POST',
-                body: JSON.stringify({
-                    origin,
-                    destination,
-                    weight,
-                    speed
-                })
+            await quoteService.createQuote({
+                origin,
+                destination,
+                weight: parseFloat(weight),
+                speed,
+                estimated_price: calculatedPrice || 0
             });
-            navigate('/customer');
+            setStep(4);
         } catch (error) {
             console.error("Booking failed", error);
             alert("Failed to process booking. Please try again.");
@@ -192,6 +190,25 @@ export default function RequestQuote(): ReactNode {
                                     {loading ? "Processing..." : "Confirm Booking"}
                                 </button>
                             </div>
+                        </motion.div>
+                    )}
+
+                    {step === 4 && (
+                        <motion.div key="step4" variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl text-center">
+                            <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                                <CheckCircle2 className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-3xl font-black text-white mb-4">Request Submitted!</h3>
+                            <p className="text-slate-400 mb-8 leading-relaxed">
+                                Your quote request from <span className="text-white font-bold">{origin}</span> to <span className="text-white font-bold">{destination}</span> has been received. 
+                                Our team will review it and get back to you shortly.
+                            </p>
+                            <button
+                                onClick={() => navigate('/customer')}
+                                className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                            >
+                                Return to Dashboard
+                            </button>
                         </motion.div>
                     )}
                 </AnimatePresence>

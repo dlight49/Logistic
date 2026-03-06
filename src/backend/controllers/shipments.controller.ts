@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { CreateShipmentSchema, UpdateTrackingSchema, AssignOperatorSchema } from '../validators/shipment.validator.js';
 import { NotificationService } from '../services/notificationService.js';
+import { QuoteService } from '../services/quote.service.js';
 
 export const getShipments = async (req: Request, res: Response) => {
     try {
@@ -103,37 +104,36 @@ export const createShipment = async (req: Request, res: Response) => {
 
 export const createQuote = async (req: Request, res: Response) => {
     try {
-        const { origin, destination, weight, speed } = req.body;
+        if (!req.user) return res.status(401).json({ error: 'Auth required' });
+        const quote = await QuoteService.createQuote(req.user.id, req.body);
+        res.status(201).json({ id: quote.id, estimated_cost: quote.estimated_cost });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-        // Mock backend calculation logic
-        const base = 50;
-        const w = parseFloat(weight) || 1;
-        const mult = speed === "Express" ? 2 : speed === "Priority" ? 3 : 1;
-        const calculatedPrice = base + (w * 5 * mult);
+export const getPendingQuotes = async (req: Request, res: Response) => {
+    try {
+        const quotes = await QuoteService.getAllQuotes();
+        res.json(quotes);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
-        const id = `GS-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+export const approveQuote = async (req: Request, res: Response) => {
+    try {
+        const shipment = await QuoteService.approveQuote(req.params.id);
+        res.json({ success: true, shipment_id: shipment.id });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
-        const shipment = await prisma.shipment.create({
-            data: {
-                id,
-                sender_city: origin,
-                receiver_city: destination,
-                weight: w,
-                type: speed,
-                status: 'Quote Pending',
-                estimated_cost: calculatedPrice,
-                receiver_email: req.user?.email, // Keep track of who requested
-                tracking_updates: {
-                    create: {
-                        status: 'Quote Pending',
-                        location: origin,
-                        notes: 'Quote requested'
-                    }
-                }
-            }
-        });
-
-        res.status(201).json({ id: shipment.id, estimated_cost: calculatedPrice });
+export const rejectQuote = async (req: Request, res: Response) => {
+    try {
+        await QuoteService.rejectQuote(req.params.id);
+        res.json({ success: true });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }

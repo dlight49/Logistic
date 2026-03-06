@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
+import { firebaseAdmin } from '../config/firebase-admin.js';
 
 export const getGlobalStats = async (req: Request, res: Response) => {
     try {
@@ -10,6 +11,15 @@ export const getGlobalStats = async (req: Request, res: Response) => {
         const delivered = await prisma.shipment.count({ where: { status: 'Delivered' } });
         const activeTickets = await prisma.supportTicket.count({ where: { status: 'OPEN' } });
         const fleetMessages = await prisma.directMessage.count();
+        
+        // Add quotes from Firestore
+        let quotes = 0;
+        try {
+            const quotesSnap = await firebaseAdmin.firestore().collection('quotes').get();
+            quotes = quotesSnap.size;
+        } catch (fError) {
+            console.error('Firestore stats error:', fError);
+        }
 
         res.json({
             total,
@@ -18,7 +28,8 @@ export const getGlobalStats = async (req: Request, res: Response) => {
             issues,
             delivered,
             activeTickets,
-            fleetMessages
+            fleetMessages,
+            quotes
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch global stats' });

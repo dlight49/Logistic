@@ -159,12 +159,12 @@ export default function ShipmentDetailView(): ReactNode {
           </div>
         </div>
 
-        {/* Operator Assignment */}
+        {/* Driver Assignment */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-slate-500">
               <Users className="w-4 h-4" />
-              <h3 className="text-xs font-bold uppercase tracking-wider">Assigned Operator</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider">Assigned Driver</h3>
             </div>
             <button
               onClick={() => setShowAssignModal(true)}
@@ -185,7 +185,7 @@ export default function ShipmentDetailView(): ReactNode {
             </div>
           ) : (
             <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-              <p className="text-xs text-slate-500 italic">No operator assigned yet</p>
+              <p className="text-xs text-slate-500 italic">No driver assigned yet</p>
               <button
                 onClick={() => setShowAssignModal(true)}
                 className="bg-primary text-white px-3 py-1 rounded-lg text-[10px] font-bold"
@@ -302,7 +302,7 @@ export default function ShipmentDetailView(): ReactNode {
         </div>
       </main>
 
-      {/* Assign Operator Modal */}
+      {/* Assign Driver Modal */}
       {showAssignModal && (
         <AssignOperatorModal
           shipmentId={shipment.id}

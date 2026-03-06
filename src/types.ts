@@ -68,4 +68,5 @@ export interface Stats {
   delivered: number;
   activeTickets?: number;
   fleetMessages?: number;
+  quotes?: number;
 }

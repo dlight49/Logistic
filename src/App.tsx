@@ -27,6 +27,7 @@ import AdminSupport from "./features/admin/AdminSupport";
 import AdminTicketDetail from "./features/admin/AdminTicketDetail";
 import AdminChat from "./features/admin/AdminChat";
 import DriverChat from "./features/driver/DriverChat";
+import QuoteManagement from "./features/admin/QuoteManagement";
 import TicketList from "./features/customer/TicketList";
 import TicketDetail from "./features/customer/TicketDetail";
 
@@ -63,6 +64,7 @@ export default function App(): ReactNode {
             <Route path="/admin/chat" element={<ProtectedRoute allowedRoles={["admin"]}><AdminChat /></ProtectedRoute>} />
             <Route path="/admin/operator/:id" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorProfileView /></ProtectedRoute>} />
             <Route path="/admin/shipment/:id" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentDetailView /></ProtectedRoute>} />
+            <Route path="/admin/quotes" element={<ProtectedRoute allowedRoles={["admin"]}><QuoteManagement /></ProtectedRoute>} />
 
             {/* Driver Routes */}
             <Route path="/driver" element={<ProtectedRoute allowedRoles={["operator"]}><DriverDashboard /></ProtectedRoute>} />
