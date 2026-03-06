@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { db } from '../config/db';
+import type { Request, Response } from 'express';
+import { db } from '../config/db.js';
 import { FieldValue } from 'firebase-admin/firestore';
 
 // ---- Settings Controller ----
@@ -80,7 +80,7 @@ export const uploadDoc = async (req: Request, res: Response) => {
 export const updateDocStatus = async (req: Request, res: Response) => {
     try {
         const { status } = req.body;
-        const docId = req.params.id;
+        const docId = req.params.id as string;
 
         await db.collection('customsDocs').doc(docId).update({ status });
 

@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { db } from '../config/db';
+import type { Request, Response } from 'express';
+import { db } from '../config/db.js';
 import { NotificationService } from '../services/notificationService.js';
 
 export const createTicket = async (req: Request, res: Response) => {
@@ -71,7 +71,7 @@ export const getAllTickets = async (req: Request, res: Response) => {
 
 export const getTicketById = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const ticketDoc = await db.collection('supportTickets').doc(id).get();
 
         if (!ticketDoc.exists) return res.status(404).json({ error: 'Ticket not found' });
@@ -97,7 +97,7 @@ export const getTicketById = async (req: Request, res: Response) => {
 
 export const replyToTicket = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const { text } = req.body;
         const senderId = req.user?.id;
 
@@ -129,7 +129,7 @@ export const replyToTicket = async (req: Request, res: Response) => {
 
 export const closeTicket = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
 
         const ticketDoc = await db.collection('supportTickets').doc(id).get();
         if (!ticketDoc.exists) return res.status(404).json({ error: 'Ticket not found' });
@@ -148,7 +148,7 @@ export const closeTicket = async (req: Request, res: Response) => {
         res.json({ success: true });
 
         if (req.user?.role === 'admin' && ticketData.user_id !== req.user?.id) {
-            await NotificationService.notifyUser(ticketData.user_id, `Your support ticket "${ticketData.subject}" has been marked as closed.`);
+            await NotificationService.notifyUser(ticketData.user_id as string, `Your support ticket "${ticketData.subject}" has been marked as closed.`);
         }
     } catch (error: any) {
         res.status(500).json({ error: error.message });

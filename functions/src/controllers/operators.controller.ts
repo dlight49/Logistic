@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { db } from '../config/db';
+import type { Request, Response } from 'express';
+import { db } from '../config/db.js';
 
 export const getOperators = async (req: Request, res: Response) => {
     try {
@@ -42,7 +42,7 @@ export const createOperator = async (req: Request, res: Response) => {
 export const updateOperator = async (req: Request, res: Response) => {
     try {
         const { name, email, phone } = req.body;
-        const id = req.params.id;
+        const id = req.params.id as string;
 
         await db.collection('users').doc(id).update({
             name,

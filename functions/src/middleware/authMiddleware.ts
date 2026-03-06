@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { auth, db } from '../config/db';
+import type { Request, Response, NextFunction } from 'express';
+import { auth, db } from '../config/db.js';
 
 // Extend Express Request object to include the authenticated user
 declare global {
@@ -18,7 +18,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         return;
     }
 
-    const token = authHeader.split('Bearer ')[1];
+    const token = authHeader.split('Bearer ')[1] as string;
 
     try {
         const decodedToken = await auth.verifyIdToken(token);
@@ -57,4 +57,9 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
         return;
     }
     next();
+};
+
+export const AuthMiddleware = {
+    verifyToken: requireAuth,
+    requireAdmin: requireAdmin
 };

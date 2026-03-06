@@ -44,6 +44,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         name: profileData.name || firebaseUser.email?.split('@')[0] || 'User',
                         role: (profileData.role as UserRole) || 'customer'
                     };
+
+                    // SYNC WITH SUPABASE: Use the firebase UID as the identifier
+                    // This creates or updates the profile in the Supabase 'profiles' table
+                    try {
+                        const { supabase } = await import("../../services/supabase");
+                        const { error } = await supabase
+                            .from('profiles')
+                            .upsert({
+                                id: firebaseUser.uid,
+                                email: loggedInUser.email,
+                                full_name: loggedInUser.name,
+                                role: loggedInUser.role,
+                                updated_at: new Date()
+                            });
+                        
+                        if (error) console.error("Supabase Sync Error:", error.message);
+                    } catch (supabaseError) {
+                        console.error("Failed to load Supabase client for sync:", supabaseError);
+                    }
+
                     setUser(loggedInUser);
                     localStorage.setItem("lumin_user", JSON.stringify(loggedInUser));
                 } catch (e) {

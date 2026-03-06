@@ -7,9 +7,9 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_123');
 interface NotificationPayload {
     userId: string;
     type: 'EMAIL' | 'SMS' | 'PUSH';
-    subject?: string;
+    subject?: string | undefined;
     message: string;
-    shipmentId?: string;
+    shipmentId?: string | undefined;
     metadata?: any;
 }
 

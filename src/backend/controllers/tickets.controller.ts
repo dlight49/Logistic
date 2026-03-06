@@ -9,7 +9,7 @@ export const createTicket = async (req: Request, res: Response) => {
 
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const ticket = await (prisma as any).supportTicket.create({
+        const ticket = await prisma.supportTicket.create({
             data: {
                 user_id: userId,
                 subject,
@@ -35,7 +35,7 @@ export const getMyTickets = async (req: Request, res: Response) => {
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const tickets = await (prisma as any).supportTicket.findMany({
+        const tickets = await prisma.supportTicket.findMany({
             where: { user_id: userId },
             orderBy: { created_at: 'desc' }
         });
@@ -50,7 +50,7 @@ export const getAllTickets = async (req: Request, res: Response) => {
     try {
         if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
 
-        const tickets = await (prisma as any).supportTicket.findMany({
+        const tickets = await prisma.supportTicket.findMany({
             include: { user: { select: { name: true, email: true } } },
             orderBy: { created_at: 'desc' }
         });
@@ -64,7 +64,7 @@ export const getAllTickets = async (req: Request, res: Response) => {
 export const getTicketById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const ticket = await (prisma as any).supportTicket.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
             where: { id },
             include: {
                 messages: { orderBy: { timestamp: 'asc' } },
@@ -101,7 +101,7 @@ export const replyToTicket = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Forbidden' });
         }
 
-        const message = await (prisma as any).ticketMessage.create({
+        const message = await prisma.ticketMessage.create({
             data: {
                 ticket_id: id,
                 sender_id: senderId,
@@ -127,7 +127,7 @@ export const closeTicket = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Forbidden' });
         }
 
-        await (prisma as any).supportTicket.update({
+        await prisma.supportTicket.update({
             where: { id },
             data: { status: 'CLOSED' }
         });

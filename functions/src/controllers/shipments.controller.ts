@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ShipmentService } from '../services/shipment.service.js';
 import { db } from '../config/db.js';
 import { CreateShipmentSchema, UpdateTrackingSchema, AssignOperatorSchema } from '../validators/shipment.validator.js';
@@ -49,7 +49,7 @@ export const getMyShipments = async (req: Request, res: Response) => {
 
 export const getShipmentById = async (req: Request, res: Response) => {
     try {
-        const shipmentId = req.params.id;
+        const shipmentId = req.params.id as string;
         const shipment = await ShipmentService.getShipmentById(shipmentId);
 
         if (!shipment) {
@@ -118,7 +118,7 @@ export const createQuote = async (req: Request, res: Response) => {
 export const updateShipmentTracking = async (req: Request, res: Response) => {
     try {
         const { status, location, notes } = UpdateTrackingSchema.parse(req.body);
-        const shipmentId = req.params.id;
+        const shipmentId = req.params.id as string;
 
         const shipment: any = await ShipmentService.getShipmentById(shipmentId);
         if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
@@ -133,7 +133,7 @@ export const updateShipmentTracking = async (req: Request, res: Response) => {
         if (shipment.receiver_email) {
             const userSnapshot = await db.collection('users').where('email', '==', shipment.receiver_email).limit(1).get();
             if (!userSnapshot.empty) {
-                const user = userSnapshot.docs[0];
+                const user = userSnapshot.docs[0]!;
                 await NotificationService.notifyUser(
                     user.id,
                     `Your shipment ${shipmentId} is now: ${status}. Current location: ${location || 'N/A'}`,
@@ -169,7 +169,7 @@ export const getLiveLocations = async (req: Request, res: Response) => {
 export const assignOperator = async (req: Request, res: Response) => {
     try {
         const { operator_id } = AssignOperatorSchema.parse(req.body);
-        const shipmentId = req.params.id;
+        const shipmentId = req.params.id as string;
 
         await ShipmentService.assignOperator(shipmentId, operator_id);
         res.json({ success: true });

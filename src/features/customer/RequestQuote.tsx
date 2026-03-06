@@ -3,7 +3,7 @@ import { ArrowLeft, Calculator, MapPin, Package, CheckCircle2, ChevronRight, Dol
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
-import { quoteService } from "../../services/quoteService";
+import { apiFetch } from "../../utils/api";
 
 export default function RequestQuote(): ReactNode {
     const navigate = useNavigate();
@@ -28,12 +28,15 @@ export default function RequestQuote(): ReactNode {
     const handleBook = async () => {
         setLoading(true);
         try {
-            await quoteService.createQuote({
-                origin,
-                destination,
-                weight: parseFloat(weight),
-                speed,
-                estimated_price: calculatedPrice || 0
+            await apiFetch('/api/shipments/quotes', {
+                method: 'POST',
+                body: JSON.stringify({
+                    origin,
+                    destination,
+                    weight: parseFloat(weight),
+                    speed,
+                    estimated_price: calculatedPrice || 0
+                })
             });
             setStep(4);
         } catch (error) {

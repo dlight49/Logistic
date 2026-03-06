@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { db } from '../config/db';
+import type { Request, Response } from 'express';
+import { db } from '../config/db.js';
 import { Filter, FieldValue } from 'firebase-admin/firestore';
 
 export const sendDirectMessage = async (req: Request, res: Response) => {
@@ -27,7 +27,7 @@ export const sendDirectMessage = async (req: Request, res: Response) => {
 
 export const getConversation = async (req: Request, res: Response) => {
     try {
-        const { otherUserId } = req.params;
+        const otherUserId = req.params.otherUserId as string;
         const myId = req.user?.id;
 
         if (!myId) return res.status(401).json({ error: 'Unauthorized' });

@@ -31,8 +31,24 @@ export const QuoteManagement: React.FC = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      const res = await apiFetch('/api/quotes');
-      const data: Quote[] = await res.json();
+      const res = await apiFetch('/api/shipments/admin/quotes');
+      const rawData: any[] = await res.json();
+      
+      // Map Prisma shipment model to Quote interface
+      const data: Quote[] = rawData.map(item => ({
+        id: item.id,
+        origin: item.sender_city,
+        destination: item.receiver_city,
+        weight: item.weight,
+        dimensions: "", // Not available in Prisma shipment model currently
+        packageType: item.package_details || "Package",
+        serviceType: item.type,
+        insurance: item.insurance_selected || false,
+        status: item.status === 'Quote Pending' ? 'PENDING' : 
+                item.status === 'Order Created' || item.id.startsWith('GS-') ? 'APPROVED' : 'REJECTED',
+        createdAt: item.created_at,
+      }));
+      
       setQuotes(data);
     } catch (error) {
       console.error("Failed to fetch quotes", error);
@@ -47,7 +63,7 @@ export const QuoteManagement: React.FC = () => {
 
   const handleAction = async (id: string, action: 'APPROVE' | 'REJECT') => {
     try {
-      await apiFetch(`/api/quotes/${id}/${action === 'APPROVE' ? 'approve' : 'reject'}`, {
+      await apiFetch(`/api/shipments/admin/quotes/${id}/${action === 'APPROVE' ? 'approve' : 'reject'}`, {
         method: 'POST'
       });
       void fetchQuotes();

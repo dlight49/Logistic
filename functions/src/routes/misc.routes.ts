@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma } from '../config/db.js';
+import { db, prisma } from '../config/db.js';
 import { getSettings, updateSettings, getNotificationLogs, uploadDoc, updateDocStatus } from '../controllers/misc.controller.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 
@@ -10,12 +10,13 @@ router.put('/users/me', requireAuth, async (req, res) => {
         const { name, phone } = req.body;
         if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
-        const updatedUser = await prisma.user.update({
-            where: { id: req.user.id },
-            data: { name, phone }
+        await db.collection('users').doc(req.user.id).update({ 
+            name, 
+            phone,
+            updatedAt: new Date()
         });
 
-        res.json(updatedUser);
+        res.json({ id: req.user.id, name, phone });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }

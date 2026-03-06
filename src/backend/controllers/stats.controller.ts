@@ -12,14 +12,10 @@ export const getGlobalStats = async (req: Request, res: Response) => {
         const activeTickets = await prisma.supportTicket.count({ where: { status: 'OPEN' } });
         const fleetMessages = await prisma.directMessage.count();
         
-        // Add quotes from Firestore
-        let quotes = 0;
-        try {
-            const quotesSnap = await firebaseAdmin.firestore().collection('quotes').get();
-            quotes = quotesSnap.size;
-        } catch (fError) {
-            console.error('Firestore stats error:', fError);
-        }
+        // Count quotes from local database
+        const quotes = await prisma.shipment.count({ 
+            where: { status: 'Quote Pending' } 
+        });
 
         res.json({
             total,
