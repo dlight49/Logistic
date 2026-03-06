@@ -10,3 +10,6 @@ coverage/
 prisma/*.db
 .firebase/
 functions/node_modules/
+.agents/
+artifacts/
+build_log*.txt

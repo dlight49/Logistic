@@ -80,7 +80,7 @@ export default function OperatorManagement(): ReactNode {
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
-      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 flex items-center justify-between pt-safe">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
             <ArrowLeft className="w-5 h-5" />
@@ -103,23 +103,64 @@ export default function OperatorManagement(): ReactNode {
         </button>
       </header>
 
-      <main className="flex-1 p-4 space-y-6">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary/50"
-              placeholder="Search by name, email, or ID..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
+      <main className="flex-1 p-4 space-y-6 pb-32">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-slate-400">
+              Fleet Command
+            </h1>
+            <p className="text-sm font-bold text-blue-400/80 uppercase tracking-widest">Global Operations Unit</p>
           </div>
           <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-xl shadow-primary/30 hover:scale-105 transition-transform active:scale-95"
+            onClick={() => setShowAddModal(true)} // Changed to setShowAddModal
+            className="group relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-900/40 border border-white/20 w-full sm:w-auto justify-center"
           >
-            <Plus className="w-5 h-5" /> Add Driver
+            <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <Plus className="w-5 h-5 relative" />
+            <span className="relative">Recruit Operator</span>
           </button>
+        </header>
+
+        <div className="flex flex-col sm:flex-row gap-4 mb-10 items-center">
+          <div className="relative flex-1 group w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-blue-400 transition-colors" />
+            <input
+              type="text"
+              className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-white/5 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 shadow-inner group-hover:bg-slate-900/80"
+              placeholder="Query fleet by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex bg-slate-900/50 p-1 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
+            <button
+              onClick={() => setFilter('all')}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-1 sm:flex-none",
+                filter === 'all' ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
+              )}
+            >
+              All Units
+            </button>
+            <button
+              onClick={() => setFilter('active')}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-1 sm:flex-none",
+                filter === 'active' ? "bg-emerald-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
+              )}
+            >
+              Ready
+            </button>
+            <button
+              onClick={() => setFilter('offline')}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-1 sm:flex-none",
+                filter === 'offline' ? "bg-rose-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
+              )}
+            >
+              Off
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -128,12 +169,7 @@ export default function OperatorManagement(): ReactNode {
           </div>
         ) : (
           <div className="grid gap-4">
-            {operators
-              .filter(op =>
-                op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                op.id.toLowerCase().includes(searchQuery.toLowerCase())
-              )
+            {filteredOperators
               .map(op => (
                 <div key={op.id} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
                   <div className="flex justify-between items-start">
@@ -198,12 +234,8 @@ export default function OperatorManagement(): ReactNode {
                   </div>
                 </div>
               ))}
-            {operators.length > 0 && operators.filter(op =>
-              op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              op.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              op.id.toLowerCase().includes(searchQuery.toLowerCase())
-            ).length === 0 && (
-                <div className="py-20 text-center text-slate-400 italic">
+            {filteredOperators.length === 0 && (
+                <div className="min-h-screen bg-[#020817] text-slate-100 font-sans pb-32 mt-20 sm:mt-0">
                   <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
                   <p>No drivers found matching "{searchQuery}"</p>
                 </div>

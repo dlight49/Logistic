@@ -138,18 +138,18 @@ export default function DriverChat(): ReactNode {
                 {/* Input Area */}
                 <form
                     onSubmit={handleSendMessage}
-                    className="p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800 flex gap-3 shrink-0"
+                    className="p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-950/20 border-t border-slate-100 dark:border-slate-800 flex gap-3 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6"
                 >
                     <input
                         type="text"
                         value={newMessage}
                         onChange={e => setNewMessage(e.target.value)}
                         placeholder="Type message to HQ..."
-                        className="flex-1 bg-white dark:bg-slate-900 border-none rounded-2xl px-6 py-4 text-sm font-medium focus:ring-2 focus:ring-primary transition-all shadow-inner text-slate-900 dark:text-white"
+                        className="flex-1 bg-white dark:bg-slate-900 border-none rounded-2xl px-6 py-4 text-sm font-medium focus:ring-2 focus:ring-primary transition-all shadow-inner text-slate-900 dark:text-white min-w-0"
                     />
                     <button
                         disabled={!newMessage.trim()}
-                        className="w-14 h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl flex items-center justify-center hover:shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                        className="w-14 h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl flex items-center justify-center hover:shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shrink-0"
                     >
                         <Send className="w-6 h-6" />
                     </button>

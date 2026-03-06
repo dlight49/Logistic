@@ -7,12 +7,6 @@ import {
   ChevronRight,
   TrendingUp,
   TrendingDown,
-  Minus,
-  Bell,
-  Menu,
-  Clock,
-  LogOut,
-  MessageCircle,
   Navigation,
   CheckCircle
 } from "lucide-react";
@@ -23,6 +17,7 @@ import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
 
 import { useDriverTracking } from "../../hooks/useDriverTracking";
+import DriverNav from "../../components/navigation/DriverNav";
 
 export default function DriverDashboard(): ReactNode {
   const { user, logout } = useAuth();
@@ -69,37 +64,24 @@ export default function DriverDashboard(): ReactNode {
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[40%] bg-accent/20 rounded-full blur-[100px] pointer-events-none mix-blend-screen animate-pulse-slow" />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
 
-      <header className="flex items-center glass-panel rounded-none border-x-0 border-t-0 border-b border-white/10 p-4 sticky top-0 z-30">
-        <div className="flex size-12 shrink-0 items-center justify-start text-primary">
-          <Menu className="w-6 h-6" />
-        </div>
-        <div className="flex-1 text-center">
-          <h1 className="text-xl font-bold leading-tight tracking-tight text-white drop-shadow-sm flex items-center justify-center gap-2">
-            <Truck className="w-5 h-5 text-primary" /> Driver Center
-          </h1>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user.name || "Driver"}</p>
-        </div>
-        <div className="flex w-12 items-center justify-end">
-          <button className="relative flex items-center justify-center rounded-xl h-10 w-10 bg-white/5 hover:bg-white/10 border border-white/5 text-white transition-all">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(249,115,22,0.8)]"></span>
-          </button>
-        </div>
-      </header>
+      <DriverNav />
 
       <main className="flex-1 overflow-y-auto pb-28 relative z-10">
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="p-4 space-y-6">
-          <div className="grid grid-cols-3 gap-3">
-            <motion.div variants={itemVariants}>
-              <DriverStat label="Active" value={stats.active.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+2%" trendColor="text-emerald-500" glow="bg-emerald-500/10" />
-            </motion.div>
-            <motion.div variants={itemVariants}>
-              <DriverStat label="Pending" value={stats.pending.toString().padStart(2, '0')} trend={<Minus className="w-3 h-3" />} trendValue="0%" trendColor="text-slate-400" glow="bg-white/5" />
-            </motion.div>
-            <motion.div variants={itemVariants}>
+          <motion.div variants={containerVariants} className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+            <DriverStat
+              label="Orders"
+              value={stats.active.toString().padStart(2, '0')}
+              trend={<TrendingUp className="w-3 h-3" />}
+              trendValue="+12%"
+              trendColor="text-primary"
+              glow="bg-primary/10"
+            />
+            <DriverStat label="Delivered" value={stats.pending.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+8%" trendColor="text-emerald-500" glow="bg-emerald-500/10" />
+            <div className="col-span-2 lg:col-span-1">
               <DriverStat label="Done" value={stats.done.toString().padStart(2, '0')} trend={<TrendingDown className="w-3 h-3" />} trendValue="-5%" trendColor="text-accent" glow="bg-accent/10" />
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
 
           <motion.div variants={itemVariants} className="pt-2 flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight text-white">Assigned Routes</h2>
@@ -174,29 +156,7 @@ export default function DriverDashboard(): ReactNode {
         </motion.div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none">
-        <div className="max-w-md mx-auto glass-panel rounded-2xl border border-white/10 px-6 py-3 flex justify-around items-center shadow-2xl pointer-events-auto">
-          <Link to="/driver" className="flex flex-col items-center gap-1 text-primary">
-            <span className="material-symbols-outlined text-[28px] fill-1 drop-shadow-[0_0_12px_rgba(59,130,246,0.6)]">home</span>
-            <span className="text-[9px] font-black uppercase tracking-widest text-primary">Home</span>
-          </Link>
-          <Link to="/driver" className="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
-            <Truck className="w-7 h-7" />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Routes</span>
-          </Link>
-          <Link to="/driver/chat" className="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
-            <MessageCircle className="w-7 h-7" />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Messages</span>
-          </Link>
-          <button
-            onClick={logout}
-            className="flex flex-col items-center gap-1 text-slate-400 hover:text-rose-500 transition-colors"
-          >
-            <LogOut className="w-7 h-7" />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Logout</span>
-          </button>
-        </div>
-      </nav>
+
     </div>
   );
 }

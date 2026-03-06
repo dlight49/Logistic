@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Users, Search, MapPin, Truck, ChevronRight, Activity, Filter } from "lucide-react";
+import { Users, Search, MapPin, Truck, ChevronRight, Activity, Filter, ChevronDown } from "lucide-react";
 import { User } from "../../types";
 import { apiFetch } from "../../utils/api";
 import { cn } from "../../utils";
@@ -34,42 +34,46 @@ export default function DriverDirectory() {
     );
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-100">
+        <div className="min-h-screen bg-[#020817] text-slate-100 font-sans pb-32 mt-20 sm:mt-0">
             <AdminNav />
-            <main className="flex-1 p-8 overflow-y-auto">
-                <header className="mb-10">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                            <Users className="w-6 h-6" />
+            <main className="flex-1 p-4 sm:p-8 overflow-y-auto pb-32 pt-safe">
+                <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-600/20 p-2 rounded-lg border border-blue-500/20">
+                                <Users className="w-5 h-5 text-blue-400" />
+                            </div>
+                            <h1 className="text-3xl font-black tracking-tight text-white italic">Driver Intelligence</h1>
                         </div>
-                        <h1 className="text-3xl font-extrabold tracking-tight">Driver Fleet</h1>
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] ml-11">The Backbone of Global Supply Chains</p>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400">Manage and monitor your active logistics operators.</p>
+                    <div className="flex gap-4">
+                        {/* Filter/buttons could go here if needed, adding stackable search below */}
+                    </div>
                 </header>
 
-                {/* Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div className="relative group col-span-2">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                <div className="flex flex-col sm:flex-row gap-4 mb-10 text-slate-100">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-cyan-400 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search by name, email or ID..."
+                            className="w-full pl-14 pr-6 py-4.5 bg-slate-900/40 border border-white/5 rounded-3xl text-sm font-bold focus:ring-2 focus:ring-cyan-500/30 outline-none transition-all placeholder:text-slate-600 shadow-2xl backdrop-blur-sm"
+                            placeholder="Search by name, email, or vehicle..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
                         />
                     </div>
-                    <div className="relative group">
-                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <div className="sm:w-64 relative">
                         <select
-                            value={cityFilter}
-                            onChange={(e) => setCityFilter(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm appearance-none cursor-pointer"
+                            className="w-full pl-6 pr-12 py-4.5 bg-slate-900/40 border border-white/5 rounded-3xl text-sm font-bold appearance-none focus:ring-2 focus:ring-cyan-500/30 outline-none transition-all shadow-2xl backdrop-blur-sm"
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
                         >
-                            <option value="all">All Locations</option>
+                            <option value="">All Drivers</option>
                             <option value="active">Currently Active</option>
                             <option value="idle">Stationary / Idle</option>
                         </select>
+                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none w-5 h-5" />
                     </div>
                 </div>
 

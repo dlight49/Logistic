@@ -92,7 +92,7 @@ export default function CustomsPortal(): ReactNode {
         </button>
       </header>
 
-      <main className="flex-1 flex flex-col gap-6 p-4 relative z-10 pb-32">
+      <main className="flex-1 flex flex-col gap-6 p-4 relative z-10 pb-[calc(8rem+env(safe-area-inset-bottom))]">
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-6">
           <motion.section variants={itemVariants} className="flex flex-col gap-4 rounded-3xl p-6 glass-panel border border-white/10 relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 p-4 opacity-5 translate-x-4 -translate-y-4">

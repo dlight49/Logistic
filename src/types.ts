@@ -1,4 +1,10 @@
-export type UserRole = 'admin' | 'customer' | 'operator';
+/**
+ * UserRole — canonical role strings stored in Firestore and SQLite DB.
+ * IMPORTANT: 'operator' is the internal DB value for what the UI displays as "Driver".
+ * Do NOT change 'operator' to 'driver' in the DB without a full data migration.
+ * UI labels should use "Driver" for display, but all logic/guards use 'operator'.
+ */
+export type UserRole = 'admin' | 'customer' | 'operator'; // 'operator' = Driver role
 
 export interface User {
   id: string;

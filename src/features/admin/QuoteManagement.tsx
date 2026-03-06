@@ -4,8 +4,8 @@ import {
   FileText, Search, Filter, CheckCircle2, XCircle, Clock, 
   MapPin, Package, Shield, ArrowRight, Layers, MoreVertical
 } from 'lucide-react';
-import { apiFetch } from '../../lib/api';
-import { cn } from '../../lib/utils';
+import { apiFetch } from '../../utils/api';
+import { cn } from '../../utils';
 import { format } from 'date-fns';
 
 interface Quote {
@@ -31,7 +31,8 @@ export const QuoteManagement: React.FC = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      const data = await apiFetch<Quote[]>('/api/quotes');
+      const res = await apiFetch('/api/quotes');
+      const data: Quote[] = await res.json();
       setQuotes(data);
     } catch (error) {
       console.error("Failed to fetch quotes", error);
@@ -49,7 +50,7 @@ export const QuoteManagement: React.FC = () => {
       await apiFetch(`/api/quotes/${id}/${action === 'APPROVE' ? 'approve' : 'reject'}`, {
         method: 'POST'
       });
-      fetchQuotes();
+      void fetchQuotes();
     } catch (error) {
       console.error(`Failed to ${action} quote`, error);
     }
@@ -63,31 +64,31 @@ export const QuoteManagement: React.FC = () => {
   });
 
   return (
-    <div className="space-y-8 p-8 max-w-7xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-white italic tracking-tight">QUOTE MANAGEMENT</h1>
           <p className="text-slate-400 mt-1">Review and process customer freight estimations</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input 
               type="text" 
               placeholder="Search origin/destination..."
-              className="bg-slate-900 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all w-64"
+              className="w-full sm:w-56 bg-slate-900 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="p-2 bg-slate-900 border border-white/10 rounded-xl hover:bg-slate-800">
+          <button className="p-2 bg-slate-900 border border-white/10 rounded-xl hover:bg-slate-800 self-center sm:self-auto">
             <Filter className="w-5 h-5 text-slate-400" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 sm:gap-6">
         {[
           { label: 'Total Quotes', val: quotes.length, color: 'blue' },
           { label: 'Pending Approval', val: quotes.filter(q => q.status === 'PENDING').length, color: 'amber' },
@@ -153,19 +154,19 @@ export const QuoteManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-1 items-center gap-6">
+                <div className="flex flex-col sm:flex-row flex-1 items-start sm:items-center gap-3 sm:gap-6">
                   <div className="flex flex-col gap-1 min-w-[120px]">
                     <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Origin</span>
                     <span className="text-white font-bold flex items-center gap-2"><MapPin className="w-3 h-3" /> {quote.origin}</span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-700" />
+                  <ArrowRight className="w-4 h-4 text-slate-700 hidden sm:block" />
                   <div className="flex flex-col gap-1 min-w-[120px]">
                     <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Destination</span>
                     <span className="text-white font-bold flex items-center gap-2"><MapPin className="w-3 h-3" /> {quote.destination}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:w-1/3 border-l border-white/5 pl-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:w-1/3 border-t lg:border-t-0 lg:border-l border-white/5 pt-6 lg:pt-0 lg:pl-8">
                   <div className="flex flex-col gap-1">
                     <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Details</span>
                     <span className="text-slate-300 text-xs font-bold">{quote.packageType} · {quote.weight}KG</span>
@@ -223,3 +224,5 @@ export const QuoteManagement: React.FC = () => {
     </div>
   );
 };
+
+export default QuoteManagement;

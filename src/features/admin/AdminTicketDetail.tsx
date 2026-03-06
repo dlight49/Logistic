@@ -84,26 +84,26 @@ export default function AdminTicketDetail(): ReactNode {
     const isClosed = ticket.status === 'CLOSED';
 
     return (
-        <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col pt-24 h-[calc(100vh-6rem)] pb-24">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full">
+        <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col pt-24 min-h-[calc(100vh-6rem)] pb-24 lg:pb-8">
+            <div className="flex flex-col lg:grid lg:grid-cols-4 gap-8">
 
                 {/* Left Side: Chat Area */}
-                <div className="lg:col-span-3 flex flex-col min-h-0">
+                <div className="lg:col-span-3 flex flex-col min-h-[500px] lg:h-[calc(100vh-16rem)]">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-6 shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 shrink-0">
                         <div className="flex items-center gap-4">
-                            <Link to="/admin/support" className="w-10 h-10 glass-panel rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <Link to="/admin/support" className="w-10 h-10 glass-panel rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
                                 <ChevronLeft className="w-5 h-5" />
                             </Link>
-                            <div>
-                                <h1 className="text-2xl font-black text-slate-900 dark:text-white truncate max-w-md">{ticket.subject}</h1>
-                                <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-widest">ID: {ticket.id}</p>
+                            <div className="min-w-0">
+                                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white truncate">{ticket.subject}</h1>
+                                <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest">ID: {ticket.id}</p>
                             </div>
                         </div>
                         {!isClosed && (
                             <button
                                 onClick={handleCloseTicket}
-                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all flex items-center gap-2"
+                                className="w-full sm:w-auto px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center gap-2"
                             >
                                 <Lock className="w-3.5 h-3.5" /> Close Ticket
                             </button>
@@ -111,10 +111,10 @@ export default function AdminTicketDetail(): ReactNode {
                     </div>
 
                     {/* Thread */}
-                    <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl min-h-0">
+                    <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
                         <div
                             ref={scrollRef}
-                            className="flex-1 p-6 overflow-y-auto space-y-6 scroll-smooth custom-scrollbar"
+                            className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 scroll-smooth custom-scrollbar min-h-0"
                         >
                             <AnimatePresence initial={false}>
                                 {ticket.messages?.map((msg: any) => {
@@ -125,12 +125,12 @@ export default function AdminTicketDetail(): ReactNode {
                                             initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             className={cn(
-                                                "flex w-full group",
+                                                "flex w-full",
                                                 isMe ? "justify-end" : "justify-start"
                                             )}
                                         >
                                             <div className={cn(
-                                                "max-w-[85%] sm:max-w-[70%] flex flex-col",
+                                                "max-w-[90%] sm:max-w-[75%] flex flex-col",
                                                 isMe ? "items-end" : "items-start"
                                             )}>
                                                 <div className="flex items-center gap-2 mb-1 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -141,7 +141,7 @@ export default function AdminTicketDetail(): ReactNode {
                                                     </span>
                                                 </div>
                                                 <div className={cn(
-                                                    "px-5 py-3 rounded-2xl text-sm font-medium shadow-sm",
+                                                    "px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-sm font-medium shadow-sm",
                                                     isMe
                                                         ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-tr-none"
                                                         : "bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-tl-none border border-slate-100 dark:border-slate-700"
@@ -159,24 +159,24 @@ export default function AdminTicketDetail(): ReactNode {
                         {!isClosed ? (
                             <form
                                 onSubmit={handleReply}
-                                className="p-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex gap-3 items-center shrink-0"
+                                className="p-3 sm:p-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex gap-2 sm:gap-3 items-center shrink-0"
                             >
                                 <input
                                     type="text"
                                     value={reply}
                                     onChange={e => setReply(e.target.value)}
                                     placeholder="Type your response..."
-                                    className="flex-1 bg-white dark:bg-slate-900 border-none rounded-2xl px-6 py-3.5 text-sm font-medium focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-white shadow-inner"
+                                    className="flex-1 bg-white dark:bg-slate-900 border-none rounded-2xl px-4 py-3 sm:px-6 sm:py-3.5 text-sm font-medium focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-white shadow-inner"
                                 />
                                 <button
                                     disabled={!reply.trim() || sending}
-                                    className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-primary/30"
+                                    className="w-11 h-11 sm:w-12 sm:h-12 bg-primary text-white rounded-2xl flex items-center justify-center hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-primary/30 shrink-0"
                                 >
                                     <Send className="w-5 h-5" />
                                 </button>
                             </form>
                         ) : (
-                            <div className="p-6 bg-rose-500/5 dark:bg-rose-500/10 text-center shrink-0 border-t border-rose-500/10">
+                            <div className="p-4 sm:p-6 bg-rose-500/5 dark:bg-rose-500/10 text-center shrink-0 border-t border-rose-500/10">
                                 <p className="text-sm font-bold text-rose-500 flex items-center justify-center gap-2">
                                     <Lock className="w-4 h-4" /> This ticket is closed.
                                 </p>
@@ -186,12 +186,12 @@ export default function AdminTicketDetail(): ReactNode {
                 </div>
 
                 {/* Right Side: Sidebar Info */}
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="glass-panel p-6 rounded-3xl space-y-6 border border-slate-200/50 dark:border-slate-800/50">
+                <div className="lg:col-span-1">
+                    <div className="glass-panel p-6 rounded-3xl space-y-6 border border-slate-200/50 dark:border-slate-800/50 sticky top-24">
                         <div>
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-3">Customer Profile</label>
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-black">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-black shrink-0">
                                     {ticket.user?.name?.[0]}
                                 </div>
                                 <div className="min-w-0">
@@ -207,7 +207,7 @@ export default function AdminTicketDetail(): ReactNode {
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-bold text-slate-500">Status</span>
                                     <span className={cn(
-                                        "text-xs font-black uppercase px-2 py-1 rounded-md",
+                                        "text-[10px] font-black uppercase px-2 py-1 rounded-md",
                                         isClosed ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
                                     )}>
                                         {ticket.status}
@@ -216,7 +216,7 @@ export default function AdminTicketDetail(): ReactNode {
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-bold text-slate-500">Priority</span>
                                     <span className={cn(
-                                        "text-xs font-black uppercase px-2 py-1 rounded-md",
+                                        "text-[10px] font-black uppercase px-2 py-1 rounded-md",
                                         ticket.priority === 'HIGH' ? "bg-rose-500/10 text-rose-500" : "bg-primary/10 text-primary"
                                     )}>
                                         {ticket.priority}
@@ -232,7 +232,7 @@ export default function AdminTicketDetail(): ReactNode {
                         </div>
 
                         <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                            <Link to={`/admin/operator/1`} className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white mt-2 py-3 rounded-2xl font-bold text-sm block text-center hover:bg-slate-100 transition-colors">
+                            <Link to={`/admin/operator/1`} className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white py-3 rounded-2xl font-bold text-sm block text-center hover:bg-slate-100 transition-colors">
                                 View User History
                             </Link>
                         </div>

@@ -120,17 +120,20 @@ export default function AdminSupport(): ReactNode {
                                         {ticket.status === 'OPEN' ? <Clock className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
                                     </div>
                                     <div className="min-w-0">
+                                        <div className="md:hidden text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ticket</div>
                                         <h4 className="font-bold text-slate-900 dark:text-white truncate">{ticket.subject}</h4>
                                         <p className="text-xs text-slate-400 mt-0.5">#{ticket.id.split('-')[0]}</p>
                                     </div>
                                 </div>
 
                                 <div className="col-span-1 md:col-span-3">
+                                    <div className="md:hidden text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Customer</div>
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{ticket.user?.name}</p>
                                     <p className="text-xs text-slate-500">{ticket.user?.email}</p>
                                 </div>
 
                                 <div className="col-span-1 md:col-span-2">
+                                    <div className="md:hidden text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Priority</div>
                                     <span className={cn(
                                         "text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md",
                                         ticket.priority === 'HIGH' ? "text-rose-500 bg-rose-500/10" :
@@ -141,14 +144,17 @@ export default function AdminSupport(): ReactNode {
                                     </span>
                                 </div>
 
-                                <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-3 text-right">
-                                    <span className={cn(
-                                        "text-xs font-bold px-3 py-1 rounded-full",
-                                        ticket.status === 'OPEN' ? "bg-amber-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                                    )}>
-                                        {ticket.status}
-                                    </span>
-                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                <div className="col-span-1 md:col-span-2 flex items-center justify-between md:justify-end gap-3 text-right">
+                                    <div className="md:hidden text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</div>
+                                    <div className="flex items-center gap-3">
+                                        <span className={cn(
+                                            "text-xs font-bold px-3 py-1 rounded-full",
+                                            ticket.status === 'OPEN' ? "bg-amber-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                                        )}>
+                                            {ticket.status}
+                                        </span>
+                                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                    </div>
                                 </div>
                             </Link>
                         ))}

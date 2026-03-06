@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
+import CustomerNav from "../../components/navigation/CustomerNav";
 
 export default function CustomerDashboard(): ReactNode {
     const { user } = useAuth();
@@ -32,6 +33,7 @@ export default function CustomerDashboard(): ReactNode {
 
     return (
         <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col pt-24 space-y-8">
+            <CustomerNav />
 
             {/* Header */}
             <motion.div

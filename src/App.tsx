@@ -66,7 +66,9 @@ export default function App(): ReactNode {
             <Route path="/admin/shipment/:id" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentDetailView /></ProtectedRoute>} />
             <Route path="/admin/quotes" element={<ProtectedRoute allowedRoles={["admin"]}><QuoteManagement /></ProtectedRoute>} />
 
-            {/* Driver Routes */}
+            {/* Driver Routes — NOTE: allowedRoles uses 'operator' (canonical DB value).
+                The UI displays this role as "Driver". Do NOT rename to 'driver' here
+                without first migrating all Firestore user records. */}
             <Route path="/driver" element={<ProtectedRoute allowedRoles={["operator"]}><DriverDashboard /></ProtectedRoute>} />
             <Route path="/driver/documents" element={<ProtectedRoute allowedRoles={["operator"]}><CustomsPortal /></ProtectedRoute>} />
             <Route path="/driver/chat" element={<ProtectedRoute allowedRoles={["operator"]}><DriverChat /></ProtectedRoute>} />

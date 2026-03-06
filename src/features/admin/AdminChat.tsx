@@ -13,6 +13,7 @@ export default function AdminChat(): ReactNode {
     const [newMessage, setNewMessage] = React.useState("");
     const [loading, setLoading] = React.useState(true);
     const [search, setSearch] = React.useState("");
+    const [view, setView] = React.useState<"list" | "chat">("list");
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
     const fetchDrivers = async () => {
@@ -38,6 +39,7 @@ export default function AdminChat(): ReactNode {
 
     React.useEffect(() => {
         if (selectedDriver) {
+            setView("chat");
             fetchMessages(selectedDriver.id);
             const interval = setInterval(() => fetchMessages(selectedDriver.id), 5000);
             return () => clearInterval(interval);
@@ -71,11 +73,14 @@ export default function AdminChat(): ReactNode {
     );
 
     return (
-        <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col pt-24 h-[calc(100vh-6rem)] pb-24">
-            <div className="grid grid-cols-1 lg:grid-cols-4 glass-panel rounded-3xl overflow-hidden h-full shadow-2xl border border-slate-200/50 dark:border-slate-800/50">
+        <div className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-6 lg:p-8 flex flex-col pt-24 h-[calc(100vh-6rem)] pb-24">
+            <div className="grid grid-cols-1 lg:grid-cols-4 glass-panel rounded-none sm:rounded-3xl overflow-hidden h-full shadow-2xl border-x-0 sm:border-x border-y border-slate-200/50 dark:border-slate-800/50">
 
                 {/* Sidebar: Driver List */}
-                <div className="lg:col-span-1 border-r border-slate-100 dark:border-slate-800 flex flex-col bg-slate-50/50 dark:bg-slate-900/30">
+                <div className={cn(
+                    "lg:col-span-1 border-r border-slate-100 dark:border-slate-800 flex flex-col bg-slate-50/50 dark:bg-slate-900/30",
+                    view === "chat" ? "hidden lg:flex" : "flex"
+                )}>
                     <div className="p-6 border-b border-slate-100 dark:border-slate-800">
                         <h2 className="text-xl font-black text-slate-900 dark:text-white mb-4">Messages</h2>
                         <div className="relative">
@@ -116,25 +121,34 @@ export default function AdminChat(): ReactNode {
                 </div>
 
                 {/* Main: Chat View */}
-                <div className="lg:col-span-3 flex flex-col bg-white dark:bg-slate-900 relative">
+                <div className={cn(
+                    "lg:col-span-3 flex flex-col bg-white dark:bg-slate-900 relative",
+                    view === "list" ? "hidden lg:flex" : "flex"
+                )}>
                     {selectedDriver ? (
                         <>
                             {/* Chat Header */}
                             <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-4">
+                                    <button 
+                                        onClick={() => setView("list")}
+                                        className="lg:hidden p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-black">
                                         {selectedDriver.name?.[0]}
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white leading-tight">{selectedDriver.name}</h3>
+                                    <div className="min-w-0">
+                                        <h3 className="font-bold text-slate-900 dark:text-white leading-tight truncate">{selectedDriver.name}</h3>
                                         <div className="flex items-center gap-1.5 mt-0.5">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Driver • Available</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Driver</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 transition-colors"><Phone className="w-5 h-5" /></button>
+                                    <button className="hidden sm:block p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 transition-colors"><Phone className="w-5 h-5" /></button>
                                     <button className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 transition-colors"><MoreVertical className="w-5 h-5" /></button>
                                 </div>
                             </div>
@@ -182,13 +196,13 @@ export default function AdminChat(): ReactNode {
                             {/* Input */}
                             <form
                                 onSubmit={handleSendMessage}
-                                className="p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex gap-3 shrink-0"
+                                className="p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex gap-3 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6"
                             >
                                 <input
                                     type="text"
                                     value={newMessage}
                                     onChange={e => setNewMessage(e.target.value)}
-                                    placeholder={`Message ${selectedDriver.name.split(' ')[0]}...`}
+                                    placeholder="Type message..."
                                     className="flex-1 bg-white dark:bg-slate-800 border-none rounded-2xl px-6 py-3.5 text-sm font-medium focus:ring-2 focus:ring-primary transition-all shadow-inner"
                                 />
                                 <button

@@ -27,6 +27,9 @@ export default function DriverLogin() {
 
             const userRole = (profile?.role as any);
 
+            // NOTE: Drivers are stored with role='operator' in Firestore (canonical DB value).
+            // The UI displays this role as "Driver". Do not change this check to 'driver'
+            // without first running a Firestore data migration on all user records.
             if (userRole !== 'operator') {
                 throw new Error("Access denied. Driver credentials required.");
             }

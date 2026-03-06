@@ -75,9 +75,9 @@ export default function TicketDetail(): ReactNode {
     const isClosed = ticket.status === 'CLOSED';
 
     return (
-        <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col pt-24 h-[calc(100vh-6rem)]">
+        <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col pt-24 h-[calc(100dvh-0.5rem)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
             {/* Nav */}
-            <div className="flex items-center gap-4 mb-6 shrink-0">
+            <div className="flex items-center gap-4 mb-6 shrink-0 pt-env(safe-area-inset-top)">
                 <Link to="/customer/tickets" className="w-10 h-10 glass-panel rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <ChevronLeft className="w-5 h-5" />
                 </Link>
@@ -103,7 +103,7 @@ export default function TicketDetail(): ReactNode {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/50 mb-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl min-h-0">
+            <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl min-h-0">
                 <div
                     ref={scrollRef}
                     className="flex-1 p-6 overflow-y-auto space-y-6 scroll-smooth custom-scrollbar"

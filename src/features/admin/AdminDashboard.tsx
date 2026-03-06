@@ -23,7 +23,7 @@ import { Link } from "react-router-dom";
 import { Stats, Shipment } from "../../types";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import AdminNav from "../../components/AdminNav";
+import AdminNav from "../../components/navigation/AdminNav";
 import AssignOperatorModal from "../../components/AssignOperatorModal";
 import LiveDispatchMap from "../../components/LiveDispatchMap";
 import { motion, AnimatePresence } from "motion/react";
@@ -93,7 +93,7 @@ export default function AdminDashboard(): ReactNode {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#020817] text-slate-100 font-sans relative overflow-hidden pb-20 selection:bg-primary/30">
+    <div className="min-h-screen flex flex-col bg-[#020817] text-slate-100 font-sans relative overflow-hidden pb-32 selection:bg-primary/30">
       {/* Animated Ambient Background Gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-600/20 rounded-full blur-[100px] pointer-events-none animate-pulse-slow" style={{ animationDelay: '2s' }} />
@@ -155,7 +155,7 @@ export default function AdminDashboard(): ReactNode {
                 Network Status
               </h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
               <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="text-blue-400" />} gradient="from-blue-500/10 to-blue-500/5" border="border-blue-500/20" />
               <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="text-cyan-400" />} gradient="from-cyan-500/10 to-cyan-500/5" border="border-cyan-500/20" />
               <StatCard label="Customs Hold" value={stats?.inCustoms || 0} icon={<Gavel className="text-amber-400" />} gradient="from-amber-500/10 to-amber-500/5" border="border-amber-500/20" color="text-amber-400" />
@@ -186,13 +186,13 @@ export default function AdminDashboard(): ReactNode {
                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider drop-shadow-md">Live Sync</span>
                </div>
             </div>
-            <div className="h-[400px] w-full relative">
+            <div className="h-[220px] sm:h-[300px] md:h-[350px] lg:h-[400px] w-full relative">
               <LiveDispatchMap />
             </div>
           </motion.section>
 
           {/* Filters & Search */}
-          <motion.section variants={itemVariants} className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 rounded-3xl flex flex-col lg:flex-row gap-4 shadow-xl">
+          <motion.section variants={itemVariants} className="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-4 sm:p-5 rounded-3xl flex flex-col gap-4 shadow-xl">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-400 transition-colors" />
               <input
@@ -203,7 +203,7 @@ export default function AdminDashboard(): ReactNode {
               />
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide shrink-0 items-center">
+            <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-none pb-1 shrink-0 items-center">
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <select

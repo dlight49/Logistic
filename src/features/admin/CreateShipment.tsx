@@ -35,27 +35,35 @@ export default function CreateShipment(): ReactNode {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="text-slate-600 dark:text-slate-400">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">Create New Shipment</h1>
+    <div className="bg-slate-950 font-display text-slate-100 antialiased min-h-screen pb-[calc(8rem+env(safe-area-inset-bottom))] relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[60%] bg-primary/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[50%] bg-accent/10 rounded-full blur-[100px] pointer-events-none" />
+
+      <header className="sticky top-0 z-50 glass-panel border-x-0 border-t-0 p-4 flex items-center gap-4 rounded-none border-b border-white/10">
+        <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <div>
+          <h1 className="text-xl font-black tracking-tight text-white">Create Shipment</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">Global Logistics Network</p>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-6">
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-8 pb-20">
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="text-accent w-5 h-5" />
-              <h2 className="text-lg font-semibold">Customer Information</h2>
+      <main className="p-4 md:p-6 max-w-2xl mx-auto relative z-10">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 pb-20">
+          <section className="glass-panel p-6 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+              <Truck className="w-24 h-24" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+              Origin Details
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
               <Input label="Customer Name" placeholder="John Doe" value={formData.receiver_name} onChange={v => setFormData({ ...formData, receiver_name: v })} />
               <Input label="Phone Number" placeholder="+1 (555) 000-0000" value={formData.receiver_phone} onChange={v => setFormData({ ...formData, receiver_phone: v })} />
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <Input label="Email Address" placeholder="customer@example.com" value={formData.receiver_email} onChange={v => setFormData({ ...formData, receiver_email: v })} />
               </div>
             </div>
@@ -66,7 +74,7 @@ export default function CreateShipment(): ReactNode {
               <MapPin className="text-accent w-5 h-5" />
               <h2 className="text-lg font-semibold">Logistics Details</h2>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Origin City" placeholder="Lagos" value={formData.sender_city} onChange={v => setFormData({ ...formData, sender_city: v })} />
               <Input label="Origin Country" placeholder="Nigeria" value={formData.sender_country} onChange={v => setFormData({ ...formData, sender_country: v })} />
               <Input label="Destination City" placeholder="New York" value={formData.receiver_city} onChange={v => setFormData({ ...formData, receiver_city: v })} />
@@ -89,7 +97,7 @@ export default function CreateShipment(): ReactNode {
               <Package className="text-accent w-5 h-5" />
               <h2 className="text-lg font-semibold">Shipment Details</h2>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Shipment Type</label>
                 <select

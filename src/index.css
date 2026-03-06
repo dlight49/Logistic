@@ -31,6 +31,26 @@
   50% { opacity: 0.7; }
 }
 
+@layer base {
+  /* Prevent iOS from auto-scaling text on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Smooth scrolling everywhere */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
+
+  /* Body fills viewport safely on all devices */
+  body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+}
+
 @layer utilities {
   .glass-panel {
     @apply bg-white/10 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-slate-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
@@ -40,5 +60,22 @@
   }
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-accent;
+  }
+
+  /* Hide scrollbar while keeping scroll behaviour (used by nav) */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* iPhone notch / home-bar safe-area padding helpers */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }

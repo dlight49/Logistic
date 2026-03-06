@@ -54,7 +54,7 @@ export default function RequestQuote(): ReactNode {
     };
 
     return (
-        <div className="bg-slate-950 font-display text-slate-100 min-h-screen pb-32 relative overflow-hidden">
+        <div className="bg-slate-950 font-display text-slate-100 min-h-screen pb-[calc(8rem+env(safe-area-inset-bottom))] relative overflow-hidden">
             {/* Background gradients */}
             <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[50%] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
             <div className="absolute bottom-1/4 right-[-20%] w-[60%] h-[40%] bg-accent/15 rounded-full blur-[100px] pointer-events-none mix-blend-screen animate-pulse-slow" />
