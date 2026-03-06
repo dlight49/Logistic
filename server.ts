@@ -76,6 +76,13 @@ async function startServer() {
     next();
   });
 
+  // Debug
+  console.log(`[Server] NODE_ENV: ${process.env.NODE_ENV}`);
+  app.get('/ping', (req, res) => {
+    console.log('[Request] GET /ping');
+    res.send('pong');
+  });
+
   // Modular routes
   app.use('/api', apiRoutes);
 

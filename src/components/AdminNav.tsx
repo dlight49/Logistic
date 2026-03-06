@@ -14,11 +14,11 @@ export default function AdminNav() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/admin" },
-    { icon: Package, label: "All Shipments", id: "shipments", path: "/admin/shipments" },
+    { icon: Package, label: "All Shipments", id: "shipments", path: "/admin" },
     { icon: Users, label: "Driver Fleet", id: "drivers", path: "/admin/drivers" },
-    { icon: MessageSquare, label: "Messages", id: "messages", path: "/admin/messages" },
-    { icon: MessageCircle, label: "Support Tickets", id: "tickets", path: "/admin/tickets" },
-    { icon: Settings, label: "Settings", id: "settings", path: "/admin/settings" },
+    { icon: MessageSquare, label: "Messages", id: "messages", path: "/admin/chat" },
+    { icon: MessageCircle, label: "Support Tickets", id: "tickets", path: "/admin/support" },
+    { icon: Settings, label: "Settings", id: "settings", path: "/admin/notifications" },
   ];
 
   return (

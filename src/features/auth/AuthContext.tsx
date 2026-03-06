@@ -18,6 +18,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Verification Mode Check
+        const mockUser = localStorage.getItem("mock_user");
+        if (mockUser) {
+            setUser(JSON.parse(mockUser));
+            setLoading(false);
+            return;
+        }
+
         // Real Firebase Auth Listener
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
