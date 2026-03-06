@@ -155,15 +155,15 @@ export default function AdminDashboard(): ReactNode {
               </h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-              <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="text-blue-400" />} trend="+12% this week" gradient="from-blue-500/10 to-blue-500/5" border="border-blue-500/20" />
-              <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="text-cyan-400" />} trend="+4% this week" gradient="from-cyan-500/10 to-cyan-500/5" border="border-cyan-500/20" />
-              <StatCard label="Customs Hold" value={stats?.inCustoms || 0} icon={<Gavel className="text-amber-400" />} trend="-2% this week" gradient="from-amber-500/10 to-amber-500/5" border="border-amber-500/20" color="text-amber-400" />
+              <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="text-blue-400" />} gradient="from-blue-500/10 to-blue-500/5" border="border-blue-500/20" />
+              <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="text-cyan-400" />} gradient="from-cyan-500/10 to-cyan-500/5" border="border-cyan-500/20" />
+              <StatCard label="Customs Hold" value={stats?.inCustoms || 0} icon={<Gavel className="text-amber-400" />} gradient="from-amber-500/10 to-amber-500/5" border="border-amber-500/20" color="text-amber-400" />
               <StatCard label="Exceptions" value={stats?.issues || 0} icon={<AlertTriangle className="text-rose-400" />} gradient="from-rose-500/10 to-rose-500/5" border="border-rose-500/20" color="text-rose-400" />
               <Link to="/admin/support" className="contents">
-                <StatCard label="Active Tickets" value={4} icon={<MessageSquare className="text-indigo-400" />} gradient="from-indigo-500/10 to-indigo-500/5" border="border-indigo-500/20" color="text-indigo-400" />
+                <StatCard label="Support" value={stats?.activeTickets || 0} icon={<MessageSquare className="text-indigo-400" />} gradient="from-indigo-500/10 to-indigo-500/5" border="border-indigo-500/20" color="text-indigo-400" />
               </Link>
               <Link to="/admin/chat" className="contents">
-                <StatCard label="Fleet Messages" value={12} icon={<MessageCircle className="text-fuchsia-400" />} gradient="from-fuchsia-500/10 to-fuchsia-500/5" border="border-fuchsia-500/20" color="text-fuchsia-400" />
+                <StatCard label="Fleet Ops" value={stats?.fleetMessages || 0} icon={<MessageCircle className="text-fuchsia-400" />} gradient="from-fuchsia-500/10 to-fuchsia-500/5" border="border-fuchsia-500/20" color="text-fuchsia-400" />
               </Link>
             </div>
           </motion.section>

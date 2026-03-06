@@ -66,4 +66,6 @@ export interface Stats {
   inCustoms: number;
   issues: number;
   delivered: number;
+  activeTickets?: number;
+  fleetMessages?: number;
 }

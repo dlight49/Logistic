@@ -12,7 +12,9 @@ import {
   Menu,
   Clock,
   LogOut,
-  MessageCircle
+  MessageCircle,
+  Navigation,
+  CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, Variants } from "motion/react";
@@ -148,9 +150,21 @@ export default function DriverDashboard(): ReactNode {
                         <Package className="w-4 h-4 text-slate-400" />
                         <span className="text-xs font-medium text-slate-300">{s.type}</span>
                       </div>
-                      <Link to={`/driver/shipment/${s.id}`} className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2">
-                        Update Status
-                      </Link>
+                      <div className="flex flex-col gap-3 w-full">
+                        {(s.status === "Assigned" || s.status === "In Transit") && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold">
+                              <Navigation className="w-4 h-4 text-primary" /> Navigate
+                            </button>
+                            <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold">
+                              <CheckCircle className="w-4 h-4 text-emerald-500" /> Delivered
+                            </button>
+                          </div>
+                        )}
+                        <Link to={`/driver/shipment/${s.id}`} className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                          <Package className="w-4 h-4" /> Full Details & Scan
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

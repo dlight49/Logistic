@@ -8,13 +8,17 @@ export const getGlobalStats = async (req: Request, res: Response) => {
         const inCustoms = await prisma.shipment.count({ where: { status: 'Held by Customs' } });
         const issues = await prisma.shipment.count({ where: { status: 'Delayed' } });
         const delivered = await prisma.shipment.count({ where: { status: 'Delivered' } });
+        const activeTickets = await prisma.supportTicket.count({ where: { status: 'OPEN' } });
+        const fleetMessages = await prisma.directMessage.count();
 
         res.json({
             total,
             inTransit,
             inCustoms,
             issues,
-            delivered
+            delivered,
+            activeTickets,
+            fleetMessages
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch global stats' });

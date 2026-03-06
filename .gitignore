@@ -8,3 +8,5 @@ coverage/
 !.env.example
 *-firebase-adminsdk-*.json
 prisma/*.db
+.firebase/
+functions/node_modules/

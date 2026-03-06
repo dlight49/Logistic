@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Share2, MoreVertical, Truck, MapPin, Weight, Clock, Phone, Mail, Navigation, Headset, Edit3, X } from "lucide-react";
+import { ArrowLeft, Share2, MoreVertical, Truck, MapPin, Weight, Clock, Phone, Mail, Navigation, Headset, Edit3, X, Package, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "motion/react";
 import { Shipment } from "../../types";
 import { cn } from "../../utils";
@@ -14,9 +14,30 @@ export default function ShipmentDetails() {
   const [newStatus, setNewStatus] = useState("");
   const [notes, setNotes] = useState("");
 
+  const [updating, setUpdating] = useState(false);
+
   useEffect(() => {
     apiFetch(`/api/shipments/${id}`).then(res => res.json()).then(setShipment);
   }, [id]);
+
+  const handleStatusUpdate = async (status: string) => {
+    setUpdating(true);
+    try {
+      await apiFetch(`/api/shipments/${id}/updates`, {
+        method: "POST",
+        body: JSON.stringify({
+          status,
+          location: shipment?.receiver_city || "Current Location",
+          notes: `Status updated to ${status} via Quick Action`
+        })
+      });
+      const res = await apiFetch(`/api/shipments/${id}`);
+      const data = await res.json();
+      setShipment(data);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const handleUpdate = async () => {
     await apiFetch(`/api/shipments/${id}/updates`, {
@@ -42,6 +63,33 @@ export default function ShipmentDetails() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } as const }
   };
+
+  const StatusButton = ({ label, icon, color, active, onClick }: { 
+    label: string; 
+    icon: React.ReactNode; 
+    color: string; 
+    active: boolean;
+    onClick: () => void;
+  }) => (
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border transition-all duration-300",
+        active 
+          ? `${color} text-white border-transparent shadow-lg` 
+          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/20"
+      )}
+    >
+      <div className={cn(
+        "p-3 rounded-xl",
+        active ? "bg-white/20" : "bg-white/5"
+      )}>
+        {icon}
+      </div>
+      <span className="text-[10px] font-black uppercase tracking-widest text-center leading-tight">{label}</span>
+    </motion.button>
+  );
 
   return (
     <div className="bg-slate-950 font-display text-slate-100 min-h-screen pb-32 relative overflow-hidden">
@@ -83,19 +131,105 @@ export default function ShipmentDetails() {
               </div>
             </div>
           </motion.div>
-
           <motion.div variants={itemVariants} className="px-4 py-2">
             <div className="relative group rounded-2xl overflow-hidden glass-panel border border-white/10">
               <div className="w-full h-56 bg-slate-900 bg-cover bg-center opacity-60 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700" style={{ backgroundImage: `url(https://picsum.photos/seed/${shipment.id}/600/300)` }}>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
               <div className="absolute bottom-4 right-4 flex gap-2">
-                <button className="bg-primary/90 hover:bg-primary text-white p-3 px-5 rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2 text-sm font-bold transition-all active:scale-95 border border-white/20 backdrop-blur-md">
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shipment.receiver_address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-primary/90 hover:bg-primary text-white p-3 px-5 rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2 text-sm font-bold transition-all active:scale-95 border border-white/20 backdrop-blur-md"
+                >
                   <Navigation className="w-4 h-4" /> Navigate
-                </button>
+                </a>
               </div>
             </div>
           </motion.div>
+          <motion.section variants={itemVariants} className="mt-8 pb-32">
+            <div className="px-5 flex items-center justify-between mb-5">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Action Center</h3>
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+            </div>
+            
+            <div className="px-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <StatusButton 
+                  label="Arrived at Location" 
+                  icon={<MapPin className="w-5 h-5" />} 
+                  color="bg-blue-600 shadow-blue-900/40"
+                  active={shipment.status === 'arrived'}
+                  onClick={() => handleStatusUpdate('arrived')}
+                />
+                <StatusButton 
+                  label="Package Loaded" 
+                  icon={<Package className="w-5 h-5" />} 
+                  color="bg-indigo-600 shadow-indigo-900/40"
+                  active={shipment.status === 'loaded'}
+                  onClick={() => handleStatusUpdate('loaded')}
+                />
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleStatusUpdate('delivered')}
+                disabled={updating}
+                className="w-full relative group overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-emerald-600 to-teal-600 shadow-xl shadow-emerald-900/20 flex items-center justify-between border border-white/20 transition-all active:scale-95"
+              >
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                    <Truck className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100/70 mb-0.5">Final Step</p>
+                    <p className="text-lg font-black text-white leading-tight">Confirm Delivery</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-white/50 group-hover:text-white transition-colors" />
+              </motion.button>
+              
+              <button 
+                className="w-full py-4 text-xs font-black uppercase tracking-widest text-rose-500 hover:text-rose-400 transition-colors flex items-center justify-center gap-2 group"
+                onClick={() => handleStatusUpdate('exception')}
+              >
+                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 group-hover:scale-150 transition-transform"></span>
+                 Report Delivery Issue
+              </button>
+            </div>
+          </motion.section>
+
+          <motion.section variants={itemVariants} className="mt-8">
+            <h3 className="px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Delivery Progress</h3>
+            <div className="px-4">
+              <div className="glass-panel p-5 bg-white/5 border border-white/10 rounded-2xl">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-xs font-bold text-slate-300">Route Completion</p>
+                  <p className="text-xs font-black text-primary">75%</p>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: "75%" }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-5">
+                   <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Distance</span>
+                      <span className="text-sm font-black text-white">12.4 km</span>
+                   </div>
+                   <div className="text-right flex flex-col gap-1">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">ETA</span>
+                      <span className="text-sm font-black text-primary">{shipment.est_delivery}</span>
+                   </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
 
           <motion.section variants={itemVariants} className="mt-8">
             <h3 className="px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Customer Information</h3>
@@ -109,7 +243,7 @@ export default function ShipmentDetails() {
                   <p className="text-xs text-slate-400 font-medium">Recipient</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2.5 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors"><Phone className="w-5 h-5 text-slate-200" /></button>
+                  <a href={`tel:${shipment.receiver_phone || "555-0199"}`} className="p-2.5 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors"><Phone className="w-5 h-5 text-slate-200" /></a>
                   <button className="p-2.5 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors"><Mail className="w-5 h-5 text-slate-200" /></button>
                 </div>
               </div>
@@ -143,7 +277,7 @@ export default function ShipmentDetails() {
                 </div>
               </div>
             </div>
-          </motion.section>
+          </motion.section>n>
 
           <motion.section variants={itemVariants} className="mt-8">
             <div className="px-5 flex items-center justify-between mb-5">
