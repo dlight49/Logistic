@@ -18,12 +18,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Verification Mode Check
-        const mockUser = localStorage.getItem("mock_user");
-        if (mockUser) {
-            setUser(JSON.parse(mockUser));
-            setLoading(false);
-            return;
+        // Development-only mock bypass — stripped by Vite in production builds
+        if (import.meta.env.DEV) {
+            const mockUser = localStorage.getItem("mock_user");
+            if (mockUser) {
+                console.warn("[AUTH] Using mock_user from localStorage — dev only");
+                setUser(JSON.parse(mockUser));
+                setLoading(false);
+                return;
+            }
         }
 
         // Real Firebase Auth Listener

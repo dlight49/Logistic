@@ -8,7 +8,7 @@ export const sendDirectMessage = async (req: Request, res: Response) => {
 
         if (!senderId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const message = await (prisma as any).directMessage.create({
+        const message = await prisma.directMessage.create({
             data: {
                 sender_id: senderId,
                 receiver_id,
@@ -29,7 +29,7 @@ export const getConversation = async (req: Request, res: Response) => {
 
         if (!myId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const messages = await (prisma as any).directMessage.findMany({
+        const messages = await prisma.directMessage.findMany({
             where: {
                 OR: [
                     { sender_id: myId, receiver_id: otherUserId },

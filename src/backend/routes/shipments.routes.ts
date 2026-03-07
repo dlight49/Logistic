@@ -13,17 +13,19 @@ router.use(requireAuth);
 router.get('/', getShipments);
 router.post('/quotes', createQuote);
 router.get('/me', getMyShipments);
-router.get('/:id', getShipmentById);
-router.post('/:id/updates', updateShipmentTracking);
 router.get('/tracking/live', getLiveLocations);
 
 // Admin only operations
 router.post('/', requireAdmin, createShipment);
-router.post('/:id/assign', requireAdmin, assignOperator);
 
 // Admin Quote Management
 router.get('/admin/quotes', requireAdmin, getPendingQuotes);
 router.post('/admin/quotes/:id/approve', requireAdmin, approveQuote);
 router.post('/admin/quotes/:id/reject', requireAdmin, rejectQuote);
+
+// Wildcard routes MUST come last (/:id matches anything)
+router.get('/:id', getShipmentById);
+router.post('/:id/updates', updateShipmentTracking);
+router.post('/:id/assign', requireAdmin, assignOperator);
 
 export default router;

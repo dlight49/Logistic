@@ -72,7 +72,7 @@ export class QuoteService {
         if (quote.receiver_email) {
             // Find user id by email or just use the field if it was stored as ID
             // For now, assuming standard notification
-            console.log(`Notifying user about quote approval: ${quoteId}`);
+            console.info(`Notifying user about quote approval: ${quoteId}`);
         }
 
         return shipment;

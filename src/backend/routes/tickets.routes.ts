@@ -6,13 +6,16 @@ const router = Router();
 
 router.use(requireAuth);
 
+// Static routes FIRST
 router.get('/my', getMyTickets);
 router.post('/', createTicket);
-router.get('/:id', getTicketById);
-router.post('/:id/reply', replyToTicket);
-router.post('/:id/close', closeTicket);
 
 // Admin only
 router.get('/admin/all', requireAdmin, getAllTickets);
+
+// Parameterized routes LAST (/:id matches anything)
+router.get('/:id', getTicketById);
+router.post('/:id/reply', replyToTicket);
+router.post('/:id/close', closeTicket);
 
 export default router;

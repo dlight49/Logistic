@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getOperators, createOperator, updateOperator } from '../controllers/operators.controller.js';
+import { getOperators, createOperator, updateOperator, resetOperatorPassword } from '../controllers/operators.controller.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -11,5 +11,6 @@ router.use(requireAdmin);
 router.get('/', getOperators);
 router.post('/', createOperator);
 router.patch('/:id', updateOperator);
+router.post('/:id/reset-password', resetOperatorPassword);
 
 export default router;

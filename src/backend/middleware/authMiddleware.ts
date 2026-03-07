@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { firebaseAdmin } from '../config/firebase-admin.js';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/db.js';
 
 // Extend Express Request object to include the authenticated user
 declare global {
@@ -23,12 +21,13 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     const token = authHeader.split('Bearer ')[1];
 
-    // Verification Mode Bypass
-    if (token === 'mock-token') {
+    // Development-only mock bypass — NEVER runs in production
+    if (process.env.NODE_ENV !== 'production' && token === 'mock-token') {
         const mockUserId = req.headers['mock-user-id'] as string;
         if (mockUserId) {
             const user = await prisma.user.findUnique({ where: { id: mockUserId } });
             if (user) {
+                console.warn(`[AUTH] Mock-token bypass used for user ${mockUserId}`);
                 req.user = user;
                 return next();
             }

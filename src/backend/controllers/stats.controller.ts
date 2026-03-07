@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
-import { firebaseAdmin } from '../config/firebase-admin.js';
 
 export const getGlobalStats = async (req: Request, res: Response) => {
     try {

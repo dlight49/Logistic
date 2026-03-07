@@ -1,19 +1,63 @@
 import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// In production, you would use a service account key file path or environment variables:
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// });
+/**
+ * Initialize Firebase Admin SDK with service account credentials.
+ *
+ * Resolution order:
+ * 1. FIREBASE_SERVICE_ACCOUNT_KEY env var (JSON string)
+ * 2. firebase-service-account.json in project root
+ * 3. Fallback: project-ID-only init (limited — cannot create users)
+ */
+function getCredential(): admin.credential.Credential | null {
+    // Option 1: env var with JSON string
+    const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (envKey && envKey.trim().length > 2) {
+        try {
+            const parsed = JSON.parse(envKey);
+            console.log('[Firebase Admin] Initialized with service account from env var');
+            return admin.credential.cert(parsed);
+        } catch {
+            console.warn('[Firebase Admin] FIREBASE_SERVICE_ACCOUNT_KEY is set but not valid JSON');
+        }
+    }
 
-// For local development where we might just be using a mock client,
-// we try to initialize with whatever default credentials or project ID we have.
+    // Option 2: JSON file in project root
+    // Resolve relative to this file → config/ → backend/ → src/ → project root
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const projectRoot = path.resolve(__dirname, '..', '..', '..');
+    const filePath = path.join(projectRoot, 'firebase-service-account.json');
+
+    if (fs.existsSync(filePath)) {
+        try {
+            const raw = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            console.log('[Firebase Admin] Initialized with service account from file');
+            return admin.credential.cert(raw);
+        } catch (err) {
+            console.warn('[Firebase Admin] firebase-service-account.json exists but cannot be parsed:', err);
+        }
+    }
+
+    return null;
+}
+
 const projectId = process.env.FIREBASE_PROJECT_ID || 'mock_project_id';
 
 if (!admin.apps.length) {
+    const credential = getCredential();
+
     try {
-        admin.initializeApp({ projectId });
+        if (credential) {
+            admin.initializeApp({ credential, projectId });
+        } else {
+            console.warn('[Firebase Admin] No service account found — running in limited mode (cannot create users)');
+            admin.initializeApp({ projectId });
+        }
     } catch (error) {
-        console.error('Firebase admin initialization error', error);
+        console.error('[Firebase Admin] Initialization error:', error);
     }
 }
 

@@ -1,8 +1,11 @@
 import { prisma } from '../config/db.js';
 import { Resend } from 'resend';
 
-// Initialize Resend with env variable (or fallback to empty for dev)
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_123');
+// Validate Resend API key at startup — fail fast rather than silently sending with bogus key
+if (!process.env.RESEND_API_KEY) {
+    console.warn('[NOTIFICATIONS] RESEND_API_KEY not set — email delivery will be disabled');
+}
+const resend = new Resend(process.env.RESEND_API_KEY || '');
 
 interface NotificationPayload {
     userId: string;
@@ -29,7 +32,7 @@ class ResendEmailProvider implements NotificationProvider {
                 return false;
             }
 
-            console.log(`[RESEND] Sending email to ${user.email}: ${payload.subject}`);
+            console.info(`[RESEND] Sending email to ${user.email}: ${payload.subject}`);
 
             const { data, error } = await resend.emails.send({
                 from: 'Lumin Logistics <notifications@resend.dev>', // Resend verified domain required for prod

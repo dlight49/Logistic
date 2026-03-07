@@ -277,7 +277,7 @@ export default function ShipmentDetails() {
                 </div>
               </div>
             </div>
-          </motion.section>n>
+          </motion.section>
 
           <motion.section variants={itemVariants} className="mt-8">
             <div className="px-5 flex items-center justify-between mb-5">

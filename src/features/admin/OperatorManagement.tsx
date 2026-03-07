@@ -10,13 +10,23 @@ import {
   Edit3,
   Save,
   X,
-  UserPlus
+  UserPlus,
+  KeyRound,
+  Copy,
+  Check,
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Operator } from "../../types";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
 import AdminNav from "../../components/AdminNav";
+
+interface CreatedCredentials {
+  email: string;
+  tempPassword: string;
+}
 
 export default function OperatorManagement(): ReactNode {
   const navigate = useNavigate();
@@ -26,6 +36,14 @@ export default function OperatorManagement(): ReactNode {
   const [newOperator, setNewOperator] = useState({ name: "", email: "", phone: "", password: "" });
   const [editingOperator, setEditingOperator] = useState<Operator | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // New state for credentials modal & loading/error
+  const [credentials, setCredentials] = useState<CreatedCredentials | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState<string | null>(null); // operator id being reset
+  const [resetCredentials, setResetCredentials] = useState<{ id: string; tempPassword: string } | null>(null);
 
   useEffect(() => {
     fetchOperators();
@@ -46,18 +64,28 @@ export default function OperatorManagement(): ReactNode {
 
   const handleAddOperator = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCreateLoading(true);
+    setCreateError(null);
     try {
       const res = await apiFetch("/api/operators", {
         method: "POST",
         body: JSON.stringify(newOperator)
       });
+      const data = await res.json();
       if (res.ok) {
+        // Close the add modal and show credentials
         setShowAddModal(false);
         setNewOperator({ name: "", email: "", phone: "", password: "" });
+        setCredentials({ email: data.email, tempPassword: data.tempPassword });
         fetchOperators();
+      } else {
+        setCreateError(data.error || "Failed to create driver");
       }
     } catch (err) {
       console.error("Failed to add operator", err);
+      setCreateError("Network error — please try again");
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -75,6 +103,45 @@ export default function OperatorManagement(): ReactNode {
       }
     } catch (err) {
       console.error("Failed to update operator", err);
+    }
+  };
+
+  const handleResetPassword = async (operatorId: string) => {
+    if (!confirm("Generate a new temporary password for this driver? Their current password will stop working.")) return;
+    setResetLoading(operatorId);
+    try {
+      const res = await apiFetch(`/api/operators/${operatorId}/reset-password`, {
+        method: "POST"
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResetCredentials({ id: operatorId, tempPassword: data.tempPassword });
+      } else {
+        alert(data.error || "Failed to reset password");
+      }
+    } catch (err) {
+      console.error("Failed to reset password", err);
+      alert("Network error — please try again");
+    } finally {
+      setResetLoading(null);
+    }
+  };
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      // fallback
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
     }
   };
 
@@ -112,7 +179,7 @@ export default function OperatorManagement(): ReactNode {
             <p className="text-sm font-bold text-blue-400/80 uppercase tracking-widest">Global Operations Unit</p>
           </div>
           <button
-            onClick={() => setShowAddModal(true)} // Changed to setShowAddModal
+            onClick={() => setShowAddModal(true)}
             className="group relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-900/40 border border-white/20 w-full sm:w-auto justify-center"
           >
             <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -132,35 +199,6 @@ export default function OperatorManagement(): ReactNode {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex bg-slate-900/50 p-1 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
-            <button
-              onClick={() => setFilter('all')}
-              className={cn(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-1 sm:flex-none",
-                filter === 'all' ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
-              )}
-            >
-              All Units
-            </button>
-            <button
-              onClick={() => setFilter('active')}
-              className={cn(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-1 sm:flex-none",
-                filter === 'active' ? "bg-emerald-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
-              )}
-            >
-              Ready
-            </button>
-            <button
-              onClick={() => setFilter('offline')}
-              className={cn(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex-1 sm:flex-none",
-                filter === 'offline' ? "bg-rose-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"
-              )}
-            >
-              Off
-            </button>
-          </div>
         </div>
 
         {loading ? (
@@ -169,7 +207,11 @@ export default function OperatorManagement(): ReactNode {
           </div>
         ) : (
           <div className="grid gap-4">
-            {filteredOperators
+            {operators
+              .filter(op =>
+                op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                op.email.toLowerCase().includes(searchQuery.toLowerCase())
+              )
               .map(op => (
                 <div key={op.id} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
                   <div className="flex justify-between items-start">
@@ -196,12 +238,25 @@ export default function OperatorManagement(): ReactNode {
                         </Link>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setEditingOperator(op)}
-                      className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleResetPassword(op.id)}
+                        disabled={resetLoading === op.id}
+                        className="p-2 hover:bg-amber-100 dark:hover:bg-amber-500/10 rounded-lg text-slate-400 hover:text-amber-500 transition-colors disabled:opacity-50"
+                        title="Reset Password"
+                      >
+                        {resetLoading === op.id
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <KeyRound className="w-4 h-4" />
+                        }
+                      </button>
+                      <button
+                        onClick={() => setEditingOperator(op)}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -212,6 +267,33 @@ export default function OperatorManagement(): ReactNode {
                       <Phone className="w-3 h-3" /> {op.phone || "No phone"}
                     </div>
                   </div>
+
+                  {/* Show reset password result inline */}
+                  {resetCredentials?.id === op.id && (
+                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-3 space-y-2">
+                      <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                        <AlertTriangle className="w-4 h-4" />
+                        <p className="text-xs font-bold">New Temporary Password</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-white dark:bg-slate-900 px-3 py-2 rounded-lg text-sm font-mono border border-amber-200 dark:border-amber-500/30">
+                          {resetCredentials.tempPassword}
+                        </code>
+                        <button
+                          onClick={() => copyToClipboard(resetCredentials.tempPassword, `reset-${op.id}`)}
+                          className="p-2 bg-amber-100 dark:bg-amber-500/20 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-500/30 transition-colors"
+                        >
+                          {copiedField === `reset-${op.id}` ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-amber-600" />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => setResetCredentials(null)}
+                        className="text-xs text-amber-500 hover:text-amber-600 underline"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
 
                   <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                     <div className="flex items-center justify-between mb-2">
@@ -234,7 +316,10 @@ export default function OperatorManagement(): ReactNode {
                   </div>
                 </div>
               ))}
-            {filteredOperators.length === 0 && (
+            {operators.filter(op =>
+              op.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              op.email.toLowerCase().includes(searchQuery.toLowerCase())
+            ).length === 0 && (
                 <div className="min-h-screen bg-[#020817] text-slate-100 font-sans pb-32 mt-20 sm:mt-0">
                   <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
                   <p>No drivers found matching "{searchQuery}"</p>
@@ -250,11 +335,17 @@ export default function OperatorManagement(): ReactNode {
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h3 className="text-xl font-bold">Add New Driver</h3>
-              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+              <button onClick={() => { setShowAddModal(false); setCreateError(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleAddOperator} className="p-6 space-y-4">
+              {createError && (
+                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>{createError}</span>
+                </div>
+              )}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
                 <input
@@ -289,16 +380,95 @@ export default function OperatorManagement(): ReactNode {
                 <label className="text-xs font-bold text-slate-500 uppercase">Initial Password</label>
                 <input
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
-                  placeholder="Leave blank for default"
+                  placeholder="Leave blank to auto-generate"
                   type="password"
+                  minLength={6}
                   value={newOperator.password}
                   onChange={e => setNewOperator({ ...newOperator, password: e.target.value })}
                 />
+                <p className="text-[10px] text-slate-400">Min 6 chars. Auto-generated if blank.</p>
               </div>
-              <button className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                <UserPlus className="w-5 h-5" /> Create Account
+              <button
+                disabled={createLoading}
+                className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {createLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Creating...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5" /> Create Account
+                  </>
+                )}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Credentials Created Modal ═══ */}
+      {credentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-emerald-500/30">
+            <div className="p-6 bg-emerald-50 dark:bg-emerald-500/10 border-b border-emerald-200 dark:border-emerald-500/30">
+              <div className="flex items-center gap-3">
+                <div className="bg-emerald-500/20 p-2 rounded-lg">
+                  <Check className="text-emerald-500 w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-400">Driver Created!</h3>
+                  <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Save these credentials now</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-3 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  <strong>This password will not be shown again.</strong> Copy it now and share it with the driver securely.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email</label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-slate-50 dark:bg-slate-800 px-4 py-3 rounded-xl text-sm font-mono border border-slate-200 dark:border-slate-700 truncate">
+                      {credentials.email}
+                    </code>
+                    <button
+                      onClick={() => copyToClipboard(credentials.email, "cred-email")}
+                      className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      {copiedField === "cred-email" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Temporary Password</label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-slate-50 dark:bg-slate-800 px-4 py-3 rounded-xl text-sm font-mono border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-bold tracking-wider">
+                      {credentials.tempPassword}
+                    </code>
+                    <button
+                      onClick={() => copyToClipboard(credentials.tempPassword, "cred-password")}
+                      className="p-3 bg-emerald-100 dark:bg-emerald-500/20 rounded-xl hover:bg-emerald-200 dark:hover:bg-emerald-500/30 transition-colors"
+                    >
+                      {copiedField === "cred-password" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-emerald-600" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setCredentials(null)}
+                className="w-full bg-slate-900 dark:bg-slate-700 text-white py-4 rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors"
+              >
+                I've Saved the Credentials
+              </button>
+            </div>
           </div>
         </div>
       )}
