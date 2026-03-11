@@ -42,7 +42,7 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: "spring", stiffness: 300, damping: 24 }
+    transition: { type: "spring" as const, stiffness: 300, damping: 24 }
   }
 };
 
@@ -99,7 +99,7 @@ export default function AdminDashboard(): ReactNode {
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-600/20 rounded-full blur-[100px] pointer-events-none animate-pulse-slow" style={{ animationDelay: '2s' }} />
 
       <header className="sticky top-0 z-30 border-b border-white/5 bg-[#020817]/60 backdrop-blur-2xl px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg shadow-black/20">
-        <motion.div 
+        <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -121,7 +121,7 @@ export default function AdminDashboard(): ReactNode {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -141,7 +141,7 @@ export default function AdminDashboard(): ReactNode {
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 z-10 w-full max-w-[1600px] mx-auto">
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -175,16 +175,16 @@ export default function AdminDashboard(): ReactNode {
           {/* Live Dispatch Map */}
           <motion.section variants={itemVariants} className="relative rounded-3xl overflow-hidden border border-white/5 shadow-2xl shadow-black/50 bg-slate-900/50 backdrop-blur-md">
             <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent z-10 pointer-events-none flex items-center justify-between">
-               <h3 className="font-bold text-white flex items-center gap-2 drop-shadow-md">
-                 <MapPin className="w-4 h-4 text-blue-400" /> Live Global Operations
-               </h3>
-               <div className="flex items-center gap-2">
-                 <span className="relative flex h-2.5 w-2.5">
-                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                 </span>
-                 <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider drop-shadow-md">Live Sync</span>
-               </div>
+              <h3 className="font-bold text-white flex items-center gap-2 drop-shadow-md">
+                <MapPin className="w-4 h-4 text-blue-400" /> Live Global Operations
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider drop-shadow-md">Live Sync</span>
+              </div>
             </div>
             <div className="h-[220px] sm:h-[300px] md:h-[350px] lg:h-[400px] w-full relative">
               <LiveDispatchMap />
@@ -232,12 +232,12 @@ export default function AdminDashboard(): ReactNode {
               </select>
 
               <div className="h-8 w-px bg-white/10 hidden lg:block mx-2"></div>
-              
+
               <div className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-2xl p-1 pr-3 hover:bg-black/30 transition-colors">
-                 <div className="bg-slate-800/50 p-2.5 rounded-xl border border-white/5">
-                   <Calendar className="w-4 h-4 text-slate-400" />
-                 </div>
-                 <input
+                <div className="bg-slate-800/50 p-2.5 rounded-xl border border-white/5">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                </div>
+                <input
                   type="date"
                   className="bg-transparent border-none text-xs font-bold uppercase text-slate-300 focus:ring-0 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                   value={startDate}
@@ -280,12 +280,12 @@ export default function AdminDashboard(): ReactNode {
 
               <AnimatePresence>
                 {filteredShipments.map((s, idx) => (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
-                    key={s.id} 
+                    key={s.id}
                     className="p-5 sm:px-8 flex flex-col sm:grid sm:grid-cols-12 gap-4 sm:items-center hover:bg-white/5 transition-colors group cursor-pointer relative overflow-hidden"
                   >
                     <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
@@ -357,7 +357,7 @@ export default function AdminDashboard(): ReactNode {
                   </motion.div>
                 ))}
               </AnimatePresence>
-              
+
               {filteredShipments.length === 0 && (
                 <div className="p-20 text-center text-slate-400 text-sm">
                   <div className="bg-slate-800/50 w-20 h-20 rounded-3xl border border-white/5 flex items-center justify-center mx-auto mb-5 rotate-3 hover:rotate-0 transition-transform cursor-pointer">

@@ -11,6 +11,7 @@ export default function DriverDirectory() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [cityFilter, setCityFilter] = useState("all");
+    const [filterStatus, setFilterStatus] = useState("");
 
     useEffect(() => {
         const fetchDrivers = async () => {

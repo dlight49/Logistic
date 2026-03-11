@@ -5,7 +5,7 @@ import { Resend } from 'resend';
 if (!process.env.RESEND_API_KEY) {
     console.warn('[NOTIFICATIONS] RESEND_API_KEY not set — email delivery will be disabled');
 }
-const resend = new Resend(process.env.RESEND_API_KEY || '');
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 
 interface NotificationPayload {
     userId: string;

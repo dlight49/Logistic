@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { useAuth } from "../auth/AuthContext";
-import { Search, Send, User, MessageCircle, MoreVertical, Phone } from "lucide-react";
+import { Search, Send, User, MessageCircle, MoreVertical, Phone, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
@@ -130,7 +130,7 @@ export default function AdminChat(): ReactNode {
                             {/* Chat Header */}
                             <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setView("list")}
                                         className="lg:hidden p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400"
                                     >
