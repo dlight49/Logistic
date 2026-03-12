@@ -10,6 +10,7 @@ import ShipmentHistory from "./features/customer/ShipmentHistory";
 import AdminDashboard from "./features/admin/AdminDashboard";
 import CreateShipment from "./features/admin/CreateShipment";
 import DriverDirectory from "./features/admin/DriverDirectory";
+import ShipmentRegistry from "./features/admin/ShipmentRegistry";
 import OperatorManagement from "./features/admin/OperatorManagement";
 import ShipmentDetailView from "./features/admin/ShipmentDetailView";
 import DriverDashboard from "./features/driver/DriverDashboard";
@@ -55,6 +56,7 @@ export default function App(): ReactNode {
 
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/shipments" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentRegistry /></ProtectedRoute>} />
             <Route path="/admin/create" element={<ProtectedRoute allowedRoles={["admin"]}><CreateShipment /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationSettings /></ProtectedRoute>} />
             <Route path="/admin/operators" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorManagement /></ProtectedRoute>} />

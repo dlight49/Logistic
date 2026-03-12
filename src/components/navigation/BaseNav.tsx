@@ -27,7 +27,7 @@ export default function BaseNav({ items, accentColor = "text-blue-400", accentBg
   };
 
   return (
-    <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-max max-w-[calc(100vw-16px)] px-2 sm:px-6 py-2.5 sm:py-3.5 bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] flex items-center gap-1 sm:gap-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-x-auto scrollbar-none pb-[calc(10px+env(safe-area-inset-bottom,0px))] md:pb-3.5">
+    <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100vw-24px)] md:w-max max-w-lg md:max-w-2xl px-1 sm:px-6 py-2 sm:py-3.5 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] flex flex-wrap items-center justify-center gap-x-1 sm:gap-x-4 gap-y-2 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
       {items.map((item, idx) => {
         const Icon = item.icon;
         const isActive = item.match ? item.match(location.pathname) : location.pathname === item.path;
@@ -36,20 +36,20 @@ export default function BaseNav({ items, accentColor = "text-blue-400", accentBg
           <Link
             key={idx}
             to={item.path}
-            className="relative group flex flex-col items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 shrink-0"
+            className="relative group flex flex-col items-center gap-1 px-1 sm:px-2 shrink-0 transition-transform active:scale-95"
           >
             {isActive && (
-              <motion.div 
+              <motion.div
                 layoutId="nav-active"
                 className={cn("absolute inset-0 rounded-2xl -z-10", accentBg)}
                 transition={{ type: "spring", stiffness: 350, damping: 30 }}
               />
             )}
             <div className={cn(
-              "p-1.5 sm:p-2 rounded-xl transition-all duration-300",
-              isActive ? cn(accentColor, accentBg) : "text-slate-500 group-hover:text-slate-300 group-hover:bg-white/5"
+              "p-1.5 sm:p-2.5 rounded-xl transition-all duration-300",
+              isActive ? cn(accentColor, accentBg) : "text-slate-400 group-hover:text-white group-hover:bg-white/5"
             )}>
-              <Icon className={cn("w-5 h-5", isActive && "stroke-[2.5px]")} />
+              <Icon className={cn("w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]", isActive && "stroke-[2.5px]")} />
             </div>
             <span className={cn(
               "hidden sm:block text-[9px] font-black uppercase tracking-widest transition-colors",
@@ -60,18 +60,18 @@ export default function BaseNav({ items, accentColor = "text-blue-400", accentBg
           </Link>
         );
       })}
-      
+
       <div className="w-px h-6 sm:h-8 bg-white/5 mx-0.5 sm:mx-1 hidden sm:block" />
 
       <button
         onClick={handleLogout}
-        className="flex flex-col items-center gap-1 sm:gap-1.5 text-slate-500 hover:text-rose-400 px-1.5 sm:px-3 transition-colors group shrink-0"
+        className="flex flex-col items-center gap-1 px-1 sm:px-2 transition-colors group shrink-0"
       >
-        <div className="p-1.5 sm:p-2 rounded-xl group-hover:bg-rose-500/10 transition-all">
-          <LogOut className="w-5 h-5" />
+        <div className="p-1.5 sm:p-2.5 rounded-xl group-hover:bg-rose-500/10 transition-all text-slate-500 group-hover:text-rose-400">
+          <LogOut className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
         </div>
-        <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest">Exit</span>
+        <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-rose-400">Exit</span>
       </button>
-    </nav>
+    </div>
   );
 }
