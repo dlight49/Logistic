@@ -25,7 +25,7 @@ test.describe('Authenticated Dashboards', () => {
 
         // Verify Dashboard specific elements
         await expect(page.getByText('Command Center').first()).toBeVisible();
-        await expect(page.getByText('Active Shipments').first()).toBeVisible();
+        await expect(page.getByText('Network Status').first()).toBeVisible();
         await expect(page.getByText('Live Global Operations').first()).toBeVisible();
     });
 

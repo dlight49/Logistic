@@ -20,7 +20,7 @@ export default function AdminNav() {
     { icon: Users, label: "Fleet", id: "drivers", path: "/admin/drivers" },
     { icon: MessageSquare, label: "Support", id: "tickets", path: "/admin/support" },
     { icon: MessageCircle, label: "Operations", id: "messages", path: "/admin/chat" },
-    { icon: Settings, label: "Settings", id: "settings", path: "/admin/notifications" },
+    { icon: Settings, label: "Settings", id: "settings", path: "/admin/settings" },
   ];
 
   return (

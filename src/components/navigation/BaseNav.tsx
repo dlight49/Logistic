@@ -27,7 +27,7 @@ export default function BaseNav({ items, accentColor = "text-blue-400", accentBg
   };
 
   return (
-    <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100vw-24px)] md:w-max max-w-lg md:max-w-2xl px-1 sm:px-6 py-2 sm:py-3.5 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] flex flex-wrap items-center justify-center gap-x-1 sm:gap-x-4 gap-y-2 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+    <nav className="fixed bottom-4 sm:bottom-6 inset-x-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-max max-w-[calc(100vw-32px)] px-3 sm:px-6 py-3 sm:py-3.5 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] flex items-center justify-start sm:justify-center gap-2 sm:gap-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-x-auto no-scrollbar scroll-smooth flex-nowrap pb-[calc(12px+env(safe-area-inset-bottom,0px))] md:pb-3.5">
       {items.map((item, idx) => {
         const Icon = item.icon;
         const isActive = item.match ? item.match(location.pathname) : location.pathname === item.path;
@@ -72,6 +72,6 @@ export default function BaseNav({ items, accentColor = "text-blue-400", accentBg
         </div>
         <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-rose-400">Exit</span>
       </button>
-    </div>
+    </nav>
   );
 }

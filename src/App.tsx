@@ -22,7 +22,7 @@ import DriverLogin from "./features/auth/DriverLogin";
 import CustomerLogin from "./features/auth/CustomerLogin";
 import Register from "./features/auth/Register";
 import CustomerSettings from "./features/customer/CustomerSettings";
-import NotificationSettings from "./features/admin/NotificationSettings";
+import AdminSettings from "./features/admin/AdminSettings";
 import OperatorProfileView from "./features/admin/OperatorProfileView";
 import AdminSupport from "./features/admin/AdminSupport";
 import AdminTicketDetail from "./features/admin/AdminTicketDetail";
@@ -58,7 +58,7 @@ export default function App(): ReactNode {
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/shipments" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentRegistry /></ProtectedRoute>} />
             <Route path="/admin/create" element={<ProtectedRoute allowedRoles={["admin"]}><CreateShipment /></ProtectedRoute>} />
-            <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationSettings /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
             <Route path="/admin/operators" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorManagement /></ProtectedRoute>} />
             <Route path="/admin/drivers" element={<ProtectedRoute allowedRoles={["admin"]}><DriverDirectory /></ProtectedRoute>} />
             <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSupport /></ProtectedRoute>} />
