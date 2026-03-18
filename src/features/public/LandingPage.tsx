@@ -208,8 +208,8 @@ export default function LandingPage(): ReactNode {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
                     <p>&copy; {new Date().getFullYear()} Lumin Logistics International.</p>
                     <div className="flex gap-8">
-                        <Link to="/" className="hover:text-white transition-colors">Privacy</Link>
-                        <Link to="/" className="hover:text-white transition-colors">Terms</Link>
+                        <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                        <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
                         <Link to="/" className="hover:text-white transition-colors">Security</Link>
                     </div>
                 </div>

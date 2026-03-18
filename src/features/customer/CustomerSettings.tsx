@@ -11,7 +11,7 @@ import { apiFetch } from "../../utils/api";
 import { cn } from "../../utils";
 import { User } from "../../types";
 
-type TabType = "account" | "preferences" | "security" | "billing";
+type TabType = "account" | "preferences" | "security";
 
 export default function CustomerSettings(): ReactNode {
     const navigate = useNavigate();
@@ -30,7 +30,6 @@ export default function CustomerSettings(): ReactNode {
         { id: "account", label: "Account", icon: <UserIcon className="w-4 h-4" /> },
         { id: "preferences", label: "Preferences", icon: <SettingsIcon className="w-4 h-4" /> },
         { id: "security", label: "Security", icon: <Shield className="w-4 h-4" /> },
-        { id: "billing", label: "Billing", icon: <CreditCard className="w-4 h-4" /> },
     ];
 
     return (
@@ -76,7 +75,6 @@ export default function CustomerSettings(): ReactNode {
                         {activeTab === 'account' && <AccountTab user={user} onUpdate={login} />}
                         {activeTab === 'preferences' && <PreferencesTab />}
                         {activeTab === 'security' && <SecurityTab />}
-                        {activeTab === 'billing' && <BillingTab />}
                     </motion.div>
                 </AnimatePresence>
             </main>
@@ -85,10 +83,13 @@ export default function CustomerSettings(): ReactNode {
 }
 
 function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => void }) {
+    const { sendVerification } = useAuth();
     const [name, setName] = useState(user.name || "");
     const [phone, setPhone] = useState(user.phone || "");
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [verifying, setVerifying] = useState(false);
+    const [verifySent, setVerifySent] = useState(false);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,6 +111,19 @@ function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => 
         }
     };
 
+    const handleVerifyEmail = async () => {
+        setVerifying(true);
+        try {
+            await sendVerification();
+            setVerifySent(true);
+            setTimeout(() => setVerifySent(false), 5000);
+        } catch (error) {
+            console.error("Failed to send verification email", error);
+        } finally {
+            setVerifying(false);
+        }
+    };
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col items-center text-center">
@@ -120,7 +134,27 @@ function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => 
                     </button>
                 </div>
                 <h2 className="text-xl font-bold">{name}</h2>
-                <p className="text-sm text-slate-400">{user.email}</p>
+                <div className="flex flex-col items-center gap-1">
+                    <p className="text-sm text-slate-400">{user.email}</p>
+                    {user.emailVerified ? (
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Verified Account
+                        </span>
+                    ) : (
+                        <div className="flex flex-col items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> Email Not Verified
+                            </span>
+                            <button 
+                                onClick={handleVerifyEmail}
+                                disabled={verifying || verifySent}
+                                className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter disabled:text-slate-500"
+                            >
+                                {verifying ? "Sending..." : verifySent ? "Verification Link Sent!" : "Send Verification Link"}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <form onSubmit={handleSave} className="space-y-6 glass-panel p-6 rounded-2xl border border-white/10">
@@ -153,12 +187,12 @@ function PreferencesTab() {
     return (
         <div className="space-y-6">
             <SettingsCard title="Localization">
-                <SettingsRow icon={<Globe className="text-blue-400" />} label="Language" value="English (US)" />
-                <SettingsRow icon={<Clock className="text-amber-400" />} label="Timezone" value="Central Time (CST)" />
+                <SettingsRow icon={<Globe className="text-blue-400" />} label="Language" value="English (Default)" />
+                <SettingsRow icon={<Clock className="text-amber-400" />} label="Timezone" value="Auto-detect" />
             </SettingsCard>
-            <SettingsCard title="Notification Frequency">
-                <SettingsRow icon={<Bell className="text-red-400" />} label="Shipment Updates" value="Instant" />
-                <SettingsRow icon={<Mail className="text-slate-400" />} label="Promotional Emails" value="Weekly" />
+            <SettingsCard title="Notifications">
+                <SettingsRow icon={<Bell className="text-red-400" />} label="Shipment Alerts" value="Enabled" />
+                <SettingsRow icon={<Mail className="text-slate-400" />} label="Email Updates" value="Enabled" />
             </SettingsCard>
         </div>
     )
@@ -167,50 +201,22 @@ function PreferencesTab() {
 function SecurityTab() {
     return (
         <div className="space-y-6">
-            <SettingsCard title="Password Management">
+            <SettingsCard title="Password & Authentication">
                  <div className="p-4">
                     <button className="w-full text-left flex items-center justify-between group">
                         <div className="flex items-center gap-4">
-                             <Lock className="w-5 h-5 text-red-400" />
+                             <Lock className="w-5 h-5 text-blue-400" />
                              <div>
-                                <p className="font-semibold">Change Password</p>
-                                <p className="text-xs text-slate-400">Last changed 3 months ago</p>
+                                <p className="font-semibold">Update Password</p>
+                                <p className="text-xs text-slate-400">Secure your account with a new password</p>
                              </div>
                         </div>
                          <ChevronRight className="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform" />
                     </button>
                  </div>
             </SettingsCard>
-            <SettingsCard title="Active Sessions">
-                <p className="text-xs text-slate-400 px-4 pb-2">You are currently logged in on these devices.</p>
-                <SessionItem browser="Chrome on Windows" location="New York, NY" isCurrent />
-                <SessionItem browser="Safari on iPhone 15 Pro" location="New York, NY" />
-                 <div className="p-4 border-t border-white/5">
-                    <button className="text-sm font-semibold text-red-400 hover:text-red-300">Log out of all other sessions</button>
-                 </div>
-            </SettingsCard>
-        </div>
-    )
-}
-
-function BillingTab() {
-    return (
-        <div className="space-y-6">
-            <SettingsCard title="Payment Methods">
-                <PaymentMethod key="4242" type="Visa" last4="4242" expiry="08/26" isDefault />
-                <PaymentMethod key="9876" type="Mastercard" last4="9876" expiry="11/27" />
-                 <div className="p-4 border-t border-white/5">
-                    <button className="text-sm font-semibold text-primary hover:text-primary/90">+ Add New Card</button>
-                 </div>
-            </SettingsCard>
-            <SettingsCard title="Wallet">
-                <div className="p-4 flex items-center justify-between">
-                    <div>
-                        <p className="text-xs text-slate-400">Current Balance</p>
-                        <p className="text-2xl font-bold">$50.00</p>
-                    </div>
-                    <button className="bg-primary/10 text-primary px-4 py-2 rounded-lg font-bold text-sm">Add Funds</button>
-                </div>
+            <SettingsCard title="Current Session">
+                <SessionItem browser="Current Browser Session" location="Detected Location" isCurrent />
             </SettingsCard>
         </div>
     )
@@ -252,14 +258,13 @@ const SettingsCard = ({ title, children }: { title: string, children: ReactNode 
 );
 
 const SettingsRow = ({ icon, label, value }: { icon: ReactNode, label: string, value: string }) => (
-    <button className="w-full text-left flex items-center justify-between p-4 group">
+    <button className="w-full text-left flex items-center justify-between p-4 group cursor-default">
         <div className="flex items-center gap-4">
             {icon}
             <span className="font-semibold">{label}</span>
         </div>
         <div className="flex items-center gap-2">
             <span className="text-slate-400">{value}</span>
-            <ChevronRight className="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform" />
         </div>
     </button>
 );
@@ -276,10 +281,9 @@ const SessionItem = ({ browser, location, isCurrent = false }: SessionItemProps)
             <Globe className="w-5 h-5" />
         </div>
         <div className="flex-1">
-            <p className="font-semibold">{browser} {isCurrent && <span className="text-xs text-primary font-bold ml-2">(This device)</span>}</p>
+            <p className="font-semibold">{browser} {isCurrent && <span className="text-xs text-primary font-bold ml-2">(Active)</span>}</p>
             <p className="text-xs text-slate-400">{location}</p>
         </div>
-        {!isCurrent && <button className="text-xs font-semibold text-slate-400 hover:text-white">Revoke</button>}
     </div>
 );
 

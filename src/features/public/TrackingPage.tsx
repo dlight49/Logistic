@@ -332,7 +332,7 @@ function FactItem({ icon, label, value }: { icon: ReactNode, label: string, valu
   return (
     <div className="flex items-center gap-4 group">
       <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 group-hover:text-blue-500 group-hover:border-blue-500/30 transition-all">
-        {React.cloneElement(icon as React.isValidElement<any>, { className: "w-5 h-5" })}
+        {React.cloneElement(icon as React.ReactElement<any>, { className: "w-5 h-5" })}
       </div>
       <div>
         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{label}</p>

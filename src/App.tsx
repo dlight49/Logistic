@@ -31,16 +31,22 @@ import DriverChat from "./features/driver/DriverChat";
 import QuoteManagement from "./features/admin/QuoteManagement";
 import TicketList from "./features/customer/TicketList";
 import TicketDetail from "./features/customer/TicketDetail";
+import PrivacyPolicy from "./features/public/PrivacyPolicy";
+import TermsOfService from "./features/public/TermsOfService";
+import CookieConsent from "./components/CookieConsent";
 
 export default function App(): ReactNode {
   return (
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+          <CookieConsent />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/track" element={<TrackingPage />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="/login" element={<CustomerLogin />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/driver/login" element={<DriverLogin />} />

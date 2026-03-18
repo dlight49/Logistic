@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { User, UserRole } from "../../types";
 import { auth, db } from "../../services/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 interface AuthContextType {
     user: User | null;
     login: (userData: User) => void;
     logout: () => void;
+    sendVerification: () => Promise<void>;
     loading: boolean;
 }
 
@@ -19,15 +20,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Development-only mock bypass — stripped by Vite in production builds
-        if (import.meta.env.DEV) {
-            const mockUser = localStorage.getItem("mock_user");
-            if (mockUser) {
-                console.warn("[AUTH] Using mock_user from localStorage — dev only");
-                setUser(JSON.parse(mockUser));
-                setLoading(false);
-                return;
-            }
-        }
+        // if (import.meta.env.DEV) {
+        //     const mockUser = localStorage.getItem("mock_user");
+        //     if (mockUser) {
+        //         console.warn("[AUTH] Using mock_user from localStorage — dev only");
+        //         setUser(JSON.parse(mockUser));
+        //         setLoading(false);
+        //         return;
+        //     }
+        // }
 
         // Real Firebase Auth Listener
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -41,18 +42,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const token = await firebaseUser.getIdToken();
                     localStorage.setItem("lumin_token", token);
 
+                    // Get user role from Supabase if it exists, otherwise default to customer
+                    let finalRole: UserRole = 'customer';
+                    try {
+                        const { supabase } = await import("../../services/supabase");
+                        const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('role')
+                            .eq('id', firebaseUser.uid)
+                            .single();
+                        
+                        if (profile?.role) {
+                            finalRole = profile.role as UserRole;
+                        } else {
+                            // Fallback to check by email for pre-created records
+                            const { data: emailProfile } = await supabase
+                                .from('profiles')
+                                .select('role')
+                                .eq('email', firebaseUser.email)
+                                .single();
+                            if (emailProfile?.role) finalRole = emailProfile.role as UserRole;
+                        }
+                    } catch (e) {
+                        console.error("Error fetching Supabase role:", e);
+                    }
+
                     const loggedInUser: User = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email || '',
                         name: profileData.name || firebaseUser.email?.split('@')[0] || 'User',
-                        role: (profileData.role as UserRole) || 'customer'
+                        role: finalRole,
+                        emailVerified: firebaseUser.emailVerified
                     };
 
-                    // SYNC WITH SUPABASE: Use the firebase UID as the identifier
-                    // This creates or updates the profile in the Supabase 'profiles' table
+                    // SYNC WITH SUPABASE: Upsert while keeping the resolved role
                     try {
                         const { supabase } = await import("../../services/supabase");
-                        const { error } = await supabase
+                        await supabase
                             .from('profiles')
                             .upsert({
                                 id: firebaseUser.uid,
@@ -61,8 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                                 role: loggedInUser.role,
                                 updated_at: new Date()
                             });
-                        
-                        if (error) console.error("Supabase Sync Error:", error.message);
                     } catch (supabaseError) {
                         console.error("Failed to load Supabase client for sync:", supabaseError);
                     }
@@ -98,8 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("lumin_token");
     };
 
+    const sendVerification = async () => {
+        if (auth.currentUser) {
+            await sendEmailVerification(auth.currentUser);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, sendVerification, loading }}>
             {children}
         </AuthContext.Provider>
     );

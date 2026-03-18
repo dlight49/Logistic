@@ -14,6 +14,7 @@ export interface User {
   phone?: string;
   current_lat?: number;
   current_lng?: number;
+  emailVerified?: boolean;
 }
 
 export interface Shipment {

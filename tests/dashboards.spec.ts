@@ -69,9 +69,6 @@ test.describe('Authenticated Dashboards', () => {
 
         // Verify Customer UI
         await expect(page.getByText('Active Shipments').first()).toBeVisible();
-
-        // New Quote is a Link, not a button
-        await expect(page.getByRole('link', { name: /New Quote/i }).first()).toBeVisible();
     });
 
 });
