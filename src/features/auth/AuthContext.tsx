@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     try {
                         const { supabase } = await import("../../services/supabase");
                         const { data: profile } = await supabase
-                            .from('profiles')
+                            .from('User')
                             .select('role')
                             .eq('id', firebaseUser.uid)
                             .single();
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         } else {
                             // Fallback to check by email for pre-created records
                             const { data: emailProfile } = await supabase
-                                .from('profiles')
+                                .from('User')
                                 .select('role')
                                 .eq('email', firebaseUser.email)
                                 .single();
@@ -79,13 +79,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     try {
                         const { supabase } = await import("../../services/supabase");
                         await supabase
-                            .from('profiles')
+                            .from('User')
                             .upsert({
                                 id: firebaseUser.uid,
                                 email: loggedInUser.email,
-                                full_name: loggedInUser.name,
-                                role: loggedInUser.role,
-                                updated_at: new Date()
+                                name: loggedInUser.name,
+                                role: loggedInUser.role
                             });
                     } catch (supabaseError) {
                         console.error("Failed to load Supabase client for sync:", supabaseError);
