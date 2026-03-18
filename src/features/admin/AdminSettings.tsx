@@ -5,7 +5,7 @@ import {
   User, Database, CreditCard, Lock, MapPin, Package,
   Settings as SettingsIcon, LogOut, Clock, Smartphone
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
 import AdminNav from "../../components/AdminNav";
@@ -14,7 +14,10 @@ type TabType = "general" | "logistics" | "notifications" | "security";
 
 export default function AdminSettings() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabType>("general");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<TabType>(
+    location.pathname.includes("notifications") ? "notifications" : "general"
+  );
   const [settings, setSettings] = useState<any>({
     // General
     companyName: "D-Light Logistics",

@@ -1,5 +1,9 @@
 import React, { useState, ReactNode } from "react";
-import { Search, Package, MapPin, Calendar, CheckCircle2, AlertCircle, Clock, ChevronRight, Headset, User, LogOut, LayoutDashboard } from "lucide-react";
+import { 
+  Search, Package, MapPin, Calendar, CheckCircle2, AlertCircle, 
+  Clock, ChevronRight, Headset, User, LogOut, LayoutDashboard,
+  Weight, Ruler, Shield, Info, Download, Share2
+} from "lucide-react";
 import { cn } from "../../utils";
 import { Shipment } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
@@ -19,8 +23,8 @@ export default function TrackingPage(): ReactNode {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/shipments/${trackingId}`);
-      if (!res.ok) throw new Error("Shipment not found");
+      const res = await fetch(`/api/shipments/${trackingId}/track`);
+      if (!res.ok) throw new Error("Tracking ID not found. Please verify the number.");
       const data = await res.json();
       setShipment(data);
     } catch (err: any) {
@@ -32,41 +36,33 @@ export default function TrackingPage(): ReactNode {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 relative overflow-hidden font-sans">
+    <div className="min-h-screen flex flex-col bg-[#020617] text-slate-100 relative overflow-hidden font-sans">
 
-      {/* Background Decorators */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/10 rounded-full blur-[150px] pointer-events-none" />
+      {/* Ambient Background */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none" />
 
-      <header className="p-4 sm:p-6 lg:p-8 z-50 sticky top-0 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-xl border-b border-white/10 dark:border-slate-800/50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <header className="p-4 sm:p-6 lg:p-8 z-50 sticky top-0 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="bg-gradient-to-tr from-primary to-primary-light p-2 rounded-xl shadow-lg shadow-primary/20">
+            <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-900/40">
               <Package className="text-white w-6 h-6" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gradient">Lumin Logistics</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic">Lumin<span className="text-blue-500">Logistics</span></h1>
           </Link>
 
           <div className="flex items-center gap-4">
             {user ? (
-              <>
-                <Link
-                  to={user.role === 'admin' ? '/admin' : user.role === 'operator' ? '/driver' : '/customer'}
-                  className="hidden sm:flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-                >
-                  <LayoutDashboard className="w-4 h-4" /> Dashboard
-                </Link>
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-sm font-bold transition-all"
-                >
-                  <LogOut className="w-4 h-4 text-rose-500" /> <span className="hidden sm:inline">Logout</span>
-                </button>
-              </>
+              <Link
+                to={user.role === 'admin' ? '/admin' : user.role === 'operator' ? '/driver' : '/customer'}
+                className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" /> My Dashboard
+              </Link>
             ) : (
               <Link
                 to="/login"
-                className="bg-primary text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
               >
                 Login
               </Link>
@@ -75,45 +71,34 @@ export default function TrackingPage(): ReactNode {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 z-10 flex flex-col mt-4 sm:mt-12">
+      <main className="flex-1 w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 z-10 flex flex-col mt-4 sm:mt-12">
 
         {/* Hero Search Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-          className="text-center space-y-6 sm:space-y-8 mb-12"
+          className="text-center space-y-6 sm:space-y-8 mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-            Track Your <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-rose-500">
-              Shipment
-            </span>
+          <h2 className="text-4xl sm:text-6xl font-black tracking-tighter uppercase italic">
+            Trace Your <span className="text-blue-500 underline decoration-indigo-500 underline-offset-8">Cargo</span>
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm sm:text-base">
-            Enter your tracking number below to get real-time updates on your delivery status.
-          </p>
-
-          <form onSubmit={handleTrack} className="max-w-xl mx-auto relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent opacity-20 group-hover:opacity-40 blur-lg transition duration-500 rounded-2xl"></div>
-            <div className="relative flex items-center glass-panel rounded-2xl p-2 sm:p-3 transition-all duration-300 transform group-hover:-translate-y-1">
-              <Search className="absolute left-6 text-slate-400 w-5 h-5" />
+          
+          <form onSubmit={handleTrack} className="max-w-2xl mx-auto relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-20 group-hover:opacity-40 blur-lg transition duration-500 rounded-3xl"></div>
+            <div className="relative flex items-center bg-slate-900 border border-white/10 rounded-[2rem] p-2 transition-all duration-300 transform group-hover:-translate-y-1">
+              <Search className="absolute left-8 text-slate-500 w-6 h-6" />
               <input
-                className="w-full bg-transparent border-none pl-12 pr-4 py-3 sm:py-4 text-base sm:text-lg focus:ring-0 outline-none placeholder:text-slate-500"
-                placeholder="e.g. GS-2026-X8Y2"
+                className="w-full bg-transparent border-none pl-16 pr-4 py-5 text-lg sm:text-xl font-bold italic focus:ring-0 outline-none placeholder:text-slate-700 text-white uppercase tracking-wider"
+                placeholder="ENTER TRACKING NUMBER (e.g. GS-2026-X8Y2)"
                 value={trackingId}
-                onChange={(e) => setTrackingId(e.target.value)}
+                onChange={(e) => setTrackingId(e.target.value.toUpperCase())}
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-gradient-to-r from-primary to-primary-light text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all disabled:opacity-50 active:scale-95 whitespace-nowrap"
+                className="bg-blue-600 text-white px-8 sm:px-12 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-500 transition-all disabled:opacity-50 active:scale-95 whitespace-nowrap shadow-xl shadow-blue-900/40"
               >
-                {loading ? (
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                    <Package className="w-5 h-5" />
-                  </motion.div>
-                ) : "Track Now"}
+                {loading ? "SEARCHING..." : "TRACK"}
               </button>
             </div>
           </form>
@@ -123,244 +108,237 @@ export default function TrackingPage(): ReactNode {
           {error && (
             <motion.div
               key="error"
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-2xl flex items-center justify-center gap-3 max-w-xl mx-auto w-full backdrop-blur-sm"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-6 rounded-3xl flex items-center justify-center gap-4 max-w-xl mx-auto w-full backdrop-blur-sm"
             >
-              <AlertCircle className="w-5 h-5" />
-              <p className="text-sm font-medium">{error}</p>
+              <AlertCircle className="w-6 h-6" />
+              <p className="text-sm font-black uppercase tracking-wider">{error}</p>
             </motion.div>
           )}
 
           {shipment && (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ staggerChildren: 0.1, delayChildren: 0.2 }}
-              className="space-y-6 sm:space-y-8 max-w-3xl mx-auto w-full"
-            >
-              {/* Shipment Header Card */}
-              <motion.section
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="glass-panel overflow-hidden rounded-3xl p-6 sm:p-8 relative"
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+              {/* Left Column: Shipment Overview & Timeline */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="lg:col-span-2 space-y-8"
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-[80px] pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
-
-                <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Tracking Number</p>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
-                      {shipment.id}
-                      <span className="bg-primary/10 text-primary dark:bg-primary-light/20 dark:text-primary-light text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">{shipment.type}</span>
-                    </h2>
-                  </div>
-                  <div className="bg-white/5 dark:bg-slate-900/50 backdrop-blur-md border border-white/10 dark:border-slate-800/50 rounded-2xl p-3 flex items-center gap-3 shadow-sm">
-                    <Calendar className="text-accent w-5 h-5" />
-                    <div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Est. Delivery</p>
-                      <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">{shipment.est_delivery}</p>
+                {/* Master Progress Card */}
+                <section className="bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 sm:p-10 relative overflow-hidden shadow-2xl">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -mr-32 -mt-32"></div>
+                  
+                  <div className="relative z-10 flex flex-col sm:flex-row justify-between gap-8 mb-12">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Tracking Authority</p>
+                      <h3 className="text-3xl font-black italic">{shipment.id}</h3>
+                      <div className="flex gap-2">
+                        <span className="bg-blue-600/20 text-blue-400 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border border-blue-500/20">{shipment.type}</span>
+                        <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border border-emerald-500/20">Active</span>
+                      </div>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 flex items-center gap-4 backdrop-blur-xl">
+                      <div className="bg-blue-600 p-3 rounded-2xl shadow-lg">
+                        <Clock className="text-white w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Estimated Delivery</p>
+                        <p className="text-xl font-black text-white italic">{shipment.est_delivery}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-slate-200 dark:border-white/10">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-full">
-                      <MapPin className="text-slate-500 w-5 h-5" />
+                  {/* Route Visual */}
+                  <div className="relative mb-12">
+                    <div className="flex justify-between items-end px-4 mb-4">
+                      <div className="text-left">
+                        <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Origin</p>
+                        <p className="text-xl font-black text-white">{shipment.sender_city}</p>
+                        <p className="text-xs font-bold text-slate-500">{shipment.sender_country}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Destination</p>
+                        <p className="text-xl font-black text-blue-500">{shipment.receiver_city}</p>
+                        <p className="text-xs font-bold text-slate-500">{shipment.receiver_country}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">From</p>
-                      <p className="font-bold text-slate-900 dark:text-white text-lg">{shipment.sender_city}</p>
-                      <p className="text-slate-500 text-sm font-medium">{shipment.sender_country}</p>
+                    <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{
+                          width: shipment.status === 'Delivered' ? '100%' :
+                            shipment.status === 'Out for Delivery' ? '85%' :
+                              shipment.status === 'Held by Customs' ? '60%' :
+                                shipment.status === 'In Transit' ? '35%' : '10%'
+                        }}
+                        transition={{ duration: 2, ease: "circOut" }}
+                        className="h-full bg-blue-600 rounded-full relative"
+                      >
+                        <div className="absolute top-0 right-0 w-12 h-full bg-white/30 blur-md"></div>
+                      </motion.div>
                     </div>
                   </div>
-                  <div className="hidden sm:flex items-center justify-center opacity-30">
-                    <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-slate-500 to-transparent"></div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
+                    <StatusStep active={true} label="Booked" done={true} />
+                    <StatusStep active={['In Transit', 'Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status)} label="In Transit" done={['Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status)} />
+                    <StatusStep active={['Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status)} label="Customs" done={['Out for Delivery', 'Delivered'].includes(shipment.status)} />
+                    <StatusStep active={shipment.status === 'Delivered'} label="Arrived" done={shipment.status === 'Delivered'} />
                   </div>
-                  <div className="flex items-start gap-4 sm:justify-end">
-                    <div className="sm:hidden bg-slate-100 dark:bg-slate-800 p-3 rounded-full">
-                      <MapPin className="text-accent w-5 h-5" />
-                    </div>
-                    <div className="sm:text-right">
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">To</p>
-                      <p className="font-bold text-slate-900 dark:text-white text-lg">{shipment.receiver_city}</p>
-                      <p className="text-slate-500 text-sm font-medium">{shipment.receiver_country}</p>
-                    </div>
-                    <div className="hidden sm:block bg-accent/10 p-3 rounded-full">
-                      <MapPin className="text-accent w-5 h-5" />
-                    </div>
+                </section>
+
+                {/* Timeline History */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 px-2">
+                    <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Movement Records</h3>
                   </div>
-                </div>
-              </motion.section>
-
-              {/* Progress Bar Container */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-panel p-6 sm:p-8 rounded-3xl"
-              >
-                <div className="flex justify-between mb-8 relative z-10 px-2 sm:px-6">
-                  <ProgressStep
-                    active={true}
-                    completed={['Order Created', 'In Transit', 'Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status)}
-                    label="Created"
-                  />
-                  <ProgressStep
-                    active={['In Transit', 'Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status)}
-                    completed={['In Transit', 'Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status) && shipment.status !== 'In Transit'}
-                    label="Transit"
-                  />
-                  <ProgressStep
-                    active={['Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status)}
-                    completed={['Held by Customs', 'Out for Delivery', 'Delivered'].includes(shipment.status) && shipment.status !== 'Held by Customs'}
-                    label="Customs"
-                  />
-                  <ProgressStep
-                    active={['Out for Delivery', 'Delivered'].includes(shipment.status)}
-                    completed={shipment.status === 'Delivered'}
-                    label="Delivered"
-                  />
-                </div>
-
-                <div className="relative h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner mx-2 sm:mx-6">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{
-                      width: shipment.status === 'Delivered' ? '100%' :
-                        shipment.status === 'Out for Delivery' ? '75%' :
-                          shipment.status === 'Held by Customs' ? '50%' :
-                            shipment.status === 'In Transit' ? '25%' : '5%'
-                    }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary via-primary-light to-accent rounded-full relative"
-                  >
-                    <div className="absolute top-0 right-0 w-10 h-full bg-white/30 blur-sm animate-[pulse-slow_2s_infinite]"></div>
-                  </motion.div>
-                </div>
-              </motion.section>
-
-              {/* Timeline Section */}
-              <motion.section
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="px-2"
-              >
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Transit History
-                </h3>
-                <div className="space-y-0 relative before:absolute before:inset-0 before:ml-[1.15rem] before:bg-slate-200 dark:before:bg-slate-800 before:w-0.5 before:z-0">
-                  {shipment.updates?.map((update, idx) => (
-                    <motion.div
-                      key={update.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + (idx * 0.1) }}
-                      className="relative pl-12 pb-8 group last:pb-0 z-10"
-                    >
-                      {/* Icon */}
-                      <div className={cn(
-                        "absolute left-0 top-1 w-10 h-10 rounded-full flex items-center justify-center z-10 border-4 border-background-light dark:border-background-dark shadow-sm transition-transform group-hover:scale-110",
-                        idx === 0
-                          ? "bg-gradient-to-br from-accent to-rose-500"
-                          : "bg-slate-200 dark:bg-slate-700"
-                      )}>
-                        {idx === 0 ? (
-                          <CheckCircle2 className="w-5 h-5 text-white" />
-                        ) : (
-                          <div className="w-2 h-2 rounded-full bg-slate-500 dark:bg-slate-400" />
+                  <div className="space-y-4">
+                    {shipment.updates?.map((update, idx) => (
+                      <motion.div
+                        key={update.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className={cn(
+                          "group relative flex gap-6 p-6 rounded-3xl border transition-all duration-300",
+                          idx === 0 ? "bg-blue-600/5 border-blue-500/20" : "bg-white/5 border-white/5 hover:bg-white/[0.07]"
                         )}
-                      </div>
-
-                      <div className={cn(
-                        "rounded-2xl p-5 transition-all duration-300 border backdrop-blur-md",
-                        idx === 0
-                          ? "bg-accent/5 border-accent/20 shadow-[0_4px_20px_0_rgba(249,115,22,0.1)]"
-                          : "glass-panel group-hover:-translate-y-1 group-hover:shadow-lg"
-                      )}>
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
-                          <h4 className={cn("text-lg font-bold", idx === 0 ? "text-accent" : "text-slate-900 dark:text-slate-100")}>
-                            {update.status}
-                          </h4>
-                          <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800/50 px-2.5 py-1 rounded-lg self-start">
-                            {new Date(update.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(update.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
+                      >
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className={cn(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-110 shadow-lg",
+                            idx === 0 ? "bg-blue-600 border-blue-400 text-white" : "bg-slate-800 border-white/10 text-slate-500"
+                          )}>
+                            {idx === 0 ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2 h-2 rounded-full bg-slate-600" />}
+                          </div>
+                          {idx !== shipment.updates!.length - 1 && <div className="w-px h-full bg-white/10 mt-4"></div>}
                         </div>
-                        <p className="text-base text-slate-600 dark:text-slate-400 mb-3">{update.notes}</p>
-                        <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
-                          <MapPin className="w-3.5 h-3.5" /> {update.location}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.section>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+                            <h4 className={cn("text-lg font-black uppercase italic", idx === 0 ? "text-blue-500" : "text-white")}>
+                              {update.status}
+                            </h4>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 px-3 py-1 rounded-lg">
+                              {new Date(update.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} · {new Date(update.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          <p className="text-sm font-medium text-slate-400 leading-relaxed">{update.notes}</p>
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 pt-2">
+                            <MapPin className="w-3 h-3 text-blue-500" />
+                            {update.location}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+              </motion.div>
 
-            </motion.div>
+              {/* Right Column: Shipment Facts & Sidebar */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8"
+              >
+                {/* Shipment Facts */}
+                <section className="bg-slate-900 border border-white/10 rounded-[2rem] p-8 space-y-8 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <Info className="text-blue-500 w-5 h-5" />
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Cargo Profile</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-6">
+                    <FactItem icon={<Weight />} label="Gross Weight" value={`${shipment.weight} KG`} />
+                    <FactItem icon={<Ruler />} label="Dimensions" value="120 x 80 x 100 cm" />
+                    <FactItem icon={<Shield />} label="Security Level" value="Level 4 (High)" />
+                    <FactItem icon={<Package />} label="Package Type" value="Standard Container" />
+                  </div>
+
+                  <div className="pt-8 border-t border-white/5 space-y-3">
+                    <button className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3">
+                      <Download className="w-4 h-4" /> Export Waybill
+                    </button>
+                    <button className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3">
+                      <Share2 className="w-4 h-4" /> Share Status
+                    </button>
+                  </div>
+                </section>
+
+                {/* Support Sidebar */}
+                <section className="bg-blue-600 rounded-[2rem] p-8 text-white space-y-6 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="relative z-10 space-y-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-xl">
+                      <Headset className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-2xl font-black uppercase italic tracking-tighter">Human Support</h4>
+                    <p className="text-blue-100 text-sm font-bold uppercase tracking-tight leading-relaxed">Questions about your delivery? Our global dispatch team is ready to assist.</p>
+                    <Link to="/customer/tickets" className="block w-full">
+                      <button className="w-full bg-slate-950 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-900 transition-all">
+                        Connect with Agent
+                      </button>
+                    </Link>
+                  </div>
+                </section>
+              </motion.div>
+            </div>
           )}
 
           {!shipment && !loading && trackingId === "" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-10 opacity-30 mt-10 pointer-events-none"
+              className="flex flex-col items-center justify-center py-20 opacity-20 mt-10"
             >
-              <Package className="w-24 h-24 mb-4" />
-              <p className="text-xl font-bold font-mono">LUMIN LOGISTICS</p>
+              <Package className="w-32 h-32 mb-6" />
+              <p className="text-2xl font-black uppercase tracking-[0.5em] italic">Authorized Access Only</p>
             </motion.div>
           )}
         </AnimatePresence>
       </main>
 
-      {/* Support Footer positioned statically if content is long, but visually floating */}
-      {shipment && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          className="max-w-3xl mx-auto w-full p-4 pb-8"
-        >
-          <div className="bg-gradient-to-r from-primary/10 to-primary-light/5 border border-primary/20 backdrop-blur-xl rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary p-3 rounded-xl text-white shadow-md shadow-primary/30">
-                <Headset className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-900 dark:text-white">Need help with this delivery?</p>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Our support team is available 24/7.</p>
-              </div>
-            </div>
-            <Link to="/customer/tickets" className="w-full sm:w-auto bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2">
-              Contact Support <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </motion.div>
-      )}
+      <footer className="mt-20 p-8 border-t border-white/5 text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Global Logistics Intelligence System &copy; 2026</p>
+      </footer>
     </div>
   );
 }
 
-function ProgressStep({ active, completed, label }: { active: boolean; completed: boolean; label: string }): ReactNode {
+function StatusStep({ active, label, done }: { active: boolean; label: string; done: boolean }): ReactNode {
   return (
-    <div className="flex flex-col items-center gap-3 w-16 sm:w-24">
+    <div className="flex flex-col items-center gap-3">
       <div className={cn(
-        "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-4 flex items-center justify-center transition-all duration-500 z-10 shadow-sm",
-        completed ? "bg-accent border-accent/30 shadow-[0_0_15px_rgba(249,115,22,0.4)]" :
-          active ? "bg-primary border-primary/30 shadow-[0_0_15px_rgba(30,27,75,0.4)] dark:shadow-[0_0_15px_rgba(79,70,229,0.4)]" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+        "w-8 h-8 rounded-2xl border-4 flex items-center justify-center transition-all duration-500 z-10",
+        done ? "bg-blue-600 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]" :
+          active ? "bg-slate-800 border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.2)]" : "bg-slate-900 border-white/5"
       )}>
-        {completed && <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
-        {!completed && active && <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white" />}
+        {done && <CheckCircle2 className="w-4 h-4 text-white" />}
+        {!done && active && <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />}
       </div>
       <span className={cn(
-        "text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors text-center",
-        active ? "text-slate-900 dark:text-white" : "text-slate-400"
+        "text-[10px] font-black uppercase tracking-widest transition-colors text-center",
+        active || done ? "text-white" : "text-slate-600"
       )}>
         {label}
       </span>
     </div>
   );
 }
+
+function FactItem({ icon, label, value }: { icon: ReactNode, label: string, value: string }) {
+  return (
+    <div className="flex items-center gap-4 group">
+      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 group-hover:text-blue-500 group-hover:border-blue-500/30 transition-all">
+        {React.cloneElement(icon as React.isValidElement<any>, { className: "w-5 h-5" })}
+      </div>
+      <div>
+        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{label}</p>
+        <p className="text-sm font-black text-white italic uppercase tracking-tight">{value}</p>
+      </div>
+    </div>
+  );
+}
+

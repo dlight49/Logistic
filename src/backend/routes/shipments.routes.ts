@@ -26,6 +26,7 @@ router.post('/admin/quotes/:id/reject', requireAdmin, rejectQuote);
 // Wildcard routes MUST come last (/:id matches anything)
 router.get('/:id', getShipmentById);
 router.post('/:id/updates', updateShipmentTracking);
+router.put('/:id/updates', updateShipmentTracking); // Add PUT to match frontend calls in ShipmentDetails.tsx
 router.post('/:id/assign', requireAdmin, assignOperator);
 
 export default router;

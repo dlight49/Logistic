@@ -1,6 +1,6 @@
 import { useState, ReactNode, useEffect } from "react";
 import { 
-  ArrowLeft, User, Phone, Mail, Shield, Save, CheckCircle2,
+  ArrowLeft, User as UserIcon, Phone, Mail, Shield, Save, CheckCircle2,
   Settings as SettingsIcon, Bell, Globe, CreditCard, Lock, LogOut,
   ChevronRight, Edit3, Camera, Clock
 } from "lucide-react";
@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../../utils/api";
 import { cn } from "../../utils";
+import { User } from "../../types";
 
 type TabType = "account" | "preferences" | "security" | "billing";
 
@@ -26,7 +27,7 @@ export default function CustomerSettings(): ReactNode {
     }
     
     const tabs = [
-        { id: "account", label: "Account", icon: <User className="w-4 h-4" /> },
+        { id: "account", label: "Account", icon: <UserIcon className="w-4 h-4" /> },
         { id: "preferences", label: "Preferences", icon: <SettingsIcon className="w-4 h-4" /> },
         { id: "security", label: "Security", icon: <Shield className="w-4 h-4" /> },
         { id: "billing", label: "Billing", icon: <CreditCard className="w-4 h-4" /> },
@@ -83,13 +84,6 @@ export default function CustomerSettings(): ReactNode {
     );
 }
 
-interface User {
-    name: string;
-    phone: string;
-    email: string;
-    avatarUrl?: string;
-}
-
 function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => void }) {
     const [name, setName] = useState(user.name || "");
     const [phone, setPhone] = useState(user.phone || "");
@@ -120,7 +114,7 @@ function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => 
         <div className="space-y-8">
             <div className="flex flex-col items-center text-center">
                 <div className="relative group mb-2">
-                    <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=0D89EC&color=fff&font-size=0.5`} alt="Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-slate-800 shadow-lg" />
+                    <img src={`https://ui-avatars.com/api/?name=${user.name}&background=0D89EC&color=fff&font-size=0.5`} alt="Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-slate-800 shadow-lg" />
                     <button className="absolute -bottom-2 -right-2 bg-slate-700 hover:bg-primary border-2 border-slate-900 p-2 rounded-full shadow-md transition-all group-hover:scale-110">
                         <Camera className="w-4 h-4" />
                     </button>
@@ -130,7 +124,7 @@ function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => 
             </div>
 
             <form onSubmit={handleSave} className="space-y-6 glass-panel p-6 rounded-2xl border border-white/10">
-                 <InputGroup icon={<User />} label="Full Name" value={name} onChange={setName} placeholder="Your full name" />
+                 <InputGroup icon={<UserIcon />} label="Full Name" value={name} onChange={setName} placeholder="Your full name" />
                  <InputGroup icon={<Phone />} label="Phone Number" value={phone} onChange={setPhone} placeholder="+1 (555) 000-0000" type="tel" />
 
                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">

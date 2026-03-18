@@ -11,14 +11,23 @@ export default function DriverChat(): ReactNode {
     const [messages, setMessages] = React.useState<any[]>([]);
     const [newMessage, setNewMessage] = React.useState("");
     const [loading, setLoading] = React.useState(true);
+    const [adminId, setAdminId] = React.useState<string | null>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
 
-    // For now, drivers chat with the "Admin Team"
-    // In a real app, we'd fetch the specific admin ID.
-    // Here we'll use a fixed admin ID (e.g., '1' for the first admin created)
-    const adminId = "1";
+    const fetchAdmin = async () => {
+        try {
+            const res = await apiFetch('/api/users/admins');
+            const admins = await res.json();
+            if (admins && admins.length > 0) {
+                setAdminId(admins[0].id);
+            }
+        } catch (err) {
+            console.error("Failed to fetch admin:", err);
+        }
+    };
 
     const fetchMessages = async () => {
+        if (!adminId) return;
         try {
             const res = await apiFetch(`/api/chat/${adminId}`);
             const data = await res.json();
@@ -28,10 +37,16 @@ export default function DriverChat(): ReactNode {
     };
 
     React.useEffect(() => {
-        fetchMessages();
-        const interval = setInterval(fetchMessages, 5000);
-        return () => clearInterval(interval);
+        fetchAdmin();
     }, []);
+
+    React.useEffect(() => {
+        if (adminId) {
+            fetchMessages();
+            const interval = setInterval(fetchMessages, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [adminId]);
 
     React.useEffect(() => {
         if (scrollRef.current) {

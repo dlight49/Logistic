@@ -7,7 +7,7 @@ import {
 import { apiFetch } from '../../utils/api';
 import { cn } from '../../utils';
 import { format } from 'date-fns';
-import AdminNav from '../../components/navigation/AdminNav';
+import AdminNav from "../../components/AdminNav";
 
 interface Quote {
   id: string;

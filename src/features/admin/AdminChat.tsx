@@ -4,7 +4,7 @@ import { Search, Send, User, MessageCircle, MoreVertical, Phone, ChevronLeft } f
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import AdminNav from "../../components/navigation/AdminNav";
+import AdminNav from "../../components/AdminNav";
 
 export default function AdminChat(): ReactNode {
     const { user } = useAuth();

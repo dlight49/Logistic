@@ -52,9 +52,6 @@ export default function CustomerDashboard(): ReactNode {
                     <Link to="/track" className="flex-1 sm:flex-none glass-panel px-4 py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <Search className="w-4 h-4" /> Track
                     </Link>
-                    <Link to="/customer/quote" className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-primary-light text-white px-5 py-2 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md shadow-primary/20 hover:shadow-lg transition-all">
-                        <PlusCircle className="w-4 h-4" /> New Quote
-                    </Link>
                     <Link to="/customer/settings" className="flex-1 sm:flex-none glass-panel px-4 py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <Settings className="w-4 h-4" /> Settings
                     </Link>

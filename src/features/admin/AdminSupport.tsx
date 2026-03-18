@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import AdminNav from "../../components/navigation/AdminNav";
+import AdminNav from "../../components/AdminNav";
 
 export default function AdminSupport(): ReactNode {
     const [tickets, setTickets] = React.useState<any[]>([]);

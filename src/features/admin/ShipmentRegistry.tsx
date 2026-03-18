@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Shipment } from "../../types";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import AdminNav from "../../components/navigation/AdminNav";
+import AdminNav from "../../components/AdminNav";
 import AssignOperatorModal from "../../components/AssignOperatorModal";
 import { motion, AnimatePresence } from "motion/react";
 

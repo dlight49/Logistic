@@ -11,7 +11,6 @@ import {
 export default function CustomerNav() {
   const items: NavItem[] = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/customer" },
-    { icon: PlusCircle, label: "Quote", path: "/customer/quote" },
     { icon: History, label: "History", path: "/customer/history" },
     { icon: MessageSquare, label: "Tickets", path: "/customer/tickets" },
     { icon: Settings, label: "Settings", path: "/customer/settings" },
