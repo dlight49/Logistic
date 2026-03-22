@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { useAuth } from "../auth/AuthContext";
-import { Package, Search, PlusCircle, Clock, CheckCircle2, MapPin, Settings, Bell, User, Calculator, MessageSquare, ChevronRight, History } from "lucide-react";
+import { Package, Search, Clock, CheckCircle2, MapPin, Settings, Bell, User, MessageSquare, ChevronRight, History } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
@@ -70,9 +70,8 @@ export default function CustomerDashboard(): ReactNode {
                         <h1 className="text-3xl font-black tracking-tight dark:text-white">{user?.name?.split(' ')[0] || "Guest"}</h1>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <QuickAction icon={<Search />} label="Track" path="/track" color="bg-blue-500" />
-                        <QuickAction icon={<Calculator />} label="Quote" path="/customer/quotes" color="bg-purple-500" />
                         <QuickAction icon={<History />} label="History" path="/customer/history" color="bg-orange-500" />
                         <QuickAction icon={<MessageSquare />} label="Support" path="/customer/tickets" color="bg-emerald-500" />
                     </div>
@@ -101,7 +100,6 @@ export default function CustomerDashboard(): ReactNode {
                             <div className="py-12 text-center bg-white dark:bg-white/5 rounded-3xl border border-dashed border-slate-200 dark:border-white/5 shadow-inner">
                                 <Package className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
                                 <p className="text-sm font-bold text-slate-500">All systems clear. No active shipments.</p>
-                                <Link to="/customer/quotes" className="text-xs text-primary font-black uppercase tracking-widest mt-4 inline-block">Request Shipping &rarr;</Link>
                             </div>
                         ) : activeShipments.map((s, idx) => (
                             <ShipmentAppCard key={s.id} shipment={s} index={idx} />
