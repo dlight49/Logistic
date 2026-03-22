@@ -13,7 +13,7 @@ export async function generateShipmentSummary(shipmentData: any) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const model = "gemini-3-flash-preview";
+    const model = "gemini-1.5-flash";
     const prompt = `
       As a logistics expert, provide a concise, professional summary and risk assessment for the following shipment:
       

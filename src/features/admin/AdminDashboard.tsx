@@ -29,7 +29,7 @@ import LiveDispatchMap from "../../components/LiveDispatchMap";
 import { motion, AnimatePresence } from "motion/react";
 
 // Animation Variants
-const containerVariants = {
+const containerVariants: any = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -37,7 +37,7 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: any = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
@@ -140,22 +140,22 @@ export default function AdminDashboard(): ReactNode {
         </motion.div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 z-10 w-full max-w-[1600px] mx-auto">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 z-10 w-full max-w-[1600px] mx-auto pb-40">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-8"
+          className="space-y-6 sm:space-y-8"
         >
           {/* Analytics Overview Section */}
           <motion.section variants={itemVariants}>
-            <div className="flex items-center justify-between mb-5 px-1">
-              <h2 className="text-sm font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-500" />
+            <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
+              <h2 className="text-[10px] sm:text-sm font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 h-4 text-blue-500" />
                 Network Status
               </h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
               <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="text-blue-400" />} gradient="from-blue-500/10 to-blue-500/5" border="border-blue-500/20" />
               <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="text-cyan-400" />} gradient="from-cyan-500/10 to-cyan-500/5" border="border-cyan-500/20" />
               <StatCard label="Customs Hold" value={stats?.inCustoms || 0} icon={<Gavel className="text-amber-400" />} gradient="from-amber-500/10 to-amber-500/5" border="border-amber-500/20" color="text-amber-400" />
@@ -173,7 +173,7 @@ export default function AdminDashboard(): ReactNode {
           </motion.section>
 
           {/* Live Dispatch Map */}
-          <motion.section variants={itemVariants} className="relative rounded-3xl overflow-hidden border border-white/5 shadow-2xl shadow-black/50 bg-slate-900/50 backdrop-blur-md">
+          <motion.section variants={itemVariants} className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/5 shadow-2xl shadow-black/50 bg-slate-900/50 backdrop-blur-md">
             <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent z-10 pointer-events-none flex items-center justify-between">
               <h3 className="font-bold text-white flex items-center gap-2 drop-shadow-md">
                 <MapPin className="w-4 h-4 text-blue-400" /> Live Global Operations

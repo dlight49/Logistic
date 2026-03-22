@@ -3,11 +3,7 @@ import { auth } from "../services/firebase";
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     let token = "";
 
-    // Always try to get the real Firebase ID token
-    const mockUser = localStorage.getItem("mock_user");
-    if (mockUser) {
-        token = "mock-token";
-    } else if (auth.currentUser) {
+    if (auth.currentUser) {
         token = await auth.currentUser.getIdToken();
     } else {
         // Fallback to stored token if auth state is momentarily detached
@@ -16,7 +12,6 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
     const headers: HeadersInit = {
         "Content-Type": "application/json",
-        ...(mockUser ? { "Mock-User-ID": JSON.parse(mockUser).id } : {}),
         ...options.headers,
     };
 

@@ -48,11 +48,11 @@ export default function LandingPage(): ReactNode {
                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                             Next-Gen Supply Chain Solutions
                         </div>
-                        <h2 className="text-5xl sm:text-7xl font-black tracking-tighter leading-[0.9] uppercase italic">
+                        <h2 className="text-4xl xs:text-5xl sm:text-7xl font-black tracking-tighter leading-[0.9] uppercase italic">
                             Global Flow <br />
                             <span className="text-blue-500">Perfected.</span>
                         </h2>
-                        <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed">
+                        <p className="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed">
                             Enterprise-grade logistics for the modern world. We combine proprietary AI tracking with a massive global infrastructure to move your business forward.
                         </p>
 
@@ -66,7 +66,7 @@ export default function LandingPage(): ReactNode {
                         </div>
 
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-3 gap-8 pt-12 border-t border-white/5">
+                        <div className="grid grid-cols-1 xs:grid-cols-3 gap-6 xs:gap-8 pt-12 border-t border-white/5">
                             <div>
                                 <p className="text-2xl font-black text-white">150+</p>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Countries</p>

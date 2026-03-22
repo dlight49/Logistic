@@ -74,12 +74,12 @@ export default function AdminSettings() {
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
       <header className="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center p-4 justify-between max-w-md mx-auto w-full">
+        <div className="flex items-center p-4 justify-between max-w-4xl mx-auto w-full">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors">
               <ArrowLeft className="w-6 h-6 text-slate-600 dark:text-slate-400" />
             </button>
-            <h1 className="text-lg font-bold tracking-tight">Settings</h1>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">Settings</h1>
           </div>
           <button className="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-primary/20">
             <Search className="w-5 h-5 text-slate-600 dark:text-slate-400" />
@@ -87,7 +87,7 @@ export default function AdminSettings() {
         </div>
 
         {/* Custom Tabs */}
-        <div className="max-w-md mx-auto w-full px-4 pb-2">
+        <div className="max-w-4xl mx-auto w-full px-4 pb-2">
           <div className="flex gap-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl">
             {tabs.map((tab) => (
               <button
@@ -108,7 +108,7 @@ export default function AdminSettings() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto max-w-md mx-auto w-full pb-32 pt-2">
+      <main className="flex-1 overflow-y-auto max-w-4xl mx-auto w-full pb-40 pt-2 px-4 sm:px-6">
         {activeTab === "general" && <GeneralSettings settings={settings} />}
         {activeTab === "logistics" && <LogisticsSettings settings={settings} />}
         {activeTab === "notifications" && (

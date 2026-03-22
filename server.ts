@@ -10,65 +10,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function seedDatabase() {
-  try {
-    const settingsCount = await prisma.setting.count();
-    if (settingsCount === 0) {
-      console.log("[SEED] Initializing system settings...");
-      await prisma.setting.createMany({
-        data: [
-          { key: 'notify_sms', value: 'true' },
-          { key: 'notify_email', value: 'true' },
-          { key: 'alert_created', value: 'true' },
-          { key: 'alert_arrived', value: 'true' },
-          { key: 'alert_customs', value: 'true' },
-          { key: 'alert_delivered', value: 'true' }
-        ]
-      });
-    }
-
-    if (process.env.NODE_ENV !== "production") {
-      const userCount = await prisma.user.count();
-      if (userCount === 0) {
-        console.log("[SEED] Initializing development mock users...");
-        await prisma.user.createMany({
-          data: [
-            { id: "1", email: "admin@logistics.com", role: "admin", name: "Alex Rivera", phone: "555-0100" },
-            { id: "2", email: "driver@logistics.com", role: "operator", name: "John Driver", phone: "555-0101" },
-            { id: "3", email: "customer@logistics.com", role: "customer", name: "Jane Customer", phone: "555-0202" }
-          ]
-        });
-
-        // Give the customer some dummy shipments to look at
-        await prisma.shipment.createMany({
-          data: [
-            {
-              id: "GS-2026-X8Y2",
-              sender_name: "Acme Corp", sender_city: "New York", sender_country: "USA", sender_address: "123 Broad St",
-              receiver_name: "Jane Customer", receiver_city: "London", receiver_country: "UK", receiver_address: "456 Narrow St", receiver_email: "customer@logistics.com", receiver_phone: "555-0202",
-              status: "In Transit", weight: 15, type: "Standard", est_delivery: "Oct 12, 2026"
-            },
-            {
-              id: "GS-2026-A1B2",
-              sender_name: "Tech Flow", sender_city: "Berlin", sender_country: "GER", sender_address: "789 Tech Ave",
-              receiver_name: "Jane Customer", receiver_city: "Paris", receiver_country: "FRA", receiver_address: "101 River Rd", receiver_email: "customer@logistics.com", receiver_phone: "555-0202",
-              status: "Delivered", weight: 2.5, type: "Express", est_delivery: "Oct 10, 2026"
-            },
-          ]
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Failed to seed database:", error);
-  }
-}
-
-seedDatabase();
-
 async function startServer() {
   console.log("=== Server Starting with Catch-All Fix ===");
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   app.use(express.json());
 
