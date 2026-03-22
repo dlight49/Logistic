@@ -42,29 +42,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const token = await firebaseUser.getIdToken();
                     localStorage.setItem("lumin_token", token);
 
-                    // Get user role from Supabase if it exists, otherwise default to customer
-                    let finalRole: UserRole = 'customer';
-                    try {
-                        const { supabase } = await import("../../services/supabase");
-                        const { data: profile } = await supabase
-                            .from('User')
-                            .select('role')
-                            .eq('id', firebaseUser.uid)
-                            .single();
-                        
-                        if (profile?.role) {
-                            finalRole = profile.role as UserRole;
-                        } else {
-                            // Fallback to check by email for pre-created records
-                            const { data: emailProfile } = await supabase
+                    // 1. TRUST FIRESTORE ROLE FIRST (canonical source for Firestore sync)
+                    let finalRole: UserRole = profileData.role || 'customer';
+
+                    // 2. Cross-check with Supabase/SQL for redundancy if needed, but Firestore is our primary auth metadata source
+                    if (finalRole === 'customer') {
+                        try {
+                            const { supabase } = await import("../../services/supabase");
+                            const { data: profile } = await supabase
                                 .from('User')
                                 .select('role')
-                                .eq('email', firebaseUser.email)
+                                .eq('id', firebaseUser.uid)
                                 .single();
-                            if (emailProfile?.role) finalRole = emailProfile.role as UserRole;
+                            
+                            if (profile?.role) {
+                                finalRole = profile.role as UserRole;
+                            }
+                        } catch (e) {
+                            console.error("Error fetching Supabase role:", e);
                         }
-                    } catch (e) {
-                        console.error("Error fetching Supabase role:", e);
                     }
 
                     const loggedInUser: User = {
