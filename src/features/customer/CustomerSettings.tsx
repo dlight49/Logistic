@@ -1,308 +1,136 @@
-import { useState, ReactNode, useEffect } from "react";
+import React, { ReactNode } from "react";
+import { useAuth } from "../auth/AuthContext";
 import { 
-  ArrowLeft, User as UserIcon, Phone, Mail, Shield, Save, CheckCircle2,
-  Settings as SettingsIcon, Bell, Globe, CreditCard, Lock, LogOut,
-  ChevronRight, Edit3, Camera, Clock
+    User, 
+    Bell, 
+    Shield, 
+    Globe, 
+    Moon, 
+    LogOut, 
+    ChevronRight, 
+    ChevronLeft,
+    CreditCard,
+    HelpCircle,
+    Info,
+    Mail,
+    Phone
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../auth/AuthContext";
-import { apiFetch } from "../../utils/api";
+import { motion } from "motion/react";
 import { cn } from "../../utils";
-import { User } from "../../types";
-
-type TabType = "account" | "preferences" | "security";
+import CustomerNav from "../../components/navigation/CustomerNav";
 
 export default function CustomerSettings(): ReactNode {
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const { user, login } = useAuth();
-    const [activeTab, setActiveTab] = useState<TabType>("account");
-
-    if (!user) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
-    
-    const tabs = [
-        { id: "account", label: "Account", icon: <UserIcon className="w-4 h-4" /> },
-        { id: "preferences", label: "Preferences", icon: <SettingsIcon className="w-4 h-4" /> },
-        { id: "security", label: "Security", icon: <Shield className="w-4 h-4" /> },
-    ];
 
     return (
-        <div className="bg-slate-950 text-slate-100 min-h-screen font-display pb-24">
-            <header className="sticky top-0 z-20 bg-slate-950/80 backdrop-blur-md">
-                <div className="max-w-3xl mx-auto px-4">
-                    <div className="flex items-center justify-between py-4">
-                        <button onClick={() => navigate('/customer')} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 transition-colors">
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <h1 className="text-lg font-bold">Settings</h1>
-                        <div className="size-10"></div>
-                    </div>
-                    <div className="flex gap-1 bg-slate-900 p-1 rounded-xl">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as TabType)}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all",
-                                    activeTab === tab.id
-                                        ? "bg-slate-800 text-primary shadow-sm"
-                                        : "text-slate-400 hover:text-white"
-                                )}
-                            >
-                                {tab.icon}
-                                <span className="hidden sm:inline">{tab.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
+        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans pb-32">
+            {/* App Bar */}
+            <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 px-4 py-4 flex items-center gap-4">
+                <button 
+                    onClick={() => navigate(-1)}
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 active:scale-90 transition-transform"
+                >
+                    <ChevronLeft className="w-6 h-6" />
+                </button>
+                <h1 className="text-xl font-black tracking-tight dark:text-white">Settings</h1>
             </header>
 
-            <main className="max-w-3xl mx-auto px-4 pt-6">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeTab}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {activeTab === 'account' && <AccountTab user={user} onUpdate={login} />}
-                        {activeTab === 'preferences' && <PreferencesTab />}
-                        {activeTab === 'security' && <SecurityTab />}
-                    </motion.div>
-                </AnimatePresence>
+            <main className="px-6 pt-6 space-y-8 max-w-lg mx-auto">
+                {/* Profile Header */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-primary to-accent p-1 shadow-2xl relative">
+                        <img 
+                            src={`https://ui-avatars.com/api/?name=${user?.name || "User"}&background=0D8ABC&color=fff&size=128`} 
+                            className="w-full h-full rounded-full object-cover border-4 border-white dark:border-[#020617]" 
+                            alt="Profile" 
+                        />
+                        <button className="absolute bottom-0 right-0 p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg border border-slate-100 dark:border-white/10 text-primary">
+                            <User className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-black tracking-tight dark:text-white">{user?.name}</h2>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{user?.email}</p>
+                    </div>
+                </div>
+
+                {/* Settings Groups */}
+                <div className="space-y-6">
+                    <SettingsGroup title="Account">
+                        <SettingsItem icon={<User />} label="Personal Information" sub="Name, email, and phone" />
+                        <SettingsItem icon={<CreditCard />} label="Payment Methods" sub="Cards and digital wallets" />
+                        <SettingsItem icon={<Shield />} label="Security" sub="Password and 2FA" />
+                    </SettingsGroup>
+
+                    <SettingsGroup title="Preferences">
+                        <SettingsItem icon={<Bell />} label="Notifications" sub="Push, email, and SMS" />
+                        <SettingsItem icon={<Globe />} label="Language" sub="English (US)" />
+                        <SettingsItem icon={<Moon />} label="Display" sub="Dark mode" toggle />
+                    </SettingsGroup>
+
+                    <SettingsGroup title="Support">
+                        <SettingsItem icon={<HelpCircle />} label="Help Center" sub="FAQs and guides" />
+                        <SettingsItem icon={<Info />} label="Legal" sub="Privacy and terms" />
+                    </SettingsGroup>
+                </div>
+
+                {/* Logout Button */}
+                <button 
+                    onClick={logout}
+                    className="w-full mt-4 flex items-center justify-center gap-3 py-4 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 rounded-2xl font-black uppercase tracking-[0.2em] transition-all active:scale-95"
+                >
+                    <LogOut className="w-5 h-5" /> Sign Out
+                </button>
+
+                {/* App Version Info */}
+                <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] py-8">
+                    Lumin Logistics • v2.0.4-production
+                </p>
             </main>
+
+            <CustomerNav />
         </div>
     );
 }
 
-function AccountTab({ user, onUpdate }: { user: User, onUpdate: (user: User) => void }) {
-    const { sendVerification } = useAuth();
-    const [name, setName] = useState(user.name || "");
-    const [phone, setPhone] = useState(user.phone || "");
-    const [loading, setLoading] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [verifying, setVerifying] = useState(false);
-    const [verifySent, setVerifySent] = useState(false);
-
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setSaved(false);
-
-        try {
-            await apiFetch('/api/users/me', {
-                method: 'PUT',
-                body: JSON.stringify({ name, phone })
-            });
-            onUpdate({ ...user, name, phone });
-            setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
-        } catch (error) {
-            console.error("Failed to save settings", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVerifyEmail = async () => {
-        setVerifying(true);
-        try {
-            await sendVerification();
-            setVerifySent(true);
-            setTimeout(() => setVerifySent(false), 5000);
-        } catch (error) {
-            console.error("Failed to send verification email", error);
-        } finally {
-            setVerifying(false);
-        }
-    };
-
+function SettingsGroup({ title, children }: { title: string, children: ReactNode }) {
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col items-center text-center">
-                <div className="relative group mb-2">
-                    <img src={`https://ui-avatars.com/api/?name=${user.name}&background=0D89EC&color=fff&font-size=0.5`} alt="Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-slate-800 shadow-lg" />
-                    <button className="absolute -bottom-2 -right-2 bg-slate-700 hover:bg-primary border-2 border-slate-900 p-2 rounded-full shadow-md transition-all group-hover:scale-110">
-                        <Camera className="w-4 h-4" />
-                    </button>
-                </div>
-                <h2 className="text-xl font-bold">{name}</h2>
-                <div className="flex flex-col items-center gap-1">
-                    <p className="text-sm text-slate-400">{user.email}</p>
-                    {user.emailVerified ? (
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Verified Account
-                        </span>
-                    ) : (
-                        <div className="flex flex-col items-center gap-2 mt-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> Email Not Verified
-                            </span>
-                            <button 
-                                onClick={handleVerifyEmail}
-                                disabled={verifying || verifySent}
-                                className="text-[10px] font-bold text-primary hover:underline uppercase tracking-tighter disabled:text-slate-500"
-                            >
-                                {verifying ? "Sending..." : verifySent ? "Verification Link Sent!" : "Send Verification Link"}
-                            </button>
-                        </div>
-                    )}
+        <div className="space-y-2">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">{title}</h3>
+            <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
+                <div className="divide-y divide-slate-100 dark:divide-white/5">
+                    {children}
                 </div>
             </div>
-
-            <form onSubmit={handleSave} className="space-y-6 glass-panel p-6 rounded-2xl border border-white/10">
-                 <InputGroup icon={<UserIcon />} label="Full Name" value={name} onChange={setName} placeholder="Your full name" />
-                 <InputGroup icon={<Phone />} label="Phone Number" value={phone} onChange={setPhone} placeholder="+1 (555) 000-0000" type="tel" />
-
-                 <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                    <AnimatePresence>
-                    {saved && (
-                        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="text-emerald-400 text-sm font-bold flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4" /> Changes saved
-                        </motion.div>
-                    )}
-                    </AnimatePresence>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 ml-auto"
-                    >
-                        <Save className="w-4 h-4" />
-                        {loading ? "Saving..." : "Save Changes"}
-                    </button>
-                </div>
-            </form>
         </div>
     );
 }
 
-function PreferencesTab() {
+function SettingsItem({ icon, label, sub, toggle }: { icon: ReactNode, label: string, sub: string, toggle?: boolean }) {
     return (
-        <div className="space-y-6">
-            <SettingsCard title="Localization">
-                <SettingsRow icon={<Globe className="text-blue-400" />} label="Language" value="English (Default)" />
-                <SettingsRow icon={<Clock className="text-amber-400" />} label="Timezone" value="Auto-detect" />
-            </SettingsCard>
-            <SettingsCard title="Notifications">
-                <SettingsRow icon={<Bell className="text-red-400" />} label="Shipment Alerts" value="Enabled" />
-                <SettingsRow icon={<Mail className="text-slate-400" />} label="Email Updates" value="Enabled" />
-            </SettingsCard>
-        </div>
-    )
+        <motion.div 
+            whileTap={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+            className="flex items-center justify-between p-4 cursor-pointer group"
+        >
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">
+                    {React.cloneElement(icon as React.ReactElement, { className: "w-5 h-5" })}
+                </div>
+                <div>
+                    <p className="text-sm font-black dark:text-white">{label}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{sub}</p>
+                </div>
+            </div>
+            
+            {toggle ? (
+                <div className="w-10 h-6 bg-primary/20 dark:bg-primary/40 rounded-full relative p-1 cursor-pointer">
+                    <div className="w-4 h-4 bg-primary rounded-full absolute right-1 top-1"></div>
+                </div>
+            ) : (
+                <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-700 group-hover:text-primary transition-colors" />
+            )}
+        </motion.div>
+    );
 }
-
-function SecurityTab() {
-    return (
-        <div className="space-y-6">
-            <SettingsCard title="Password & Authentication">
-                 <div className="p-4">
-                    <button className="w-full text-left flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                             <Lock className="w-5 h-5 text-blue-400" />
-                             <div>
-                                <p className="font-semibold">Update Password</p>
-                                <p className="text-xs text-slate-400">Secure your account with a new password</p>
-                             </div>
-                        </div>
-                         <ChevronRight className="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                 </div>
-            </SettingsCard>
-            <SettingsCard title="Current Session">
-                <SessionItem browser="Current Browser Session" location="Detected Location" isCurrent />
-            </SettingsCard>
-        </div>
-    )
-}
-
-// Reusable Components
-interface InputGroupProps {
-    icon: ReactNode;
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
-    type?: string;
-}
-
-const InputGroup = ({ icon, label, value, onChange, placeholder, type = 'text' }: InputGroupProps) => (
-    <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</label>
-        <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5">{icon}</div>
-            <input
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-slate-900/50 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder={placeholder}
-                type={type}
-                value={value}
-                onChange={e => onChange(e.target.value)}
-            />
-        </div>
-    </div>
-);
-
-const SettingsCard = ({ title, children }: { title: string, children: ReactNode }) => (
-    <div className="glass-panel border border-white/10 rounded-2xl overflow-hidden">
-        <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider p-4 border-b border-white/5">{title}</h3>
-        <div className="divide-y divide-white/5">
-            {children}
-        </div>
-    </div>
-);
-
-const SettingsRow = ({ icon, label, value }: { icon: ReactNode, label: string, value: string }) => (
-    <button className="w-full text-left flex items-center justify-between p-4 group cursor-default">
-        <div className="flex items-center gap-4">
-            {icon}
-            <span className="font-semibold">{label}</span>
-        </div>
-        <div className="flex items-center gap-2">
-            <span className="text-slate-400">{value}</span>
-        </div>
-    </button>
-);
-
-interface SessionItemProps {
-    browser: string;
-    location: string;
-    isCurrent?: boolean;
-}
-
-const SessionItem = ({ browser, location, isCurrent = false }: SessionItemProps) => (
-    <div className="flex items-center gap-4 p-4">
-        <div className="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-lg">
-            <Globe className="w-5 h-5" />
-        </div>
-        <div className="flex-1">
-            <p className="font-semibold">{browser} {isCurrent && <span className="text-xs text-primary font-bold ml-2">(Active)</span>}</p>
-            <p className="text-xs text-slate-400">{location}</p>
-        </div>
-    </div>
-);
-
-interface PaymentMethodProps {
-    type: string;
-    last4: string;
-    expiry: string;
-    isDefault?: boolean;
-}
-
-const PaymentMethod = ({ type, last4, expiry, isDefault = false }: PaymentMethodProps) => (
-     <div className="flex items-center gap-4 p-4">
-        <div className="w-10 h-7 flex items-center justify-center bg-slate-200 rounded-md text-slate-900 font-bold text-xs">
-            {type}
-        </div>
-        <div>
-            <p className="font-semibold">{type} ending in {last4} {isDefault && <span className="text-xs text-primary font-bold ml-2">(Default)</span>}</p>
-            <p className="text-xs text-slate-400">Expires {expiry}</p>
-        </div>
-        <button className="ml-auto text-xs font-semibold text-slate-400 hover:text-white">Remove</button>
-    </div>
-)
