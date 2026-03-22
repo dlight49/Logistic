@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import CustomerNav from "../../components/navigation/CustomerNav";
 
 export default function TicketList(): ReactNode {
     const { user } = useAuth();
@@ -181,8 +180,6 @@ export default function TicketList(): ReactNode {
                     </div>
                 )}
             </AnimatePresence>
-
-            <CustomerNav />
         </div>
     );
 }

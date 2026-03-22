@@ -18,7 +18,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { cn } from "../../utils";
-import CustomerNav from "../../components/navigation/CustomerNav";
 
 export default function CustomerSettings(): ReactNode {
     const { user, logout } = useAuth();
@@ -89,8 +88,6 @@ export default function CustomerSettings(): ReactNode {
                     Lumin Logistics • v2.0.4-production
                 </p>
             </main>
-
-            <CustomerNav />
         </div>
     );
 }

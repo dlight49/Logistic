@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import CustomerNav from "../../components/navigation/CustomerNav";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -127,8 +126,6 @@ export default function CustomerDashboard(): ReactNode {
                     </div>
                 </motion.div>
             </main>
-
-            <CustomerNav />
         </div>
     );
 }

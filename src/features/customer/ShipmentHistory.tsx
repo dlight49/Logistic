@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import CustomerNav from "../../components/navigation/CustomerNav";
 
 export default function ShipmentHistory(): ReactNode {
     const { user } = useAuth();
@@ -85,8 +84,6 @@ export default function ShipmentHistory(): ReactNode {
                     )}
                 </div>
             </main>
-
-            <CustomerNav />
         </div>
     );
 }
