@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode, HTMLAttributes, Key } from "react";
+import React, { useState, useEffect, ReactNode, HTMLAttributes, Key } from "react";
 import { ArrowLeft, Search, MessageSquare, Mail, Bell, Edit3, Truck, AlertTriangle, CheckCircle2, Package, LayoutDashboard, BarChart4, Settings as SettingsIcon } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { cn } from "../../utils";

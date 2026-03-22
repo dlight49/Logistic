@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Search, MessageSquare, Mail, Bell, Edit3, Truck, 
   AlertTriangle, CheckCircle2, ChevronRight, Globe, Shield, 

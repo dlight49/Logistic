@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ReactNode } from "react";
+import React, { useState, useEffect, useCallback, ReactNode } from "react";
 import { useAuth } from "../auth/AuthContext";
 import {
   LayoutDashboard,
@@ -143,7 +143,7 @@ function QuickAction({ icon, label, path, color, badge }: { icon: ReactNode, lab
         <Link to={path} className="flex flex-col items-center gap-2 group shrink-0 min-w-[72px]">
             <div className="relative">
                 <div className={cn("w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl bg-gradient-to-br transition-transform active:scale-90 border border-white/10", color)}>
-                    {React.cloneElement(icon as React.ReactElement, { className: "w-7 h-7" })}
+                    {React.cloneElement(icon as React.ReactElement<any>, { className: "w-7 h-7" })}
                 </div>
                 {badge ? (
                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 border-2 border-[#020617] rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-lg animate-pulse">

@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode, HTMLAttributes } from "react";
+import React, { useState, useEffect, ReactNode, HTMLAttributes } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Bell, CloudUpload, CheckCircle2, Clock, Eye, Download, AlertCircle, Home, Truck, FileText, User, X } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "motion/react";
