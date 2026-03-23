@@ -3,7 +3,7 @@ import { Shield, Lock, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function AdminLogin() {
@@ -22,6 +22,8 @@ export default function AdminLogin() {
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const token = await getIdToken(userCredential.user);
+            
             const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
             const profile = userDoc.exists() ? userDoc.data() : null;
 
@@ -36,7 +38,7 @@ export default function AdminLogin() {
                 email: userCredential.user.email || '',
                 name: profile?.name || 'Admin',
                 role: userRole
-            });
+            }, token);
 
             navigate('/admin');
         } catch (err: any) {

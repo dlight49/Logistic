@@ -12,7 +12,7 @@ export const api = axios.create({
 // Request interceptor to add the access token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem('lumin_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,7 +32,7 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const refreshToken = localStorage.getItem('refresh_token');
+                const refreshToken = localStorage.getItem('lumin_refresh_token');
                 if (!refreshToken) {
                     throw new Error('No refresh token available');
                 }
@@ -45,15 +45,15 @@ api.interceptors.response.use(
                 const { access } = response.data;
                 
                 // Save new token
-                localStorage.setItem('access_token', access);
+                localStorage.setItem('lumin_token', access);
                 
                 // Retry the original request with the new token
                 originalRequest.headers.Authorization = `Bearer ${access}`;
                 return api(originalRequest);
             } catch (refreshError) {
                 // If refresh fails, clear auth state
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('lumin_token');
+                localStorage.removeItem('lumin_refresh_token');
                 localStorage.removeItem('lumin_user');
                 
                 // Dispatch a custom event to notify components (like AuthContext) that session expired

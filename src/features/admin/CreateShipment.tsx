@@ -248,15 +248,15 @@ function Input({ label, onChange, ...props }: InputProps): ReactNode {
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-slate-300">
+    <label className="flex flex-col gap-1.5 cursor-pointer group">
+      <span className="text-sm font-medium text-slate-300 group-focus-within:text-primary transition-colors">
         {label}
-      </label>
+      </span>
       <input
         className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-white placeholder:text-slate-700"
         {...props}
         onChange={handleChange}
       />
-    </div>
+    </label>
   );
 }

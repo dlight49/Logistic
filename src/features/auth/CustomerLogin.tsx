@@ -3,7 +3,7 @@ import { User, Lock, Eye, EyeOff, HelpCircle, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function CustomerLogin() {
@@ -22,6 +22,8 @@ export default function CustomerLogin() {
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const token = await getIdToken(userCredential.user);
+            
             const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
             const profile = userDoc.exists() ? userDoc.data() : null;
 
@@ -32,7 +34,7 @@ export default function CustomerLogin() {
                 email: userCredential.user.email || '',
                 name: profile?.name || 'User',
                 role: userRole
-            });
+            }, token);
 
             // Role isolation: if an admin tries to login here, they still go to admin,
             // but the UI won't suggest it's possible.

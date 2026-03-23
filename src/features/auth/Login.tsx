@@ -3,7 +3,7 @@ import { Truck, HelpCircle, User, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function Login() {
@@ -23,6 +23,8 @@ export default function Login() {
     try {
       // REAL FIREBASE LOGIN
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const token = await getIdToken(userCredential.user);
+      
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
       const profile = userDoc.exists() ? userDoc.data() : null;
 
@@ -34,13 +36,14 @@ export default function Login() {
         email: userCredential.user.email || '',
         name: profile?.name || 'User',
         role: userRole
-      });
+      }, token);
 
       // Navigate based on role
       if (userRole === 'admin') navigate('/admin');
       else if (userRole === 'operator') navigate('/driver');
       else navigate('/customer');
     } catch (err: any) {
+      console.error(err);
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);

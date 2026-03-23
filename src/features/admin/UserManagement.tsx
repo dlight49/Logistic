@@ -372,13 +372,15 @@ export default function UserManagement(): ReactNode {
 
 function Input({ label, onChange, ...props }: any) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{label}</label>
+    <label className="flex flex-col gap-1.5 cursor-pointer group">
+      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 group-focus-within:text-primary transition-colors">
+        {label}
+      </span>
       <input 
         className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm font-medium text-white focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-slate-700" 
         onChange={e => onChange(e.target.value)} 
         {...props} 
       />
-    </div>
+    </label>
   );
 }
