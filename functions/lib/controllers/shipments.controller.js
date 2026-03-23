@@ -62,11 +62,12 @@ export const getShipmentById = async (req, res) => {
 export const createShipment = async (req, res) => {
     try {
         const data = CreateShipmentSchema.parse(req.body);
+        const status = req.body.status || 'Order Created';
         const id = `GS-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         await ShipmentService.createShipment({
             id,
             ...data,
-            status: 'Order Created'
+            status: status
         });
         res.status(201).json({ id });
     }

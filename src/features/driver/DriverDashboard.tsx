@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { useState, useEffect, useCallback, ReactNode } from "react";
 import { useAuth } from "../auth/AuthContext";
 import {
   Truck,
@@ -17,23 +17,25 @@ import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
 
 import { useDriverTracking } from "../../hooks/useDriverTracking";
+import { useShipmentActions } from "../../hooks/useShipmentActions";
 import DriverNav from "../../components/navigation/DriverNav";
+import { ShiftControls } from "./ShiftControls";
 
 export default function DriverDashboard(): ReactNode {
   const { user, logout } = useAuth();
+  const { updating, handleStatusUpdate, handleNavigate } = useShipmentActions();
   useDriverTracking(); // Start real-time GPS sync
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [stats, setStats] = useState({ active: 0, pending: 0, done: 0 });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     if (!user?.id) return;
 
     setLoading(true);
     Promise.all([
       apiFetch(`/api/shipments?operator_id=${user.id}`).then(res => res.json()),
       apiFetch(`/api/stats/driver/${user.id}`).then(res => res.json()),
-      new Promise(r => setTimeout(r, 600)) // smooth delay
     ]).then(([shipmentData, statData]) => {
       setShipments(shipmentData);
       setStats(statData);
@@ -43,6 +45,17 @@ export default function DriverDashboard(): ReactNode {
       setLoading(false);
     });
   }, [user?.id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleUpdateStatus = async (id: string, status: string, city: string) => {
+    const ok = await handleStatusUpdate(id, status, city);
+    if (ok) {
+        fetchData(); // Refresh list to show new status
+    }
+  };
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -68,6 +81,7 @@ export default function DriverDashboard(): ReactNode {
 
       <main className="flex-1 overflow-y-auto pb-28 relative z-10">
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="p-4 space-y-6">
+          <ShiftControls />
           <motion.div variants={containerVariants} className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             <DriverStat
               label="Orders"
@@ -135,11 +149,23 @@ export default function DriverDashboard(): ReactNode {
                       <div className="flex flex-col gap-3 w-full">
                         {(s.status === "Assigned" || s.status === "In Transit") && (
                           <div className="grid grid-cols-2 gap-2">
-                            <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold">
+                            <button 
+                              onClick={() => handleNavigate(s.receiver_address)}
+                              className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold"
+                            >
                               <Navigation className="w-4 h-4 text-primary" /> Navigate
                             </button>
-                            <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold">
-                              <CheckCircle className="w-4 h-4 text-emerald-500" /> Delivered
+                            <button 
+                              onClick={() => handleUpdateStatus(s.id, "Delivered", s.receiver_city)}
+                              disabled={updating === s.id}
+                              className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold disabled:opacity-50"
+                            >
+                              {updating === s.id ? (
+                                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                              ) : (
+                                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                              )}
+                              Delivered
                             </button>
                           </div>
                         )}

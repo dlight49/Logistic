@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Share2, MoreVertical, Truck, MapPin, Weight, Clock, Phone, Mail, Navigation, Headset, Edit3, X, Package, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "motion/react";
@@ -6,37 +6,39 @@ import { Shipment } from "../../types";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
 
+import { useDriverTracking } from "../../hooks/useDriverTracking";
+import { useShipmentActions } from "../../hooks/useShipmentActions";
+
 export default function ShipmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { updating: actionsUpdating, handleStatusUpdate, handleNavigate } = useShipmentActions();
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [notes, setNotes] = useState("");
 
-  const [updating, setUpdating] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    apiFetch(`/api/shipments/${id}`).then(res => res.json()).then(setShipment);
-  }, [id]);
-
-  const handleStatusUpdate = async (status: string) => {
-    setUpdating(true);
+  const fetchShipment = useCallback(async () => {
     try {
-      await apiFetch(`/api/shipments/${id}/updates`, {
-        method: "POST",
-        body: JSON.stringify({
-          status,
-          location: shipment?.receiver_city || "Current Location",
-          notes: `Status updated to ${status} via Quick Action`
-        })
-      });
       const res = await apiFetch(`/api/shipments/${id}`);
       const data = await res.json();
       setShipment(data);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setUpdating(false);
+      setLoading(false);
     }
+  }, [id]);
+
+  useEffect(() => {
+    fetchShipment();
+  }, [fetchShipment]);
+
+  const onQuickStatusUpdate = async (status: string) => {
+    const ok = await handleStatusUpdate(id!, status, shipment?.receiver_city);
+    if (ok) fetchShipment();
   };
 
   const handleUpdate = async () => {
@@ -49,7 +51,7 @@ export default function ShipmentDetails() {
       })
     });
     setShowUpdateModal(false);
-    apiFetch(`/api/shipments/${id}`).then(res => res.json()).then(setShipment);
+    fetchShipment();
   };
 
   if (!shipment) return null;
@@ -161,27 +163,31 @@ export default function ShipmentDetails() {
                   icon={<MapPin className="w-5 h-5" />} 
                   color="bg-blue-600 shadow-blue-900/40"
                   active={shipment.status === 'arrived'}
-                  onClick={() => handleStatusUpdate('arrived')}
+                  onClick={() => onQuickStatusUpdate('arrived')}
                 />
                 <StatusButton 
                   label="Package Loaded" 
                   icon={<Package className="w-5 h-5" />} 
                   color="bg-indigo-600 shadow-indigo-900/40"
                   active={shipment.status === 'loaded'}
-                  onClick={() => handleStatusUpdate('loaded')}
+                  onClick={() => onQuickStatusUpdate('loaded')}
                 />
               </div>
 
               <motion.button
                 whileTap={{ scale: 0.98 }}
-                onClick={() => handleStatusUpdate('delivered')}
-                disabled={updating}
-                className="w-full relative group overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-emerald-600 to-teal-600 shadow-xl shadow-emerald-900/20 flex items-center justify-between border border-white/20 transition-all active:scale-95"
+                onClick={() => onQuickStatusUpdate('delivered')}
+                disabled={!!actionsUpdating}
+                className="w-full relative group overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-emerald-600 to-teal-600 shadow-xl shadow-emerald-900/20 flex items-center justify-between border border-white/20 transition-all active:scale-95 disabled:opacity-50"
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                    <Truck className="w-6 h-6 text-white" />
+                    {actionsUpdating === shipment.id ? (
+                        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                        <Truck className="w-6 h-6 text-white" />
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100/70 mb-0.5">Final Step</p>
@@ -192,8 +198,9 @@ export default function ShipmentDetails() {
               </motion.button>
               
               <button 
-                className="w-full py-4 text-xs font-black uppercase tracking-widest text-rose-500 hover:text-rose-400 transition-colors flex items-center justify-center gap-2 group"
-                onClick={() => handleStatusUpdate('exception')}
+                className="w-full py-4 text-xs font-black uppercase tracking-widest text-rose-500 hover:text-rose-400 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50"
+                onClick={() => onQuickStatusUpdate('exception')}
+                disabled={!!actionsUpdating}
               >
                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 group-hover:scale-150 transition-transform"></span>
                  Report Delivery Issue

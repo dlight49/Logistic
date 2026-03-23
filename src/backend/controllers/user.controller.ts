@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { firebaseAdmin } from '../config/firebase-admin.js';
 import crypto from 'crypto';
+import { createUserSchema, updateUserSchema } from '../validators/user.validator.js';
 
 /** Generate a random 12-char alphanumeric password */
 function generateTempPassword(): string {
@@ -21,6 +22,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
         res.json(users);
     } catch (error) {
+        console.error('[UserController] Error in getUsers:', error);
         res.status(500).json({ error: 'Internal server error while fetching users' });
     }
 };
@@ -33,18 +35,23 @@ export const getAdmins = async (req: Request, res: Response) => {
         });
         res.json(admins);
     } catch (error) {
+        console.error('[UserController] Error in getAdmins:', error);
         res.status(500).json({ error: 'Failed to fetch admins' });
     }
 };
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { name, email, phone, password, role = 'customer' } = req.body;
-
-        if (!name || !email) {
-            res.status(400).json({ error: 'Name and email are required' });
-            return;
+        // Strict Validation
+        const validation = createUserSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: 'Validation failed', 
+                details: validation.error.format() 
+            });
         }
+
+        const { name, email, phone, password, role } = validation.data;
 
         // Use provided password or generate a temporary one
         const tempPassword = password && password.trim().length >= 6
@@ -61,8 +68,7 @@ export const createUser = async (req: Request, res: Response) => {
             });
         } catch (firebaseError: any) {
             if (firebaseError.code === 'auth/email-already-exists') {
-                res.status(409).json({ error: 'A user with this email already exists' });
-                return;
+                return res.status(409).json({ error: 'A user with this email already exists' });
             }
             throw firebaseError;
         }
@@ -100,51 +106,61 @@ export const createUser = async (req: Request, res: Response) => {
             throw prismaError;
         }
 
-        res.status(201).json({
-            id: uid,
-            email,
-            tempPassword,
-            role
+        return res.status(201).json({ 
+            id: uid, 
+            name, 
+            email, 
+            role, 
+            tempPassword 
         });
+
     } catch (error: any) {
-        res.status(500).json({ error: error.message || 'Failed to create user' });
+        console.error('[UserController] Error in createUser:', error);
+        return res.status(500).json({ error: error.message || 'Failed to create user' });
     }
 };
 
 export const updateUser = async (req: Request, res: Response) => {
     try {
-        const { name, email, phone, role } = req.body;
-        const id = req.params.id;
+        const { id } = req.params;
+        
+        const validation = updateUserSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: 'Validation failed', 
+                details: validation.error.format() 
+            });
+        }
+
+        const updates = validation.data;
 
         // 1. Sync to Firebase Auth
         const authUpdate: any = {};
-        if (name) authUpdate.displayName = name;
-        if (email) authUpdate.email = email;
+        if (updates.name) authUpdate.displayName = updates.name;
+        if (updates.email) authUpdate.email = updates.email;
 
         if (Object.keys(authUpdate).length > 0) {
             await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => console.warn('Firebase Auth update failed:', err));
         }
 
         // 2. Sync to Firestore
-        const firestoreUpdate: any = {};
-        if (name) firestoreUpdate.name = name;
-        if (email) firestoreUpdate.email = email;
-        if (phone !== undefined) firestoreUpdate.phone = phone || null;
-        if (role) firestoreUpdate.role = role;
+        const firestoreUpdate: any = {
+            ...updates,
+            updatedAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
+        };
 
-        if (Object.keys(firestoreUpdate).length > 0) {
-            await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => console.warn('Firestore update failed:', err));
-        }
+        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => console.warn('Firestore update failed:', err));
 
         // 3. Update Prisma
         const updated = await prisma.user.update({
             where: { id },
-            data: { name, email, phone, role },
+            data: updates,
         });
 
-        res.json(updated);
+        return res.json(updated);
     } catch (error: any) {
-        res.status(400).json({ error: error.message });
+        console.error('[UserController] Error in updateUser:', error);
+        return res.status(400).json({ error: error.message || 'Failed to update user' });
     }
 };
 
@@ -163,6 +179,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 
         res.json({ success: true });
     } catch (error: any) {
+        console.error('[UserController] Error in deleteUser:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -176,6 +193,7 @@ export const resetUserPassword = async (req: Request, res: Response) => {
 
         res.json({ tempPassword: newPassword });
     } catch (error: any) {
+        console.error('[UserController] Error in resetUserPassword:', error);
         res.status(500).json({ error: error.message });
     }
 };

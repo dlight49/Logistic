@@ -50,28 +50,37 @@ export default function DriverDirectory() {
                     </div>
                 </header>
 
-                <div className="flex flex-col sm:flex-row gap-4 mb-8 sm:mb-10 text-slate-100">
-                    <div className="relative flex-1 group">
+                <div className="space-y-4 mb-8 sm:mb-10">
+                    <div className="relative group">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-cyan-400 transition-colors" />
                         <input
                             type="text"
-                            className="w-full pl-14 pr-6 py-4 sm:py-4.5 bg-slate-900/40 border border-white/5 rounded-2xl sm:rounded-3xl text-sm font-bold focus:ring-2 focus:ring-cyan-500/30 outline-none transition-all placeholder:text-slate-600 shadow-2xl backdrop-blur-sm"
-                            placeholder="Search by name, email, or vehicle..."
+                            className="w-full pl-14 pr-6 py-4 bg-slate-900/40 border border-white/5 rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-cyan-500/30 outline-none transition-all placeholder:text-slate-600 shadow-2xl backdrop-blur-sm"
+                            placeholder="Search fleet units..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="w-full sm:w-64 relative">
-                        <select
-                            className="w-full pl-6 pr-12 py-4 sm:py-4.5 bg-slate-900/40 border border-white/5 rounded-2xl sm:rounded-3xl text-sm font-bold appearance-none focus:ring-2 focus:ring-cyan-500/30 outline-none transition-all shadow-2xl backdrop-blur-sm"
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                        >
-                            <option value="">All Drivers</option>
-                            <option value="active">Currently Active</option>
-                            <option value="idle">Stationary / Idle</option>
-                        </select>
-                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none w-5 h-5" />
+                    
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {[
+                            { id: "", label: "All Units" },
+                            { id: "active", label: "Active" },
+                            { id: "idle", label: "Idle / Offline" }
+                        ].map((status) => (
+                            <button
+                                key={status.id}
+                                onClick={() => setFilterStatus(status.id)}
+                                className={cn(
+                                    "px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border",
+                                    filterStatus === status.id 
+                                        ? "bg-cyan-600 border-cyan-500 text-white shadow-lg shadow-cyan-900/40" 
+                                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                                )}
+                            >
+                                {status.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 

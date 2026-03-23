@@ -63,9 +63,9 @@ export default function ShipmentRegistry(): ReactNode {
             </header>
 
             <main className="flex-1 px-5 pt-6 space-y-6 max-w-lg mx-auto w-full z-10">
-                {/* Search & Filter Row */}
-                <div className="flex gap-2">
-                    <div className="relative flex-1 group">
+                {/* Search & Filter Section */}
+                <div className="space-y-4">
+                    <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-400 transition-colors" />
                         <input
                             className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-[1.5rem] text-sm font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder:text-slate-500 transition-all outline-none"
@@ -74,19 +74,28 @@ export default function ShipmentRegistry(): ReactNode {
                             onChange={e => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="relative">
-                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <select
-                            className="h-full pl-10 pr-8 bg-white/5 border border-white/10 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-blue-500/50 outline-none text-slate-300 appearance-none"
-                            value={filterStatus}
-                            onChange={e => setFilterStatus(e.target.value)}
-                        >
-                            <option value="" className="bg-slate-900">All</option>
-                            <option value="Order Created" className="bg-slate-900">Created</option>
-                            <option value="In Transit" className="bg-slate-900">Transit</option>
-                            <option value="Held by Customs" className="bg-slate-900">Customs</option>
-                            <option value="Delivered" className="bg-slate-900">Delivered</option>
-                        </select>
+                    
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {[
+                            { id: "", label: "All" },
+                            { id: "Order Created", label: "Created" },
+                            { id: "In Transit", label: "Transit" },
+                            { id: "Held by Customs", label: "Customs" },
+                            { id: "Delivered", label: "Delivered" }
+                        ].map((status) => (
+                            <button
+                                key={status.id}
+                                onClick={() => setFilterStatus(status.id)}
+                                className={cn(
+                                    "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border",
+                                    filterStatus === status.id 
+                                        ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/40" 
+                                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                                )}
+                            >
+                                {status.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
