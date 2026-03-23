@@ -44,15 +44,15 @@ function getCredential(): admin.credential.Credential | null {
     return null;
 }
 
-const projectId = process.env.FIREBASE_PROJECT_ID || 'mock_project_id';
-
 if (!admin.apps.length) {
     const credential = getCredential();
 
     try {
         if (credential) {
-            admin.initializeApp({ credential, projectId });
+            // Let Firebase extract the project ID from the credential automatically
+            admin.initializeApp({ credential });
         } else {
+            const projectId = process.env.FIREBASE_PROJECT_ID || 'mock_project_id';
             console.warn('[Firebase Admin] No service account found — running in limited mode (cannot create users)');
             admin.initializeApp({ projectId });
         }
