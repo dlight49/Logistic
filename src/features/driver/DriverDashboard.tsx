@@ -99,9 +99,12 @@ export default function DriverDashboard(): ReactNode {
 
           <motion.div variants={itemVariants} className="pt-2 flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight text-white">Assigned Routes</h2>
-            <button className="text-primary text-sm font-bold flex items-center gap-1 hover:text-primary/80 transition-colors">
+            <Link 
+              to="/driver/routes" 
+              className="text-primary text-sm font-bold flex items-center gap-1 hover:text-primary/80 transition-colors active:scale-95 p-2"
+            >
               View All <ChevronRight className="w-4 h-4" />
-            </button>
+            </Link>
           </motion.div>
 
           <div className="space-y-4">
@@ -151,14 +154,16 @@ export default function DriverDashboard(): ReactNode {
                           <div className="grid grid-cols-2 gap-2">
                             <button 
                               onClick={() => handleNavigate(s.receiver_address)}
-                              className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold"
+                              aria-label="Navigate to destination"
+                              className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl border border-white/10 transition-all text-xs font-bold active:scale-95"
                             >
                               <Navigation className="w-4 h-4 text-primary" /> Navigate
                             </button>
                             <button 
                               onClick={() => handleUpdateStatus(s.id, "Delivered", s.receiver_city)}
                               disabled={updating === s.id}
-                              className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl border border-white/10 transition-all text-xs font-bold disabled:opacity-50"
+                              aria-label="Confirm delivery"
+                              className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl border border-white/10 transition-all text-xs font-bold disabled:opacity-50 active:scale-95"
                             >
                               {updating === s.id ? (
                                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -169,7 +174,7 @@ export default function DriverDashboard(): ReactNode {
                             </button>
                           </div>
                         )}
-                        <Link to={`/driver/shipment/${s.id}`} className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <Link to={`/driver/shipment/${s.id}`} className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2">
                           <Package className="w-4 h-4" /> Full Details & Scan
                         </Link>
                       </div>

@@ -81,12 +81,19 @@ export default function CustomsPortal(): ReactNode {
 
       <header className="sticky top-0 z-50 flex items-center glass-panel p-4 border-x-0 border-t-0 border-b border-white/10 justify-between rounded-none">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex size-10 items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors border border-transparent hover:border-white/10">
+          <button 
+            onClick={() => navigate(-1)} 
+            aria-label="Go back"
+            className="flex size-11 items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors border border-transparent hover:border-white/10 active:scale-95"
+          >
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h2 className="text-lg font-bold leading-tight tracking-tight">Customs Gateway</h2>
         </div>
-        <button className="flex size-10 items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors relative">
+        <button 
+          aria-label="View notifications"
+          className="flex size-11 items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors relative active:scale-95"
+        >
           <Bell className="w-5 h-5" />
           <span className="absolute top-2.5 right-2.5 flex h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(249,115,22,0.8)]"></span>
         </button>
@@ -293,10 +300,16 @@ function DocCard({ title, date, status, isAdmin, onUpdateStatus }: DocCardProps)
           <p className="text-slate-400 text-xs font-medium flex items-center gap-1"><Clock className="w-3 h-3" /> Uploaded: {date}</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex size-10 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors pointer-events-auto">
+          <button 
+            aria-label="View document"
+            className="flex size-11 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors pointer-events-auto active:scale-95"
+          >
             <Eye className="w-5 h-5" />
           </button>
-          <button className="flex size-10 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors pointer-events-auto">
+          <button 
+            aria-label="Download document"
+            className="flex size-11 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors pointer-events-auto active:scale-95"
+          >
             <Download className="w-5 h-5" />
           </button>
         </div>

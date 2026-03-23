@@ -53,10 +53,13 @@ export default function CustomerDashboard(): ReactNode {
                     <span className="font-black text-lg tracking-tighter uppercase italic dark:text-white">Lumin</span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="p-2.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 active:scale-90 transition-transform">
+                    <button 
+                        aria-label="View notifications"
+                        className="p-3 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 active:scale-95 transition-transform min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    >
                         <Bell className="w-5 h-5" />
                     </button>
-                    <Link to="/customer/settings" className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[2px] shadow-lg active:scale-90 transition-transform">
+                    <Link to="/customer/settings" aria-label="Profile settings" className="w-11 h-11 rounded-full bg-gradient-to-tr from-primary to-accent p-[2px] shadow-lg active:scale-95 transition-transform">
                         <img src={`https://ui-avatars.com/api/?name=${user?.name || "User"}&background=0D8ABC&color=fff`} className="w-full h-full rounded-full object-cover border-2 border-white dark:border-[#020617]" alt="Profile" />
                     </Link>
                 </div>
@@ -108,9 +111,9 @@ export default function CustomerDashboard(): ReactNode {
                 </section>
 
                 {/* Promotional / Help Card */}
-                <motion.div
-                    whileTap={{ scale: 0.98 }}
-                    className="p-6 rounded-[2.5rem] bg-gradient-to-br from-primary to-accent text-white shadow-xl shadow-primary/20 relative overflow-hidden group cursor-pointer"
+                <Link 
+                    to="/customer/tickets"
+                    className="block p-6 rounded-[2.5rem] bg-gradient-to-br from-primary to-accent text-white shadow-xl shadow-primary/20 relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
                 >
                     <div className="absolute top-[-20%] right-[-20%] w-48 h-48 bg-white/20 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform"></div>
                     <div className="relative z-10 flex items-center justify-between">
@@ -122,7 +125,7 @@ export default function CustomerDashboard(): ReactNode {
                             <MessageSquare className="w-6 h-6" />
                         </div>
                     </div>
-                </motion.div>
+                </Link>
             </main>
         </div>
     );
@@ -213,7 +216,11 @@ function ShipmentAppCard({ shipment, index }: { shipment: any, index: number }) 
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
                     <span className="text-[10px] font-bold text-slate-500">ETA: {shipment.est_delivery}</span>
                 </div>
-                <Link to={`/track?id=${shipment.id}`} className="p-2 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">
+                <Link 
+                    to={`/track?id=${shipment.id}`} 
+                    aria-label={`Track shipment ${shipment.id}`}
+                    className="p-3 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                >
                     <ChevronRight className="w-5 h-5" />
                 </Link>
             </div>

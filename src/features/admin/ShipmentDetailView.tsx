@@ -96,7 +96,11 @@ export default function ShipmentDetailView(): ReactNode {
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark pb-20">
       <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
+          <button 
+            onClick={() => navigate(-1)} 
+            aria-label="Go back"
+            className="p-3 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -104,7 +108,10 @@ export default function ShipmentDetailView(): ReactNode {
             <p className="text-xs text-slate-500">Shipment Details</p>
           </div>
         </div>
-        <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
+        <button 
+          aria-label="More options"
+          className="p-3 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+        >
           <MoreVertical className="w-5 h-5" />
         </button>
       </header>

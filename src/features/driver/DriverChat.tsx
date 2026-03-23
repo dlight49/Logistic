@@ -78,7 +78,7 @@ export default function DriverChat(): ReactNode {
                 {/* Header */}
                 <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/40 dark:bg-slate-900/40">
                     <div className="flex items-center gap-4">
-                        <Link to="/driver" className="lg:hidden w-10 h-10 glass-panel rounded-full flex items-center justify-center">
+                        <Link to="/driver" aria-label="Go back to dashboard" className="lg:hidden w-11 h-11 glass-panel rounded-full flex items-center justify-center active:scale-95">
                             <ChevronLeft className="w-5 h-5" />
                         </Link>
                         <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 shrink-0">
@@ -93,9 +93,9 @@ export default function DriverChat(): ReactNode {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button className="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors">
+                        <a href="tel:+1800FLEET" aria-label="Call fleet support" className="w-11 h-11 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors active:scale-95">
                             <Phone className="w-5 h-5" />
-                        </button>
+                        </a>
                     </div>
                 </div>
 

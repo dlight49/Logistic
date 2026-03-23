@@ -232,9 +232,27 @@ export default function UserManagement(): ReactNode {
                     </div>
                   </div>
                   <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setEditingUser(user)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-white transition-colors"><Edit3 className="w-3.5 h-3.5 sm:w-4 h-4" /></button>
-                    <button onClick={() => handleResetPassword(user.id)} className="p-1.5 sm:p-2 hover:bg-amber-500/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-amber-500 transition-colors"><KeyRound className="w-3.5 h-3.5 sm:w-4 h-4" /></button>
-                    <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 sm:p-2 hover:bg-rose-500/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-rose-500 transition-colors"><Trash2 className="w-3.5 h-3.5 sm:w-4 h-4" /></button>
+                    <button 
+                      onClick={() => setEditingUser(user)} 
+                      aria-label="Edit user"
+                      className="p-3 hover:bg-white/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-white transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    >
+                      <Edit3 className="w-4 h-4 sm:w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleResetPassword(user.id)} 
+                      aria-label="Reset password"
+                      className="p-3 hover:bg-amber-500/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-amber-500 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    >
+                      <KeyRound className="w-4 h-4 sm:w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteUser(user.id)} 
+                      aria-label="Delete user"
+                      className="p-3 hover:bg-rose-500/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-rose-500 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4 sm:w-5 h-5" />
+                    </button>
                   </div>
                 </div>
 
@@ -243,8 +261,12 @@ export default function UserManagement(): ReactNode {
                     <p className="text-[9px] sm:text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2">New Temp Password</p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 bg-black/40 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-mono text-white">{resetCredentials.tempPassword}</code>
-                      <button onClick={() => copyToClipboard(resetCredentials.tempPassword, user.id)} className="p-1.5 sm:p-2 bg-amber-500 text-white rounded-lg sm:rounded-xl">
-                        {copiedField === user.id ? <Check className="w-3.5 h-3.5 sm:w-4 h-4" /> : <Copy className="w-3.5 h-3.5 sm:w-4 h-4" />}
+                      <button 
+                        onClick={() => copyToClipboard(resetCredentials.tempPassword, user.id)} 
+                        aria-label="Copy password"
+                        className="p-3 bg-amber-500 text-white rounded-lg sm:rounded-xl active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      >
+                        {copiedField === user.id ? <Check className="w-4 h-4 sm:w-5 h-5" /> : <Copy className="w-4 h-4 sm:w-5 h-5" />}
                       </button>
                     </div>
                   </div>

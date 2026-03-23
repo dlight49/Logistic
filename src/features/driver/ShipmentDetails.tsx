@@ -103,14 +103,37 @@ export default function ShipmentDetails() {
       <header className="sticky top-0 z-50 glass-panel border-x-0 border-t-0 border-b border-white/10 p-4 rounded-none">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="text-white hover:bg-white/10 p-2 rounded-full transition-colors border border-transparent hover:border-white/10">
+            <button 
+              onClick={() => navigate(-1)} 
+              aria-label="Go back"
+              className="text-white hover:bg-white/10 p-3 rounded-full transition-colors border border-transparent hover:border-white/10 active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
               <ArrowLeft className="w-6 h-6" />
             </button>
             <h2 className="text-lg font-bold leading-tight tracking-tight">Active Route</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button className="text-slate-300 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors"><Share2 className="w-5 h-5" /></button>
-            <button className="text-slate-300 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors"><MoreVertical className="w-5 h-5" /></button>
+            <button 
+              aria-label="Share shipment"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `Shipment ${shipment.id}`,
+                    text: `Tracking shipment ${shipment.id}`,
+                    url: window.location.href
+                  }).catch(console.error);
+                }
+              }}
+              className="text-slate-300 hover:text-white hover:bg-white/10 p-3 rounded-full transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+            <button 
+              aria-label="More options"
+              className="text-slate-300 hover:text-white hover:bg-white/10 p-3 rounded-full transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
@@ -250,8 +273,19 @@ export default function ShipmentDetails() {
                   <p className="text-xs text-slate-400 font-medium">Recipient</p>
                 </div>
                 <div className="flex gap-2">
-                  <a href={`tel:${shipment.receiver_phone || "555-0199"}`} className="p-2.5 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors"><Phone className="w-5 h-5 text-slate-200" /></a>
-                  <button className="p-2.5 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors"><Mail className="w-5 h-5 text-slate-200" /></button>
+                  <a 
+                    href={`tel:${shipment.receiver_phone || "555-0199"}`} 
+                    aria-label="Call recipient"
+                    className="p-3 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  >
+                    <Phone className="w-5 h-5 text-slate-200" />
+                  </a>
+                  <button 
+                    aria-label="Email recipient"
+                    className="p-3 bg-white/5 hover:bg-white/10 text-primary rounded-xl border border-white/5 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  >
+                    <Mail className="w-5 h-5 text-slate-200" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -289,7 +323,7 @@ export default function ShipmentDetails() {
           <motion.section variants={itemVariants} className="mt-8">
             <div className="px-5 flex items-center justify-between mb-5">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Shipping History</h3>
-              <Link to={`/driver/customs/${shipment.id}`} className="text-xs font-bold text-accent hover:text-accent/80 transition-colors flex items-center gap-1">
+              <Link to={`/driver/customs/${shipment.id}`} className="text-xs font-bold text-accent hover:text-accent/80 transition-colors flex items-center gap-1 active:scale-95">
                 Customs Docs <ArrowLeft className="w-3 h-3 rotate-180" />
               </Link>
             </div>
@@ -320,14 +354,18 @@ export default function ShipmentDetails() {
         <div className="max-w-2xl mx-auto flex gap-3 pointer-events-auto">
           <button
             onClick={() => setShowUpdateModal(true)}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20 relative overflow-hidden group"
+            className="flex-1 bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all active:scale-95 border border-white/20 relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
             <Edit3 className="w-5 h-5 relative z-10" /> <span className="relative z-10">Update Status</span>
           </button>
-          <button className="w-16 glass-panel bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl flex items-center justify-center shadow-lg transition-all active:scale-95 border border-white/20">
+          <Link 
+            to="/driver/chat"
+            aria-label="Contact support"
+            className="w-16 glass-panel bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl flex items-center justify-center shadow-lg transition-all active:scale-95 border border-white/20 min-w-[44px] min-h-[44px]"
+          >
             <Headset className="w-6 h-6" />
-          </button>
+          </Link>
         </div>
       </div>
 
