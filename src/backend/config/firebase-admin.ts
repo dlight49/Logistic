@@ -31,14 +31,18 @@ function getCredential(): admin.credential.Credential | null {
     const projectRoot = path.resolve(__dirname, '..', '..', '..');
     const filePath = path.join(projectRoot, 'firebase-service-account.json');
 
+    console.log(`[Firebase Admin] Checking for service account at: ${filePath}`);
+
     if (fs.existsSync(filePath)) {
         try {
             const raw = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-            console.log('[Firebase Admin] Initialized with service account from file');
+            console.log(`[Firebase Admin] Found service account for project: ${raw.project_id}`);
             return admin.credential.cert(raw);
         } catch (err) {
-            console.warn('[Firebase Admin] firebase-service-account.json exists but cannot be parsed:', err);
+            console.error('[Firebase Admin] firebase-service-account.json exists but cannot be parsed:', err);
         }
+    } else {
+        console.warn('[Firebase Admin] firebase-service-account.json NOT found at expected path');
     }
 
     return null;

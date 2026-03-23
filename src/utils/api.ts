@@ -4,7 +4,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     let token = "";
 
     if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+        // Force refresh if needed to avoid "Invalid token" errors
+        token = await auth.currentUser.getIdToken(true);
+        localStorage.setItem("lumin_token", token);
     } else {
         // Fallback to stored token if auth state is momentarily detached
         token = localStorage.getItem("lumin_token") || "";

@@ -36,6 +36,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     try {
         const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+        // console.log('[AUTH] Token verified for:', decodedToken.email);
 
         // Find or create the user in our local database based on Firebase UID
         let user = await prisma.user.findUnique({
@@ -69,9 +70,14 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
         req.user = user;
         next();
-    } catch (error) {
-        console.error('Error verifying Firebase token:', error);
-        res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    } catch (error: any) {
+        console.error('[AUTH] Token verification failed:', error.message);
+        if (error.code === 'auth/id-token-expired') {
+            console.error('[AUTH] Reason: Token has expired');
+        } else if (error.code === 'auth/argument-error') {
+            console.error('[AUTH] Reason: Invalid token format or project ID mismatch');
+        }
+        res.status(401).json({ error: `Unauthorized: ${error.message}` });
     }
 };
 
