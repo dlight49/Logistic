@@ -56,8 +56,11 @@ if (!admin.apps.length) {
             // Let Firebase extract the project ID from the credential automatically
             admin.initializeApp({ credential });
         } else {
-            const projectId = process.env.FIREBASE_PROJECT_ID || 'mock_project_id';
-            console.warn('[Firebase Admin] No service account found — running in limited mode (cannot create users)');
+            const projectId = process.env.FIREBASE_PROJECT_ID;
+            if (!projectId) {
+                throw new Error('[Firebase Admin] Critical: No service account found and FIREBASE_PROJECT_ID is not set.');
+            }
+            console.warn('[Firebase Admin] No service account found — running with Project ID from env');
             admin.initializeApp({ projectId });
         }
     } catch (error) {
