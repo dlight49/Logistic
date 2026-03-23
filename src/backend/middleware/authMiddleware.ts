@@ -15,28 +15,26 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.warn('[AUTH] Missing or malformed Authorization header');
         res.status(401).json({ error: 'Unauthorized: Missing or invalid Authorization header' });
         return;
     }
 
-    const token = authHeader.split('Bearer ')[1];
+    const parts = authHeader.split(' ');
+    const token = parts.length === 2 ? parts[1] : null;
 
-    // Development-only mock bypass — NEVER runs in production
-    // if (process.env.NODE_ENV !== 'production' && token === 'mock-token') {
-    //     const mockUserId = req.headers['mock-user-id'] as string;
-    //     if (mockUserId) {
-    //         const user = await prisma.user.findUnique({ where: { id: mockUserId } });
-    //         if (user) {
-    //             console.warn(`[AUTH] Mock-token bypass used for user ${mockUserId}`);
-    //             req.user = user;
-    //             return next();
-    //         }
-    //     }
-    // }
+    if (!token || token === 'undefined' || token === 'null') {
+        console.error(`[AUTH] Invalid token value received: "${token}"`);
+        res.status(401).json({ error: 'Unauthorized: Invalid token format' });
+        return;
+    }
 
     try {
+        // Log token info safely for debugging
+        console.log(`[AUTH] Verifying token (Length: ${token.length}, Start: ${token.substring(0, 10)}...)`);
+        
         const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
-        // console.log('[AUTH] Token verified for:', decodedToken.email);
+        // ... rest of the logic remains same
 
         // Find or create the user in our local database based on Firebase UID
         let user = await prisma.user.findUnique({
