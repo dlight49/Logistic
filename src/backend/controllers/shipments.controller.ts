@@ -17,7 +17,6 @@ export const getShipments = async (req: Request, res: Response) => {
         if (type) where.type = String(type);
         if (operator_id) where.operator_id = String(operator_id);
 
-        // If role is operator, they can only see their own assigned shipments
         if (req.user?.role === 'operator') {
             where.operator_id = req.user.id;
         }
@@ -29,74 +28,51 @@ export const getShipments = async (req: Request, res: Response) => {
 
         res.json(shipments);
     } catch (error) {
-        res.status(500).json({ error: 'Internal server error while fetching shipments' });
-    }
-};
-
-export const getMyShipments = async (req: Request, res: Response) => {
-    try {
-        if (!req.user || req.user.role !== 'customer') {
-            return res.status(403).json({ error: 'Only customers can view their shipments this way.' });
-        }
-
-        const shipments = await prisma.shipment.findMany({
-            where: { receiver_email: req.user.email },
-            orderBy: { created_at: 'desc' }
-        });
-        res.json(shipments);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error while fetching your shipments' });
+        res.status(500).json({ error: 'Failed to fetch shipments' });
     }
 };
 
 export const getShipmentById = async (req: Request, res: Response) => {
     try {
-        const shipmentId = req.params.id;
         const shipment = await prisma.shipment.findUnique({
-            where: { id: shipmentId },
-            include: {
-                tracking_updates: { orderBy: { timestamp: 'desc' } },
-                customs_docs: true
-            }
+            where: { id: req.params.id },
+            include: { tracking_updates: { orderBy: { timestamp: 'desc' } } }
         });
-
-        if (!shipment) {
-            return res.status(404).json({ error: 'Shipment not found' });
-        }
-
-        // Role check: an operator shouldn't view another operator's shipment ideally,
-        // but leaving it open if they are just tracking, assuming `id` acts like a secure tracking hash.
-        res.json({
-            ...shipment,
-            updates: shipment.tracking_updates,
-            docs: shipment.customs_docs
-        });
+        if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
+        res.json(shipment);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch shipment' });
+    }
+};
+
+export const getMyShipments = async (req: Request, res: Response) => {
+    try {
+        const shipments = await prisma.shipment.findMany({
+            where: { receiver_email: req.user?.email },
+            include: { tracking_updates: { orderBy: { timestamp: 'desc' } } }
+        });
+        res.json(shipments);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch your shipments' });
     }
 };
 
 export const createShipment = async (req: Request, res: Response) => {
     try {
         const data = CreateShipmentSchema.parse(req.body);
+        const status = req.body.status || 'Pending';
         const id = `GS-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
         const shipment = await prisma.shipment.create({
             data: {
                 id,
                 ...data,
-                status: 'Order Created',
+                status: status,
                 tracking_updates: {
-                    create: {
-                        status: 'Order Created',
-                        location: `${data.sender_city}, ${data.sender_country}`,
-                        notes: 'Shipment information received'
-                    }
+                    create: { status: status, location: data.sender_city, notes: status === 'Draft' ? 'Shipment draft created' : 'Order received' }
                 }
             }
         });
-
-        res.status(201).json({ id: shipment.id });
+        res.json(shipment);
     } catch (error: any) {
         res.status(400).json({ error: error.errors || error.message });
     }
@@ -104,9 +80,10 @@ export const createShipment = async (req: Request, res: Response) => {
 
 export const createQuote = async (req: Request, res: Response) => {
     try {
-        if (!req.user) return res.status(401).json({ error: 'Auth required' });
-        const quote = await QuoteService.createQuote(req.user.id, req.body);
-        res.status(201).json({ id: quote.id, estimated_cost: quote.estimated_cost });
+        const data = req.body;
+        const userId = req.user?.id || req.user?.email || 'anonymous';
+        const quote = await QuoteService.createQuote(userId, data);
+        res.json(quote);
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
@@ -161,7 +138,6 @@ export const updateShipmentTracking = async (req: Request, res: Response) => {
             }
         });
 
-        // Trigger notification
         if (shipment.receiver_email) {
             const user = await prisma.user.findFirst({ where: { email: shipment.receiver_email } });
             if (user) {
@@ -218,10 +194,45 @@ export const assignOperator = async (req: Request, res: Response) => {
         const { operator_id } = AssignOperatorSchema.parse(req.body);
         const shipmentId = req.params.id;
 
+        // Check if shipment exists
+        const shipment = await prisma.shipment.findUnique({
+            where: { id: shipmentId }
+        });
+        if (!shipment) {
+            return res.status(404).json({ error: 'Shipment not found' });
+        }
+
+        // Validate operator role
+        const operator = await prisma.user.findUnique({
+            where: { id: operator_id }
+        });
+        if (!operator || operator.role !== 'operator') {
+            return res.status(400).json({ error: 'Invalid operator ID' });
+        }
+
+        // Update shipment and tracking
         await prisma.shipment.update({
             where: { id: shipmentId },
-            data: { operator_id }
+            data: { 
+                operator_id,
+                status: 'Assigned',
+                tracking_updates: {
+                    create: {
+                        status: 'Assigned',
+                        location: 'Sorting Center',
+                        notes: `Shipment assigned to operator: ${operator.name}`
+                    }
+                }
+            }
         });
+
+        // Notify operator
+        await NotificationService.notifyUser(
+            operator.id,
+            `New shipment assigned: ${shipmentId}`,
+            'Assignment',
+            shipmentId
+        );
 
         res.json({ success: true });
     } catch (error: any) {

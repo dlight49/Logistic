@@ -135,7 +135,7 @@ function QuickAction({ icon, label, path, color }: { icon: ReactNode, label: str
                 whileTap={{ scale: 0.9 }}
                 className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-black/10 transition-transform", color)}
             >
-                {React.cloneElement(icon as React.ReactElement, { className: "w-6 h-6" })}
+                {React.cloneElement(icon as React.ReactElement<any>, { className: "w-6 h-6" })}
             </motion.div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors">{label}</span>
         </Link>

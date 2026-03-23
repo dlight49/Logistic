@@ -86,7 +86,7 @@ export default function UserManagement(): ReactNode {
       }
     } catch (err) {
       console.error("Failed to add user", err);
-      setCreateError("Network error — please try again");
+      setCreateError(err instanceof Error ? err.message : "Network error — please try again");
     } finally {
       setCreateLoading(false);
     }
