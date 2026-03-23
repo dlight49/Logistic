@@ -3,29 +3,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Global Fetch Interceptor to attach Authorization Headers automatically
-const originalFetch = window.fetch;
-window.fetch = async (...args) => {
-  let [resource, config] = args;
-  if (typeof resource === 'string' && resource.startsWith('/api/')) {
-    const userStr = localStorage.getItem('user') || localStorage.getItem('lumin_user');
-    let token = '';
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        token = user.role === 'admin' ? 'mock_admin_token' : 'mock_driver_token';
-      } catch (e) { }
-    }
-
-    config = config || {};
-    config.headers = {
-      ...config.headers,
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
-  }
-  return originalFetch(resource, config);
-};
-
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   constructor(props: { children: ReactNode }) {
     super(props);
