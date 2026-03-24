@@ -8,7 +8,9 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/e878b58f-e7e6-4eb7-a4e3-da49cc91565a
 
-## Run Locally
+## Deployment
+
+This application is automatically deployed to **Render** via GitHub Actions.
 
 **Prerequisites:**  Node.js
 
