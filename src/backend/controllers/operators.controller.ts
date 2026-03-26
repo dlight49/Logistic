@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { firebaseAdmin } from '../config/firebase-admin.js';
 import crypto from 'crypto';
+import logger from '../utils/logger.js';
 
 /** Generate a random 12-char alphanumeric password */
 function generateTempPassword(): string {
@@ -83,7 +84,7 @@ export const createOperator = async (req: Request, res: Response) => {
             });
         } catch (firestoreError) {
             // Rollback: delete the Firebase Auth user if Firestore fails
-            console.error('[createOperator] Firestore write failed, rolling back Auth user:', firestoreError);
+            logger.error('[createOperator] Firestore write failed, rolling back Auth user:', firestoreError);
             await firebaseAdmin.auth().deleteUser(uid).catch(() => {});
             throw firestoreError;
         }
@@ -101,7 +102,7 @@ export const createOperator = async (req: Request, res: Response) => {
             });
         } catch (prismaError) {
             // Rollback: delete Firebase Auth user + Firestore doc
-            console.error('[createOperator] Prisma write failed, rolling back:', prismaError);
+            logger.error('[createOperator] Prisma write failed, rolling back:', prismaError);
             await firebaseAdmin.auth().deleteUser(uid).catch(() => {});
             await firebaseAdmin.firestore().collection('users').doc(uid).delete().catch(() => {});
             throw prismaError;
@@ -114,7 +115,7 @@ export const createOperator = async (req: Request, res: Response) => {
             tempPassword,
         });
     } catch (error: any) {
-        console.error('[createOperator] Error:', error);
+        logger.error('[createOperator] Error:', error);
         res.status(500).json({ error: error.message || 'Failed to create operator' });
     }
 };
@@ -163,7 +164,7 @@ export const updateOperator = async (req: Request, res: Response) => {
 
         res.json({ success: true });
     } catch (error: any) {
-        console.error('[updateOperator] Error:', error);
+        logger.error('[updateOperator] Error:', error);
         res.status(400).json({ error: error.message });
     }
 };
@@ -189,7 +190,7 @@ export const deleteOperator = async (req: Request, res: Response) => {
             data: { operator_id: null },
         });
 
-        console.log(`[deleteOperator] Unassigned ${unassigned.count} shipment(s) from operator ${id}`);
+        logger.info(`[deleteOperator] Unassigned ${unassigned.count} shipment(s) from operator ${id}`);
 
         // 3. Delete the user record from the database
         await prisma.user.delete({ where: { id } });
@@ -199,7 +200,7 @@ export const deleteOperator = async (req: Request, res: Response) => {
             message: `Operator deleted. ${unassigned.count} shipment(s) returned to unassigned pool.`
         });
     } catch (error: any) {
-        console.error('[deleteOperator] Error:', error);
+        logger.error('[deleteOperator] Error:', error);
         res.status(500).json({ error: error.message || 'Failed to delete operator' });
     }
 };
@@ -233,7 +234,7 @@ export const resetOperatorPassword = async (req: Request, res: Response) => {
 
         res.json({ tempPassword: newPassword });
     } catch (error: any) {
-        console.error('[resetOperatorPassword] Error:', error);
+        logger.error('[resetOperatorPassword] Error:', error);
         res.status(500).json({ error: error.message || 'Failed to reset password' });
     }
 };

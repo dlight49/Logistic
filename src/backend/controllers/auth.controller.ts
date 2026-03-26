@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import logger from '../utils/logger.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_development_secret_key_change_me_in_prod';
 
@@ -42,7 +43,7 @@ export const register = async (req: Request, res: Response) => {
         const { password: _, ...userWithoutPassword } = user;
         res.status(201).json({ user: userWithoutPassword, token });
     } catch (error) {
-        console.error('[AUTH] Registration error:', error);
+        logger.error('[AUTH] Registration error:', error);
         res.status(500).json({ error: 'Registration failed' });
     }
 };
@@ -77,7 +78,7 @@ export const login = async (req: Request, res: Response) => {
         const { password: _, ...userWithoutPassword } = user;
         res.json({ user: userWithoutPassword, token });
     } catch (error) {
-        console.error('[AUTH] Login error:', error);
+        logger.error('[AUTH] Login error:', error);
         res.status(500).json({ error: 'Login failed' });
     }
 };

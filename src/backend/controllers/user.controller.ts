@@ -3,6 +3,7 @@ import { prisma } from '../config/db.js';
 import { firebaseAdmin } from '../config/firebase-admin.js';
 import crypto from 'crypto';
 import { createUserSchema, updateUserSchema } from '../validators/user.validator.js';
+import logger from '../utils/logger.js';
 
 /** Generate a random 12-char alphanumeric password */
 function generateTempPassword(): string {
@@ -22,7 +23,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
         res.json(users);
     } catch (error) {
-        console.error('[UserController] Error in getUsers:', error);
+        logger.error('[UserController] Error in getUsers:', { error });
         res.status(500).json({ error: 'Internal server error while fetching users' });
     }
 };
@@ -35,7 +36,7 @@ export const getAdmins = async (req: Request, res: Response) => {
         });
         res.json(admins);
     } catch (error) {
-        console.error('[UserController] Error in getAdmins:', error);
+        logger.error('[UserController] Error in getAdmins:', { error });
         res.status(500).json({ error: 'Failed to fetch admins' });
     }
 };
@@ -115,7 +116,7 @@ export const createUser = async (req: Request, res: Response) => {
         });
 
     } catch (error: any) {
-        console.error('[UserController] Error in createUser:', error);
+        logger.error('[UserController] Error in createUser:', { error: error.message || error });
         return res.status(500).json({ error: error.message || 'Failed to create user' });
     }
 };
@@ -140,7 +141,7 @@ export const updateUser = async (req: Request, res: Response) => {
         if (updates.email) authUpdate.email = updates.email;
 
         if (Object.keys(authUpdate).length > 0) {
-            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => console.warn('Firebase Auth update failed:', err));
+            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => logger.warn('Firebase Auth update failed:', { error: err }));
         }
 
         // 2. Sync to Firestore
@@ -149,7 +150,7 @@ export const updateUser = async (req: Request, res: Response) => {
             updatedAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
         };
 
-        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => console.warn('Firestore update failed:', err));
+        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => logger.warn('Firestore update failed:', { error: err }));
 
         // 3. Update Prisma
         const updated = await prisma.user.update({
@@ -159,7 +160,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
         return res.json(updated);
     } catch (error: any) {
-        console.error('[UserController] Error in updateUser:', error);
+        logger.error('[UserController] Error in updateUser:', { error: error.message || error });
         return res.status(400).json({ error: error.message || 'Failed to update user' });
     }
 };
@@ -185,7 +186,7 @@ export const updateSelf = async (req: Request, res: Response) => {
         if (updates.email) authUpdate.email = updates.email;
 
         if (Object.keys(authUpdate).length > 0) {
-            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => console.warn('Firebase Auth update failed:', err));
+            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => logger.warn('Firebase Auth update failed:', { error: err }));
         }
 
         // 2. Sync to Firestore
@@ -194,7 +195,7 @@ export const updateSelf = async (req: Request, res: Response) => {
             updatedAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
         };
 
-        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => console.warn('Firestore update failed:', err));
+        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => logger.warn('Firestore update failed:', { error: err }));
 
         // 3. Update Prisma
         const updated = await prisma.user.update({
@@ -204,7 +205,7 @@ export const updateSelf = async (req: Request, res: Response) => {
 
         return res.json(updated);
     } catch (error: any) {
-        console.error('[UserController] Error in updateSelf:', error);
+        logger.error('[UserController] Error in updateSelf:', { error: error.message || error });
         return res.status(400).json({ error: error.message || 'Failed to update user' });
     }
 };
@@ -214,17 +215,17 @@ export const deleteUser = async (req: Request, res: Response) => {
         const id = req.params.id;
 
         // 1. Delete from Firebase Auth
-        await firebaseAdmin.auth().deleteUser(id).catch(err => console.warn('Firebase Auth delete failed:', err));
+        await firebaseAdmin.auth().deleteUser(id).catch(err => logger.warn('Firebase Auth delete failed:', { error: err }));
 
         // 2. Delete from Firestore
-        await firebaseAdmin.firestore().collection('users').doc(id).delete().catch(err => console.warn('Firestore delete failed:', err));
+        await firebaseAdmin.firestore().collection('users').doc(id).delete().catch(err => logger.warn('Firestore delete failed:', { error: err }));
 
         // 3. Delete from Prisma
         await prisma.user.delete({ where: { id } });
 
         res.json({ success: true });
     } catch (error: any) {
-        console.error('[UserController] Error in deleteUser:', error);
+        logger.error('[UserController] Error in deleteUser:', { error: error.message || error });
         res.status(500).json({ error: error.message });
     }
 };
@@ -238,7 +239,7 @@ export const resetUserPassword = async (req: Request, res: Response) => {
 
         res.json({ tempPassword: newPassword });
     } catch (error: any) {
-        console.error('[UserController] Error in resetUserPassword:', error);
+        logger.error('[UserController] Error in resetUserPassword:', { error: error.message || error });
         res.status(500).json({ error: error.message });
     }
 };

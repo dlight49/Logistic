@@ -1,9 +1,10 @@
 import { prisma } from '../config/db.js';
 import { Resend } from 'resend';
+import logger from '../utils/logger.js';
 
 // Validate Resend API key at startup — fail fast rather than silently sending with bogus key
 if (!process.env.RESEND_API_KEY) {
-    console.warn('[NOTIFICATIONS] RESEND_API_KEY not set — email delivery will be disabled');
+    logger.warn('[NOTIFICATIONS] RESEND_API_KEY not set — email delivery will be disabled');
 }
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 
@@ -28,11 +29,11 @@ class ResendEmailProvider implements NotificationProvider {
             // Find the user's email if not provided in metadata
             const user = await prisma.user.findUnique({ where: { id: payload.userId } });
             if (!user?.email) {
-                console.error(`User ${payload.userId} has no email address`);
+                logger.error(`User ${payload.userId} has no email address`);
                 return false;
             }
 
-            console.info(`[RESEND] Sending email to ${user.email}: ${payload.subject}`);
+            logger.info(`[RESEND] Sending email to ${user.email}: ${payload.subject}`);
 
             const { data, error } = await resend.emails.send({
                 from: 'Lumin Logistics <notifications@resend.dev>', // Resend verified domain required for prod
@@ -42,12 +43,12 @@ class ResendEmailProvider implements NotificationProvider {
             });
 
             if (error) {
-                console.error("[RESEND ERROR]", error);
+                logger.error("[RESEND ERROR]", { error });
                 return false;
             }
             return true;
         } catch (err) {
-            console.error("[RESEND EXCEPTION]", err);
+            logger.error("[RESEND EXCEPTION]", { error: err });
             return false;
         }
     }
@@ -72,7 +73,7 @@ export class NotificationService {
             });
             logId = log.id;
         } catch (err) {
-            console.error("Failed to log notification init:", err);
+            logger.error("Failed to log notification init:", { error: err });
         }
 
         // 2. Actually "send" it via provider
@@ -86,7 +87,7 @@ export class NotificationService {
                     data: { status: success ? 'SENT' : 'FAILED' }
                 });
             } catch (err) {
-                console.error("Failed to update notification log:", err);
+                logger.error("Failed to update notification log:", { error: err });
             }
         }
 

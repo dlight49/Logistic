@@ -1,8 +1,11 @@
 import "dotenv/config";
 import express from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { createServer as createViteServer } from "vite";
 import { prisma } from "./src/backend/config/db.js";
 import apiRoutes from "./src/backend/routes/index.js";
+import logger from "./src/backend/utils/logger.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -10,26 +13,39 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests from this IP, please try again after 15 minutes" }
+});
+
 async function startServer() {
-  console.log("=== Server Starting with Catch-All Fix ===");
+  logger.info("=== Server Starting with Hardened Security ===");
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
 
+  // Security Headers
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disable for now to ensure Vite works in dev
+  }));
+
+  // Rate Limiting
+  app.use("/api/", limiter);
+
   app.use(express.json());
 
-  // Artificial Delay for Premium UI feel — DISABLED FOR PRODUCTION
-  app.use(async (req, res, next) => {
-    // console.log(`[Request] ${req.method} ${req.path}`);
-    // if (req.path.startsWith('/api/')) {
-    //   await new Promise(r => setTimeout(r, 500));
-    // }
+  // Log all requests (can be noisy, adjust as needed)
+  app.use((req, res, next) => {
+    logger.debug(`${req.method} ${req.path}`);
     next();
   });
 
   // Debug
-  console.log(`[Server] NODE_ENV: ${process.env.NODE_ENV}`);
+  logger.info(`[Server] NODE_ENV: ${process.env.NODE_ENV}`);
   app.get('/ping', (req, res) => {
-    console.log('[Request] GET /ping');
+    logger.info('[Request] GET /ping');
     res.send('pong');
   });
 
@@ -49,16 +65,16 @@ async function startServer() {
       });
       res.json({ success: true });
     } catch (err) {
-      console.error("Failed to update location:", err);
+      logger.error("Failed to update location:", { error: err });
       res.status(500).json({ error: "Database update failed" });
     }
   });
 
-  console.log("[Server] API routes registered");
+  logger.info("[Server] API routes registered");
 
   // Global Error Handler
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error("API Error:", err);
+    logger.error("API Error:", { error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal Server Error" });
   });
 
@@ -74,13 +90,13 @@ async function startServer() {
       if (req.path.startsWith('/api/')) return next();
 
       const url = req.originalUrl;
-      console.log(`[Dev Server] Serving index.html for ${url}`);
+      logger.debug(`[Dev Server] Serving index.html for ${url}`);
       try {
         let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
         template = await vite.transformIndexHtml(url, template);
         res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
       } catch (e) {
-        console.error(`[Dev Server] Error transformation HTML:`, e);
+        logger.error(`[Dev Server] Error transformation HTML:`, { error: e });
         vite.ssrFixStacktrace(e as Error);
         next(e);
       }
@@ -93,10 +109,10 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    logger.info(`Server running on http://localhost:${PORT}`);
   });
 }
 
 startServer().catch(err => {
-  console.error("Critical Server Start Failure:", err);
+  logger.error("Critical Server Start Failure:", { error: err });
 });

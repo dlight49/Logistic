@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
+import logger from '../utils/logger.js';
 
 export const startShift = async (req: Request, res: Response) => {
   try {
@@ -29,7 +30,7 @@ export const startShift = async (req: Request, res: Response) => {
 
     res.json(newShift);
   } catch (error) {
-    console.error('Error starting shift:', error);
+    logger.error('Error starting shift:', { error });
     res.status(500).json({ error: 'Failed to start shift' });
   }
 };
@@ -63,7 +64,7 @@ export const endShift = async (req: Request, res: Response) => {
 
     res.json(updatedShift);
   } catch (error) {
-    console.error('Error ending shift:', error);
+    logger.error('Error ending shift:', { error });
     res.status(500).json({ error: 'Failed to end shift' });
   }
 };
@@ -87,7 +88,7 @@ export const getCurrentShift = async (req: Request, res: Response) => {
 
     res.json({ currentShift: activeShift });
   } catch (error) {
-    console.error('Error getting current shift:', error);
+    logger.error('Error getting current shift:', { error });
     res.status(500).json({ error: 'Failed to get current shift' });
   }
 };

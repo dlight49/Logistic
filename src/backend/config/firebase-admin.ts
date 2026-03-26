@@ -2,6 +2,7 @@ import admin from 'firebase-admin';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from '../utils/logger.js';
 
 /**
  * Initialize Firebase Admin SDK with service account credentials.
@@ -17,7 +18,7 @@ function getCredential(): admin.credential.Credential | null {
     if (envKey && envKey.trim().length > 2) {
         try {
             const parsed = JSON.parse(envKey);
-            console.log('[Firebase Admin] Initialized with service account from env var');
+            logger.info('[Firebase Admin] Initialized with service account from env var');
             return admin.credential.cert(parsed);
         } catch {
             console.warn('[Firebase Admin] FIREBASE_SERVICE_ACCOUNT_KEY is set but not valid JSON');
@@ -31,15 +32,15 @@ function getCredential(): admin.credential.Credential | null {
     const projectRoot = path.resolve(__dirname, '..', '..', '..');
     const filePath = path.join(projectRoot, 'firebase-service-account.json');
 
-    console.log(`[Firebase Admin] Checking for service account at: ${filePath}`);
+    logger.info(`[Firebase Admin] Checking for service account at: ${filePath}`);
 
     if (fs.existsSync(filePath)) {
         try {
             const raw = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-            console.log(`[Firebase Admin] Found service account for project: ${raw.project_id}`);
+            logger.info(`[Firebase Admin] Found service account for project: ${raw.project_id}`);
             return admin.credential.cert(raw);
         } catch (err) {
-            console.error('[Firebase Admin] firebase-service-account.json exists but cannot be parsed:', err);
+            logger.error('[Firebase Admin] firebase-service-account.json exists but cannot be parsed:', err);
         }
     } else {
         console.warn('[Firebase Admin] firebase-service-account.json NOT found at expected path');
@@ -64,7 +65,7 @@ if (!admin.apps.length) {
             admin.initializeApp({ projectId });
         }
     } catch (error) {
-        console.error('[Firebase Admin] Initialization error:', error);
+        logger.error('[Firebase Admin] Initialization error:', error);
     }
 }
 

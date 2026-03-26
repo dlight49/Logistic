@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/db.js';
+import logger from '../utils/logger.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_development_secret_key_change_me_in_prod';
 
@@ -41,7 +42,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         req.user = user;
         next();
     } catch (error: any) {
-        console.error('[AUTH] JWT verification failed:', error.message);
+        logger.error('[AUTH] JWT verification failed:', { error: error.message });
         res.status(401).json({ error: 'Unauthorized: Session expired or invalid' });
     }
 };
