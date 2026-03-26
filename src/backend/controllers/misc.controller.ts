@@ -38,11 +38,27 @@ export const updateSettings = async (req: Request, res: Response) => {
 
 export const getNotificationLogs = async (req: Request, res: Response) => {
     try {
-        const logs = await prisma.notificationLog.findMany({
-            orderBy: { timestamp: 'desc' },
-            take: 20
-        });
-        res.json(logs);
+        const page   = Math.max(1, parseInt(String(req.query.page  || '1')));
+        const limit  = Math.min(50, Math.max(1, parseInt(String(req.query.limit || '20'))));
+        const skip   = (page - 1) * limit;
+        const channel = req.query.channel as string | undefined;
+        const status  = req.query.status  as string | undefined;
+
+        const where: any = {};
+        if (channel) where.channel = channel;
+        if (status)  where.status  = status;
+
+        const [logs, total] = await prisma.$transaction([
+            prisma.notificationLog.findMany({
+                where,
+                orderBy: { timestamp: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.notificationLog.count({ where })
+        ]);
+
+        res.json({ logs, total, page, limit });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch logs' });
     }

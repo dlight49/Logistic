@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import { firebaseAdmin } from '../config/firebase-admin.js';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../config/db.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_development_secret_key_change_me_in_prod';
 
 // Extend Express Request object to include the authenticated user
 declare global {
     namespace Express {
         interface Request {
-            user?: any; // Define a more strict type based on your Prisma User model later
+            user?: any;
         }
     }
 }
@@ -15,75 +17,45 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        console.warn('[AUTH] Missing or malformed Authorization header');
-        res.status(401).json({ error: 'Unauthorized: Missing or invalid Authorization header' });
-        return;
+        return res.status(401).json({ error: 'Unauthorized: Missing or invalid Authorization header' });
     }
 
-    const parts = authHeader.split(' ');
-    const token = parts.length === 2 ? parts[1] : null;
+    const token = authHeader.split(' ')[1];
 
     if (!token || token === 'undefined' || token === 'null') {
-        console.error(`[AUTH] Invalid token value received: "${token}"`);
-        res.status(401).json({ error: 'Unauthorized: Invalid token format' });
-        return;
+        return res.status(401).json({ error: 'Unauthorized: Invalid token format' });
     }
 
     try {
-        // Log token info safely for debugging
-        console.log(`[AUTH] Verifying token (Length: ${token.length}, Start: ${token.substring(0, 10)}...)`);
+        const decodedPayload = jwt.verify(token, JWT_SECRET) as any;
         
-        const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
-        // ... rest of the logic remains same
-
-        // Find or create the user in our local database based on Firebase UID
-        let user = await prisma.user.findUnique({
-            where: { id: decodedToken.uid },
+        const user = await prisma.user.findUnique({
+            where: { id: decodedPayload.id },
         });
 
         if (!user) {
-            // Fallback check by email (in case user existed before UID migration)
-            user = await prisma.user.findUnique({
-                where: { email: decodedToken.email },
-            });
-
-            if (user) {
-                // Update existing user with their new Firebase UID
-                user = await prisma.user.update({
-                    where: { email: decodedToken.email },
-                    data: { id: decodedToken.uid }
-                });
-            } else {
-                // Auto-create user if they don't exist yet
-                user = await prisma.user.create({
-                    data: {
-                        id: decodedToken.uid,
-                        email: decodedToken.email,
-                        name: decodedToken.name || decodedToken.email?.split('@')[0] || 'Unknown',
-                        role: 'customer', // Default role for new signups
-                    }
-                });
-            }
+            return res.status(401).json({ error: 'Unauthorized: User not found' });
         }
 
+        // Add user to request object
         req.user = user;
         next();
     } catch (error: any) {
-        console.error('[AUTH] Token verification failed:', error.message);
-        if (error.code === 'auth/id-token-expired') {
-            console.error('[AUTH] Reason: Token has expired');
-        } else if (error.code === 'auth/argument-error') {
-            console.error('[AUTH] Reason: Invalid token format or project ID mismatch');
-        }
-        res.status(401).json({ error: `Unauthorized: ${error.message}` });
+        console.error('[AUTH] JWT verification failed:', error.message);
+        res.status(401).json({ error: 'Unauthorized: Session expired or invalid' });
     }
 };
 
-// Middleware to ensure the authenticated user is an admin
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
     if (req.user?.role !== 'admin') {
-        res.status(403).json({ error: 'Forbidden: Requires admin privileges' });
-        return;
+        return res.status(403).json({ error: 'Forbidden: Requires admin privileges' });
+    }
+    next();
+};
+
+export const requireOperator = (req: Request, res: Response, next: NextFunction) => {
+    if (req.user?.role !== 'operator' && req.user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Forbidden: Requires operator privileges' });
     }
     next();
 };

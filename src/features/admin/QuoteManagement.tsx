@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   FileText, Search, Filter, CheckCircle2, XCircle, Clock,
   MapPin, Package, Shield, ArrowRight, Layers, MoreVertical
@@ -208,12 +209,12 @@ export const QuoteManagement: React.FC = () => {
                         >
                           <XCircle className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={() => handleAction(quote.id, 'APPROVE')}
-                          className="flex-1 lg:flex-none px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-slate-900 font-black rounded-xl hover:bg-slate-200 transition-all text-[10px] sm:text-xs uppercase tracking-widest"
+                        <Link
+                          to={`/admin/quotes/${quote.id}`}
+                          className="flex-1 lg:flex-none px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-slate-900 font-black rounded-xl hover:bg-slate-200 transition-all text-[10px] sm:text-xs uppercase tracking-widest text-center"
                         >
-                          APPROVE
-                        </button>
+                          VIEW DETAILS
+                        </Link>
                       </>
                     ) : (
                       <span className={cn(

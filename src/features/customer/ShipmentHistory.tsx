@@ -12,6 +12,8 @@ export default function ShipmentHistory(): ReactNode {
     const [shipments, setShipments] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [searchQuery, setSearchQuery] = React.useState("");
+    const [statusFilter, setStatusFilter] = React.useState("All");
+    const [timeFilter, setTimeFilter] = React.useState("All Time");
 
     React.useEffect(() => {
         if (!user) return;
@@ -27,10 +29,25 @@ export default function ShipmentHistory(): ReactNode {
             });
     }, [user]);
 
-    const filtered = shipments.filter(s => 
-        (s.id || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.receiver_city || "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = shipments.filter(s => {
+        const matchesSearch = (s.id || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (s.receiver_city || "").toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesStatus = statusFilter === "All" || s.status === statusFilter;
+        
+        // Simple time filter logic
+        let matchesTime = true;
+        if (timeFilter !== "All Time") {
+            const date = new Date(s.created_at);
+            const now = new Date();
+            const diffDays = (now.getTime() - date.getTime()) / (1000 * 3600 * 24);
+            if (timeFilter === "Last 7 Days") matchesTime = diffDays <= 7;
+            else if (timeFilter === "Last 30 Days") matchesTime = diffDays <= 30;
+            else if (timeFilter === "Last 6 Months") matchesTime = diffDays <= 180;
+        }
+
+        return matchesSearch && matchesStatus && matchesTime;
+    });
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans pb-32">
@@ -47,15 +64,48 @@ export default function ShipmentHistory(): ReactNode {
 
             <main className="px-6 pt-6 space-y-6 max-w-lg mx-auto">
                 {/* Search Bar */}
-                <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
-                    <input 
-                        type="text"
-                        placeholder="Search ID or Destination..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-bold placeholder:text-slate-500 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    />
+                <div className="space-y-4">
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                        <input 
+                            type="text"
+                            placeholder="Search ID or Destination..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-sm font-bold placeholder:text-slate-500 focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                            {["All", "In Transit", "Delivered", "Held by Customs"].map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => setStatusFilter(s)}
+                                    className={cn(
+                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all shrink-0",
+                                        statusFilter === s ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                    )}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                         </div>
+                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                            {["All Time", "Last 7 Days", "Last 30 Days", "Last 6 Months"].map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => setTimeFilter(t)}
+                                    className={cn(
+                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all shrink-0",
+                                        timeFilter === t ? "bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-lg" : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                    )}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                         </div>
+                    </div>
                 </div>
 
                 {/* History List */}
@@ -128,7 +178,7 @@ function HistoryAppCard({ shipment, index }: { shipment: any, index: number }) {
             </div>
 
             <Link 
-                to={`/track?id=${shipment.id}`}
+                to={`/customer/shipment/${shipment.id}`}
                 className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors"
             >
                 <ArrowUpRight className="w-5 h-5" />

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getShipments, getShipmentById, getMyShipments, createShipment, updateShipmentTracking, assignOperator, createQuote, getLiveLocations, getPendingQuotes, approveQuote, rejectQuote } from '../controllers/shipments.controller.js';
+import { getShipments, getShipmentById, getMyShipments, createShipment, updateShipmentTracking, assignOperator, createQuote, getLiveLocations, getPendingQuotes, approveQuote, rejectQuote, updateShipment } from '../controllers/shipments.controller.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -22,6 +22,7 @@ router.post('/', requireAdmin, createShipment);
 router.get('/admin/quotes', requireAdmin, getPendingQuotes);
 router.post('/admin/quotes/:id/approve', requireAdmin, approveQuote);
 router.post('/admin/quotes/:id/reject', requireAdmin, rejectQuote);
+router.patch('/:id', requireAdmin, updateShipment);
 
 // Wildcard routes MUST come last (/:id matches anything)
 router.get('/:id', getShipmentById);

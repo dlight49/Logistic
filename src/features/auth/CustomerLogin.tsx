@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { User, Lock, Eye, EyeOff, HelpCircle, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 export default function CustomerLogin() {
     const navigate = useNavigate();
@@ -21,23 +18,23 @@ export default function CustomerLogin() {
         setLoading(true);
 
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const token = await getIdToken(userCredential.user);
-            
-            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-            const profile = userDoc.exists() ? userDoc.data() : null;
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-            const userRole = (profile?.role as any) || 'customer';
+            const data = await response.json();
 
-            login({
-                id: userCredential.user.uid,
-                email: userCredential.user.email || '',
-                name: profile?.name || 'User',
-                role: userRole
-            }, token);
+            if (!response.ok) {
+                throw new Error(data.error || "Login failed");
+            }
 
-            // Role isolation: if an admin tries to login here, they still go to admin,
-            // but the UI won't suggest it's possible.
+            login(data.user, data.token);
+
+            // Navigate based on role (even though this is a customer login page, 
+            // the system should handle existing logins gracefully)
+            const userRole = data.user.role;
             if (userRole === 'admin') navigate('/admin');
             else if (userRole === 'operator') navigate('/driver');
             else navigate('/customer');

@@ -15,7 +15,8 @@ import {
   Copy,
   Check,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Operator } from "../../types";
@@ -44,6 +45,8 @@ export default function OperatorManagement(): ReactNode {
   const [createError, setCreateError] = useState<string | null>(null);
   const [resetLoading, setResetLoading] = useState<string | null>(null); // operator id being reset
   const [resetCredentials, setResetCredentials] = useState<{ id: string; tempPassword: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOperators();
@@ -127,6 +130,25 @@ export default function OperatorManagement(): ReactNode {
     }
   };
 
+  const handleDeleteOperator = async (operatorId: string, operatorName: string) => {
+    if (!confirm(`Remove "${operatorName}" from the fleet? Their assigned shipments will be returned to the unassigned pool.`)) return;
+    setDeleteLoading(operatorId);
+    setDeleteError(null);
+    try {
+      const res = await apiFetch(`/api/operators/${operatorId}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchOperators();
+      } else {
+        const data = await res.json();
+        setDeleteError(data.error || "Failed to delete operator");
+      }
+    } catch (err) {
+      setDeleteError("Network error — please try again");
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
+
   const copyToClipboard = async (text: string, field: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -201,6 +223,18 @@ export default function OperatorManagement(): ReactNode {
           </div>
         </div>
 
+        {deleteError && (
+          <div className="mb-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{deleteError}</span>
+            </div>
+            <button onClick={() => setDeleteError(null)} className="p-1 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -254,8 +288,20 @@ export default function OperatorManagement(): ReactNode {
                       <button
                         onClick={() => setEditingOperator(op)}
                         className="p-1.5 sm:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-primary transition-colors"
+                        title="Edit Operator"
                       >
                         <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteOperator(op.id, op.name)}
+                        disabled={deleteLoading === op.id}
+                        className="p-1.5 sm:p-2 hover:bg-red-100 dark:hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                        title="Remove Operator"
+                      >
+                        {deleteLoading === op.id
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <Trash2 className="w-4 h-4" />
+                        }
                       </button>
                     </div>
                   </div>

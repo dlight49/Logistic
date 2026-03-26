@@ -1,88 +1,80 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { User } from "../../types";
-import { auth, db } from "../../services/firebase";
-import { onAuthStateChanged, signOut, getIdToken } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { apiFetch } from "../../utils/api";
+
+type UserRole = 'customer' | 'admin' | 'operator';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+}
 
 interface AuthContextType {
-    user: User | null;
-    login: (userData: User, token: string) => void;
-    logout: () => void;
-    loading: boolean;
-    sendVerification: () => Promise<void>;
+  user: User | null;
+  loading: boolean;
+  login: (userData: User, token: string) => void;
+  logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // Listen for Firebase Auth state changes
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            setLoading(true);
-            if (firebaseUser) {
-                try {
-                    // Get the latest ID token
-                    const token = await getIdToken(firebaseUser);
-                    localStorage.setItem("lumin_token", token);
+  // Check for existing session on mount
+  useEffect(() => {
+    async function initAuth() {
+      const token = localStorage.getItem("logistics_token");
+      
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-                    // Get user profile from Firestore if not already in state
-                    const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-                    const profile = userDoc.exists() ? userDoc.data() : null;
-
-                    const userData: User = {
-                        id: firebaseUser.uid,
-                        email: firebaseUser.email || "",
-                        name: profile?.name || "User",
-                        role: profile?.role || "customer",
-                    };
-
-                    localStorage.setItem("lumin_user", JSON.stringify(userData));
-                    setUser(userData);
-                } catch (e) {
-                    console.error("Auth state synchronization failed:", e);
-                }
-            } else {
-                localStorage.removeItem("lumin_token");
-                localStorage.removeItem("lumin_user");
-                setUser(null);
-            }
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    const login = (userData: User, token: string) => {
-        localStorage.setItem("lumin_token", token);
-        localStorage.setItem("lumin_user", JSON.stringify(userData));
+      try {
+        const response = await apiFetch("/api/auth/me");
+        const userData = await response.json();
         setUser(userData);
-    };
-
-    const logout = async () => {
-        await signOut(auth);
-        localStorage.removeItem("lumin_token");
-        localStorage.removeItem("lumin_user");
+      } catch (error) {
+        console.error("[AUTH] Session restoration failed:", error);
+        localStorage.removeItem("logistics_token");
         setUser(null);
-    };
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    const sendVerification = async () => {
-        console.log("Verification email sent");
-    };
+    initAuth();
+  }, []);
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout, loading, sendVerification }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const login = (userData: User, token: string) => {
+    localStorage.setItem("logistics_token", token);
+    setUser(userData);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("logistics_token");
+    setUser(null);
+  };
+
+  const updateUser = (userData: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...userData } : null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }

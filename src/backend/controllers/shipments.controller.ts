@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
-import { CreateShipmentSchema, UpdateTrackingSchema, AssignOperatorSchema } from '../validators/shipment.validator.js';
+import { CreateShipmentSchema, UpdateTrackingSchema, AssignOperatorSchema, UpdateShipmentSchema } from '../validators/shipment.validator.js';
 import { NotificationService } from '../services/notificationService.js';
 import { QuoteService } from '../services/quote.service.js';
 
@@ -235,6 +235,22 @@ export const assignOperator = async (req: Request, res: Response) => {
         );
 
         res.json({ success: true });
+    } catch (error: any) {
+        res.status(400).json({ error: error.errors || error.message });
+    }
+};
+export const updateShipment = async (req: Request, res: Response) => {
+    try {
+        const shipmentId = req.params.id;
+        const data = UpdateShipmentSchema.parse(req.body);
+
+        const shipment = await prisma.shipment.update({
+            where: { id: shipmentId },
+            data,
+            include: { tracking_updates: { take: 1, orderBy: { timestamp: 'desc' } } }
+        });
+
+        res.json(shipment);
     } catch (error: any) {
         res.status(400).json({ error: error.errors || error.message });
     }

@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Shield, Lock, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 export default function AdminLogin() {
     const navigate = useNavigate();
@@ -21,25 +18,23 @@ export default function AdminLogin() {
         setLoading(true);
 
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const token = await getIdToken(userCredential.user);
-            
-            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-            const profile = userDoc.exists() ? userDoc.data() : null;
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-            const userRole = (profile?.role as any);
+            const data = await response.json();
 
-            if (userRole !== 'admin') {
+            if (!response.ok) {
+                throw new Error(data.error || "Login failed");
+            }
+
+            if (data.user.role !== 'admin') {
                 throw new Error("Access denied. Admin credentials required.");
             }
 
-            login({
-                id: userCredential.user.uid,
-                email: userCredential.user.email || '',
-                name: profile?.name || 'Admin',
-                role: userRole
-            }, token);
-
+            login(data.user, data.token);
             navigate('/admin');
         } catch (err: any) {
             setError(err.message || "Login failed. Please check your credentials.");

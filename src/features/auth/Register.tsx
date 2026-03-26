@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { auth, db } from "../../services/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -28,21 +25,25 @@ export default function Register() {
         setLoading(true);
 
         try {
-            // REAL FIREBASE REGISTER
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-            // Save user profile metadata in Firestore
-            await setDoc(doc(db, "users", userCredential.user.uid), {
-                name: name,
-                email: email,
-                role: 'customer',
-                createdAt: new Date().toISOString()
+            const response = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password }),
             });
 
-            // After this, AuthContext's onAuthStateChanged will handle setting the user state.
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Registration failed");
+            }
+
+            // Successfully registered! Log the user in automatically with the returned token
+            login(data.user, data.token);
+
+            // Redirect to customer dashboard (default for new registrations)
             navigate('/customer');
         } catch (err: any) {
-            console.error(err);
+            console.error("[REGISTER ERROR]", err);
             setError(err.message || "Registration failed. Please try again.");
         } finally {
             setLoading(false);

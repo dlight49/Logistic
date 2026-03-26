@@ -4,7 +4,6 @@ import {
   Truck,
   Package,
   MapPin,
-  ChevronRight,
   TrendingUp,
   TrendingDown,
   Navigation,
@@ -84,27 +83,24 @@ export default function DriverDashboard(): ReactNode {
           <ShiftControls />
           <motion.div variants={containerVariants} className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             <DriverStat
-              label="Orders"
+              label="Assigned"
               value={stats.active.toString().padStart(2, '0')}
               trend={<TrendingUp className="w-3 h-3" />}
               trendValue="+12%"
               trendColor="text-primary"
               glow="bg-primary/10"
             />
-            <DriverStat label="Delivered" value={stats.pending.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+8%" trendColor="text-emerald-500" glow="bg-emerald-500/10" />
+            <DriverStat label="New" value={stats.pending.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+8%" trendColor="text-amber-500" glow="bg-amber-500/10" />
             <div className="col-span-2 lg:col-span-1">
-              <DriverStat label="Done" value={stats.done.toString().padStart(2, '0')} trend={<TrendingDown className="w-3 h-3" />} trendValue="-5%" trendColor="text-accent" glow="bg-accent/10" />
+              <DriverStat label="Delivered" value={stats.done.toString().padStart(2, '0')} trend={<TrendingUp className="w-3 h-3" />} trendValue="+5%" trendColor="text-emerald-500" glow="bg-emerald-500/10" />
             </div>
           </motion.div>
 
           <motion.div variants={itemVariants} className="pt-2 flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight text-white">Assigned Routes</h2>
-            <Link 
-              to="/driver/routes" 
-              className="text-primary text-sm font-bold flex items-center gap-1 hover:text-primary/80 transition-colors active:scale-95 p-2"
-            >
-              View All <ChevronRight className="w-4 h-4" />
-            </Link>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest px-2">
+              {shipments.length} Active
+            </span>
           </motion.div>
 
           <div className="space-y-4">

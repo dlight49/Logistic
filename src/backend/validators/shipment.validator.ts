@@ -25,3 +25,8 @@ export const UpdateTrackingSchema = z.object({
 export const AssignOperatorSchema = z.object({
     operator_id: z.string().min(1)
 });
+
+export const UpdateShipmentSchema = CreateShipmentSchema.partial().extend({
+    status: z.string().optional(),
+    estimated_cost: z.number().optional()
+});

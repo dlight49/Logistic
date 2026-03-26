@@ -164,6 +164,51 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
+export const updateSelf = async (req: Request, res: Response) => {
+    try {
+        const id = (req as any).user?.uid;
+        if (!id) return res.status(401).json({ error: 'Unauthorized' });
+
+        const validation = updateUserSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({ 
+                error: 'Validation failed', 
+                details: validation.error.format() 
+            });
+        }
+
+        const updates = validation.data;
+
+        // 1. Sync to Firebase Auth
+        const authUpdate: any = {};
+        if (updates.name) authUpdate.displayName = updates.name;
+        if (updates.email) authUpdate.email = updates.email;
+
+        if (Object.keys(authUpdate).length > 0) {
+            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => console.warn('Firebase Auth update failed:', err));
+        }
+
+        // 2. Sync to Firestore
+        const firestoreUpdate: any = {
+            ...updates,
+            updatedAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => console.warn('Firestore update failed:', err));
+
+        // 3. Update Prisma
+        const updated = await prisma.user.update({
+            where: { id },
+            data: updates,
+        });
+
+        return res.json(updated);
+    } catch (error: any) {
+        console.error('[UserController] Error in updateSelf:', error);
+        return res.status(400).json({ error: error.message || 'Failed to update user' });
+    }
+};
+
 export const deleteUser = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;

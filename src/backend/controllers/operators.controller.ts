@@ -168,6 +168,42 @@ export const updateOperator = async (req: Request, res: Response) => {
     }
 };
 
+export const deleteOperator = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id;
+
+        // 1. Verify the user exists and is an operator
+        const operator = await prisma.user.findFirst({
+            where: { id, role: 'operator' },
+        });
+
+        if (!operator) {
+            res.status(404).json({ error: 'Operator not found' });
+            return;
+        }
+
+        // 2. Unassign all shipments currently assigned to this operator
+        //    (set operator_id to null so shipments are not lost)
+        const unassigned = await prisma.shipment.updateMany({
+            where: { operator_id: id },
+            data: { operator_id: null },
+        });
+
+        console.log(`[deleteOperator] Unassigned ${unassigned.count} shipment(s) from operator ${id}`);
+
+        // 3. Delete the user record from the database
+        await prisma.user.delete({ where: { id } });
+
+        res.json({ 
+            success: true,
+            message: `Operator deleted. ${unassigned.count} shipment(s) returned to unassigned pool.`
+        });
+    } catch (error: any) {
+        console.error('[deleteOperator] Error:', error);
+        res.status(500).json({ error: error.message || 'Failed to delete operator' });
+    }
+};
+
 export const resetOperatorPassword = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;

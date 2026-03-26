@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
           <Section 
             icon={<Lock className="w-5 h-5 text-blue-500" />}
             title="3. Cryptographic Shielding"
-            content="All sensitive data is encrypted at rest and in transit using industry-standard protocols. We leverage Google Cloud and Supabase for high-availability, secure infrastructure. Access is restricted via multi-factor authentication (MFA)."
+            content="All sensitive data is encrypted at rest and in transit using industry-standard protocols. We leverage high-availability, secure cloud infrastructure. Access is restricted via multi-factor authentication (MFA)."
           />
 
           <Section 

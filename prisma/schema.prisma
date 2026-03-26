@@ -4,41 +4,41 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  url       = "postgresql://neondb_owner:npg_yKPajhoxlT85@ep-floral-sunset-aebbrnxj-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 }
 
 model User {
-  id          String     @id
-  email       String?    @unique
-  role        String?
+  id          String          @id @default(uuid())
+  email       String          @unique
+  password    String
+  role        String          @default("customer")
   name        String?
   phone       String?
-  current_lat Float?   // For drivers
-  current_lng Float?   // For drivers
-  shipments   Shipment[] @relation("OperatorShipments")
-  tickets     SupportTicket[]
+  current_lat Float?
+  current_lng Float?
   shifts      Shift[]
+  shipments   Shipment[]      @relation("OperatorShipments")
+  tickets     SupportTicket[]
 }
 
 model SupportTicket {
-  id          String   @id @default(uuid())
-  user_id     String
-  user        User     @relation(fields: [user_id], references: [id])
-  subject     String
-  status      String   @default("OPEN") // OPEN, CLOSED
-  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH
-  created_at  DateTime @default(now())
-  messages    TicketMessage[]
+  id         String          @id @default(uuid())
+  user_id    String
+  subject    String
+  status     String          @default("OPEN")
+  priority   String          @default("MEDIUM")
+  created_at DateTime        @default(now())
+  user       User            @relation(fields: [user_id], references: [id])
+  messages   TicketMessage[]
 }
 
 model TicketMessage {
-  id          Int      @id @default(autoincrement())
-  ticket_id   String
-  ticket      SupportTicket @relation(fields: [ticket_id], references: [id])
-  sender_id   String
-  text        String
-  timestamp   DateTime @default(now())
+  id        Int           @id @default(autoincrement())
+  ticket_id String
+  sender_id String
+  text      String
+  timestamp DateTime      @default(now())
+  ticket    SupportTicket @relation(fields: [ticket_id], references: [id])
 }
 
 model DirectMessage {
@@ -50,61 +50,61 @@ model DirectMessage {
 }
 
 model Shipment {
-  id                String            @id
-  sender_name       String?
-  sender_city       String?
-  sender_country    String?
-  sender_address    String?
-  receiver_name     String?
-  receiver_city     String?
-  receiver_country  String?
-  receiver_address  String?
-  receiver_phone    String?
-  receiver_email    String?
-  status            String?
-  weight            Float?
-  type              String?
-  est_delivery      String?
-  estimated_cost    Float?            // For quotes
-  insurance_selected Boolean?         // For quotes
-  package_details   String?           // For quotes
-  operator_id       String?
-  operator          User?             @relation("OperatorShipments", fields: [operator_id], references: [id])
-  created_at        DateTime?         @default(now())
-  tracking_updates  TrackingUpdate[]
-  customs_docs      CustomsDoc[]
-  notification_logs NotificationLog[]
+  id                 String            @id
+  sender_name        String?
+  sender_city        String?
+  sender_country     String?
+  sender_address     String?
+  receiver_name      String?
+  receiver_city      String?
+  receiver_country   String?
+  receiver_address   String?
+  receiver_phone     String?
+  receiver_email     String?
+  status             String?
+  weight             Float?
+  type               String?
+  est_delivery       String?
+  estimated_cost     Float?
+  insurance_selected Boolean?
+  package_details    String?
+  operator_id        String?
+  created_at         DateTime?         @default(now())
+  customs_docs       CustomsDoc[]
+  notification_logs  NotificationLog[]
+  operator           User?             @relation("OperatorShipments", fields: [operator_id], references: [id])
+  tracking_updates   TrackingUpdate[]
 }
 
 model TrackingUpdate {
   id          Int       @id @default(autoincrement())
   shipment_id String?
-  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
   status      String?
   location    String?
   notes       String?
   timestamp   DateTime? @default(now())
+  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
 }
 
 model CustomsDoc {
   id          Int       @id @default(autoincrement())
   shipment_id String?
-  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
   doc_type    String?
-  status      String? // verified, pending, missing
-  file_url    String? // Link to uploaded document
+  status      String?
+  file_url    String?
   uploaded_at DateTime?
+  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
 }
 
 model NotificationLog {
   id          Int       @id @default(autoincrement())
   user_id     String?
   shipment_id String?
-  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
-  channel     String?   // EMAIL, SMS, PUSH
+  channel     String?
   message     String?
-  status      String?   // SENT, FAILED, DELIVERED
+  status      String?
   timestamp   DateTime? @default(now())
+  shipment    Shipment? @relation(fields: [shipment_id], references: [id])
 }
 
 model Setting {
@@ -113,9 +113,9 @@ model Setting {
 }
 
 model Shift {
-  id          Int       @id @default(autoincrement())
-  user_id     String
-  user        User      @relation(fields: [user_id], references: [id])
-  start_time  DateTime  @default(now())
-  end_time    DateTime?
+  id         Int       @id @default(autoincrement())
+  user_id    String
+  start_time DateTime  @default(now())
+  end_time   DateTime?
+  user       User      @relation(fields: [user_id], references: [id])
 }

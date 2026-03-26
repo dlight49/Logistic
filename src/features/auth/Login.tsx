@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -21,30 +18,29 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // REAL FIREBASE LOGIN
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await getIdToken(userCredential.user);
-      
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      const profile = userDoc.exists() ? userDoc.data() : null;
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      const userRole = (profile?.role as any) || 'customer';
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed");
+      }
 
       // Update local context
-      login({
-        id: userCredential.user.uid,
-        email: userCredential.user.email || '',
-        name: profile?.name || 'User',
-        role: userRole
-      }, token);
+      login(data.user, data.token);
 
       // Navigate based on role
+      const userRole = data.user.role;
       if (userRole === 'admin') navigate('/admin');
       else if (userRole === 'operator') navigate('/driver');
       else navigate('/customer');
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Login failed. Please check your credentials.");
+      console.error("[LOGIN ERROR]", err);
+      setError(err.message || "Invalid email or password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,7 +65,7 @@ export default function Login() {
               <User className="text-accent w-10 h-10" />
             </div>
             <h1 className="text-3xl font-bold leading-tight tracking-tight">Welcome Back</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 text-base">Please sign in to start your shift</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-base">Please sign in to access your dashboard</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -80,13 +76,14 @@ export default function Login() {
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Driver ID or Email</label>
+              <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Email Address</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
+                  required
                   className="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 dark:border-primary/30 bg-white dark:bg-primary/10 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
-                  placeholder="Enter your ID or email"
-                  type="text"
+                  placeholder="name@company.com"
+                  type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                 />
@@ -98,8 +95,9 @@ export default function Login() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
+                  required
                   className="w-full pl-12 pr-12 py-4 rounded-xl border border-slate-200 dark:border-primary/30 bg-white dark:bg-primary/10 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -138,7 +136,7 @@ export default function Login() {
 
           <div className="mt-12 text-center">
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              New driver? <a className="text-primary dark:text-slate-200 font-bold hover:underline" href="#">Contact Dispatch</a>
+              New customer? <button onClick={() => navigate('/register')} className="text-primary dark:text-slate-200 font-bold hover:underline">Create an Account</button>
             </p>
           </div>
         </div>
@@ -147,7 +145,7 @@ export default function Login() {
       <footer className="p-6 text-center">
         <p className="text-slate-400 dark:text-slate-600 text-xs">
           © 2024 LogisticsPro Solutions Inc. All rights reserved. <br />
-          System Version 4.2.0-stable
+          System Version 4.2.0-stable (JWT Native)
         </p>
       </footer>
 

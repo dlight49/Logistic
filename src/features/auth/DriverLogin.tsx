@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Truck, Lock, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { auth, db } from "../../services/firebase";
-import { signInWithEmailAndPassword, getIdToken } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 export default function DriverLogin() {
     const navigate = useNavigate();
@@ -21,28 +18,24 @@ export default function DriverLogin() {
         setLoading(true);
 
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const token = await getIdToken(userCredential.user);
-            
-            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-            const profile = userDoc.exists() ? userDoc.data() : null;
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-            const userRole = (profile?.role as any);
+            const data = await response.json();
 
-            // NOTE: Drivers are stored with role='operator' in Firestore (canonical DB value).
-            // The UI displays this role as "Driver". Do not change this check to 'driver'
-            // without first running a Firestore data migration on all user records.
-            if (userRole !== 'operator') {
+            if (!response.ok) {
+                throw new Error(data.error || "Login failed");
+            }
+
+            // NOTE: Drivers are stored with role='operator' (canonical DB value).
+            if (data.user.role !== 'operator' && data.user.role !== 'admin') {
                 throw new Error("Access denied. Driver credentials required.");
             }
 
-            login({
-                id: userCredential.user.uid,
-                email: userCredential.user.email || '',
-                name: profile?.name || 'Driver',
-                role: userRole
-            }, token);
-
+            login(data.user, data.token);
             navigate('/driver');
         } catch (err: any) {
             setError(err.message || "Login failed. Please check your credentials.");
