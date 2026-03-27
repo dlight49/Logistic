@@ -65,12 +65,19 @@ export const login = async (req: Request, res: Response) => {
         });
 
         if (!user) {
+            logger.warn(`[AUTH] Login attempt for non-existent user: ${email}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            logger.warn(`[AUTH] Invalid password for user: ${email}`);
             return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        if (!JWT_SECRET) {
+            logger.error('[AUTH] Cannot sign token: JWT_SECRET is missing');
+            return res.status(500).json({ error: 'Server configuration error' });
         }
 
         const token = jwt.sign(
@@ -80,10 +87,11 @@ export const login = async (req: Request, res: Response) => {
         );
 
         const { password: _, ...userWithoutPassword } = user;
+        logger.info(`[AUTH] User logged in successfully: ${email}`);
         res.json({ user: userWithoutPassword, token });
-    } catch (error) {
-        logger.error('[AUTH] Login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+    } catch (error: any) {
+        logger.error('[AUTH] Login exception:', { error: error.message, stack: error.stack });
+        res.status(500).json({ error: 'Login failed due to an internal error' });
     }
 };
 
