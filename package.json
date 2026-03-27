@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "render-build": "npm install && npx prisma generate && npm run build",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
     "seed:admin": "tsx scripts/seed_admin.js",
