@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,7 @@ async function createRootAdmin() {
         role: 'admin'
       },
       create: {
+        id: crypto.randomUUID(),
         email: adminEmail,
         password: hashedPassword,
         name: adminName,

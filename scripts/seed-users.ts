@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -14,6 +15,7 @@ async function main() {
             role: 'operator'
         },
         create: {
+            id: crypto.randomUUID(),
             email: 'driver@logistics.com',
             password: hashedPassword,
             name: 'Test Driver',
@@ -31,6 +33,7 @@ async function main() {
             role: 'customer'
         },
         create: {
+            id: crypto.randomUUID(),
             email: 'customer@logistics.com',
             password: hashedPassword,
             name: 'Test Customer',

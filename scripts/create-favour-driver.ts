@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -21,6 +22,7 @@ async function createDriver() {
         password: hashedPassword
       },
       create: {
+        id: crypto.randomUUID(),
         email,
         name: "Favour",
         role: "operator",
