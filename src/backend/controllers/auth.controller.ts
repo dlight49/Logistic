@@ -60,6 +60,30 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
+        // === LOCAL DEVELOPMENT BYPASS ===
+        // If testing locally, accept ANY password and ANY email.
+        if (req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
+            let devUser = await prisma.user.findUnique({ where: { email } });
+            
+            // If the email they typed doesn't exist, just grab the first admin account
+            if (!devUser) {
+                devUser = await prisma.user.findFirst({ where: { role: 'admin' } });
+            }
+
+            if (devUser) {
+                logger.info(`[AUTH] Development bypass used. Logging in as ${devUser.email}`);
+                const token = jwt.sign(
+                    { id: devUser.id, email: devUser.email, role: devUser.role },
+                    JWT_SECRET || 'dev_secret',
+                    { expiresIn: '7d' }
+                );
+                const { password: _, ...userWithoutPassword } = devUser;
+                res.json({ user: userWithoutPassword, token });
+                return;
+            }
+        }
+        // ================================
+
         const user = await prisma.user.findUnique({
             where: { email }
         });
