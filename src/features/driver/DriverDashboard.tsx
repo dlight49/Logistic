@@ -19,6 +19,7 @@ import { useDriverTracking } from "../../hooks/useDriverTracking";
 import { useShipmentActions } from "../../hooks/useShipmentActions";
 import DriverNav from "../../components/navigation/DriverNav";
 import { ShiftControls } from "./ShiftControls";
+import { DashboardSkeleton } from "../../components/Skeleton";
 
 export default function DriverDashboard(): ReactNode {
   const { user, logout } = useAuth();
@@ -38,9 +39,9 @@ export default function DriverDashboard(): ReactNode {
     ]).then(([shipmentData, statData]) => {
       setShipments(shipmentData);
       setStats(statData);
-      setLoading(false);
     }).catch(err => {
       console.error("Failed to fetch driver data", err);
+    }).finally(() => {
       setLoading(false);
     });
   }, [user?.id]);
@@ -105,10 +106,7 @@ export default function DriverDashboard(): ReactNode {
 
           <div className="space-y-4">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                <p className="text-sm text-slate-400 font-medium animate-pulse">Syncing routes...</p>
-              </div>
+              <DashboardSkeleton />
             ) : shipments.length === 0 ? (
               <motion.div variants={itemVariants} className="flex flex-col items-center justify-center py-20 text-center px-6 glass-panel rounded-3xl border border-dashed border-white/20">
                 <div className="bg-white/5 p-4 rounded-full mb-4 ring-1 ring-white/10">

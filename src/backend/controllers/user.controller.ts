@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
-import { firebaseAdmin } from '../config/firebase-admin.js';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { createUserSchema, updateUserSchema } from '../validators/user.validator.js';
 import logger from '../utils/logger.js';
@@ -18,7 +18,16 @@ export const getUsers = async (req: Request, res: Response) => {
 
         const users = await prisma.user.findMany({
             where,
-            orderBy: { name: 'asc' }
+            orderBy: { name: 'asc' },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                phone: true,
+                current_lat: true,
+                current_lng: true
+            }
         });
 
         res.json(users);
@@ -54,65 +63,34 @@ export const createUser = async (req: Request, res: Response) => {
 
         const { name, email, phone, password, role } = validation.data;
 
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return res.status(409).json({ error: 'A user with this email already exists' });
+        }
+
         // Use provided password or generate a temporary one
         const tempPassword = password && password.trim().length >= 6
             ? password.trim()
             : generateTempPassword();
 
-        // 1. Create Firebase Auth user
-        let firebaseUser;
-        try {
-            firebaseUser = await firebaseAdmin.auth().createUser({
-                email,
-                password: tempPassword,
-                displayName: name,
-            });
-        } catch (firebaseError: any) {
-            if (firebaseError.code === 'auth/email-already-exists') {
-                return res.status(409).json({ error: 'A user with this email already exists' });
-            }
-            throw firebaseError;
-        }
+        const hashedPassword = await bcrypt.hash(tempPassword, 12);
 
-        const uid = firebaseUser.uid;
-
-        // 2. Create Firestore user doc
-        try {
-            await firebaseAdmin.firestore().collection('users').doc(uid).set({
+        // Create Prisma User
+        const user = await prisma.user.create({
+            data: {
                 name,
                 email,
+                password: hashedPassword,
                 phone: phone || null,
-                role,
-                createdAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
-            });
-        } catch (firestoreError) {
-            await firebaseAdmin.auth().deleteUser(uid).catch(() => {});
-            throw firestoreError;
-        }
+                role: role || 'customer',
+            }
+        });
 
-        // 3. Create Prisma User
-        try {
-            await prisma.user.create({
-                data: {
-                    id: uid,
-                    name,
-                    email,
-                    phone: phone || null,
-                    role,
-                },
-            });
-        } catch (prismaError) {
-            await firebaseAdmin.auth().deleteUser(uid).catch(() => {});
-            await firebaseAdmin.firestore().collection('users').doc(uid).delete().catch(() => {});
-            throw prismaError;
-        }
-
+        const { password: _, ...userWithoutPassword } = user;
         return res.status(201).json({ 
-            id: uid, 
-            name, 
-            email, 
-            role, 
-            tempPassword 
+            user: userWithoutPassword, 
+            tempPassword: password ? undefined : tempPassword,
         });
 
     } catch (error: any) {
@@ -124,41 +102,23 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        
         const validation = updateUserSchema.safeParse(req.body);
         if (!validation.success) {
-            return res.status(400).json({ 
-                error: 'Validation failed', 
-                details: validation.error.format() 
-            });
+            return res.status(400).json({ error: validation.error.format() });
         }
 
-        const updates = validation.data;
-
-        // 1. Sync to Firebase Auth
-        const authUpdate: any = {};
-        if (updates.name) authUpdate.displayName = updates.name;
-        if (updates.email) authUpdate.email = updates.email;
-
-        if (Object.keys(authUpdate).length > 0) {
-            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => logger.warn('Firebase Auth update failed:', { error: err }));
+        const updates: any = { ...validation.data };
+        if (updates.password) {
+            updates.password = await bcrypt.hash(updates.password, 12);
         }
 
-        // 2. Sync to Firestore
-        const firestoreUpdate: any = {
-            ...updates,
-            updatedAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
-        };
-
-        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => logger.warn('Firestore update failed:', { error: err }));
-
-        // 3. Update Prisma
         const updated = await prisma.user.update({
             where: { id },
-            data: updates,
+            data: updates
         });
 
-        return res.json(updated);
+        const { password: _, ...userWithoutPassword } = updated;
+        return res.json(userWithoutPassword);
     } catch (error: any) {
         logger.error('[UserController] Error in updateUser:', { error: error.message || error });
         return res.status(400).json({ error: error.message || 'Failed to update user' });
@@ -167,43 +127,26 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const updateSelf = async (req: Request, res: Response) => {
     try {
-        const id = (req as any).user?.uid;
+        const id = req.user?.id;
         if (!id) return res.status(401).json({ error: 'Unauthorized' });
 
         const validation = updateUserSchema.safeParse(req.body);
         if (!validation.success) {
-            return res.status(400).json({ 
-                error: 'Validation failed', 
-                details: validation.error.format() 
-            });
+            return res.status(400).json({ error: validation.error.format() });
         }
 
-        const updates = validation.data;
-
-        // 1. Sync to Firebase Auth
-        const authUpdate: any = {};
-        if (updates.name) authUpdate.displayName = updates.name;
-        if (updates.email) authUpdate.email = updates.email;
-
-        if (Object.keys(authUpdate).length > 0) {
-            await firebaseAdmin.auth().updateUser(id, authUpdate).catch(err => logger.warn('Firebase Auth update failed:', { error: err }));
+        const updates: any = { ...validation.data };
+        if (updates.password) {
+            updates.password = await bcrypt.hash(updates.password, 12);
         }
 
-        // 2. Sync to Firestore
-        const firestoreUpdate: any = {
-            ...updates,
-            updatedAt: firebaseAdmin.firestore.FieldValue.serverTimestamp(),
-        };
-
-        await firebaseAdmin.firestore().collection('users').doc(id).update(firestoreUpdate).catch(err => logger.warn('Firestore update failed:', { error: err }));
-
-        // 3. Update Prisma
         const updated = await prisma.user.update({
             where: { id },
-            data: updates,
+            data: updates
         });
 
-        return res.json(updated);
+        const { password: _, ...userWithoutPassword } = updated;
+        return res.json(userWithoutPassword);
     } catch (error: any) {
         logger.error('[UserController] Error in updateSelf:', { error: error.message || error });
         return res.status(400).json({ error: error.message || 'Failed to update user' });
@@ -214,13 +157,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
 
-        // 1. Delete from Firebase Auth
-        await firebaseAdmin.auth().deleteUser(id).catch(err => logger.warn('Firebase Auth delete failed:', { error: err }));
-
-        // 2. Delete from Firestore
-        await firebaseAdmin.firestore().collection('users').doc(id).delete().catch(err => logger.warn('Firestore delete failed:', { error: err }));
-
-        // 3. Delete from Prisma
+        // Delete from Prisma
         await prisma.user.delete({ where: { id } });
 
         res.json({ success: true });
@@ -234,8 +171,12 @@ export const resetUserPassword = async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
         const newPassword = generateTempPassword();
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-        await firebaseAdmin.auth().updateUser(id, { password: newPassword });
+        await prisma.user.update({
+            where: { id },
+            data: { password: hashedPassword }
+        });
 
         res.json({ tempPassword: newPassword });
     } catch (error: any) {

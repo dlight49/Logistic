@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -6,31 +7,33 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function createDriver() {
-  console.log("=== CREATING DRIVER ACCOUNT VIA PRISMA ===");
+  console.log("=== CREATING DRIVER ACCOUNT (LOCAL AUTH) ===");
   try {
-    // Note: This only creates the database record. 
-    // Favour will need to 'Sign Up' with this email on the frontend to create the Firebase Auth record,
-    // OR you can create them in Firebase Console manually.
-    
+    const email = "radicaforjesus@gmail.com";
+    const password = "DriverPassword123!"; // Default password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     const driver = await prisma.user.upsert({
-      where: { email: "radicaforjesus@gmail.com" },
+      where: { email },
       update: {
         role: "operator",
-        name: "Favour"
+        name: "Favour",
+        password: hashedPassword
       },
       create: {
-        id: "favour-driver-001", // Placeholder ID until Firebase sync
-        email: "radicaforjesus@gmail.com",
+        email,
         name: "Favour",
-        role: "operator"
+        role: "operator",
+        password: hashedPassword
       }
     });
-    
-    console.log("✅ Database record for Driver created/updated successfully!");
+
+    console.log("✅ Driver account created/updated successfully!");
     console.log("Name:", driver.name);
     console.log("Email:", driver.email);
     console.log("Role:", driver.role);
-    console.log("\nNext Step: Favour should register at http://localhost:3000/register with this email.");
+    console.log("Default Password:", password);
+    console.log("\nNext Step: Favour can now log in at /login with these credentials.");
   } catch (error: any) {
     console.error("❌ Failed to create driver record");
     console.error("Error:", error.message);

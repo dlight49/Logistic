@@ -20,14 +20,12 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import { updatePassword, updateProfile } from "firebase/auth";
-import { auth } from "../../services/firebase";
 import DriverNav from "../../components/navigation/DriverNav";
 
 type SettingsSection = 'personal' | 'security' | 'stats' | 'legal' | null;
 
 export default function DriverSettings() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser: updateAuthUser } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<SettingsSection>(null);
   const [loading, setLoading] = useState(false);
@@ -53,7 +51,6 @@ export default function DriverSettings() {
     e.preventDefault();
     setLoading(true);
     try {
-      // 1. Update backend using the new /me route
       const res = await apiFetch(`/api/users/me`, {
         method: 'PATCH',
         body: JSON.stringify({ name, phone })
@@ -64,10 +61,8 @@ export default function DriverSettings() {
           throw new Error(errorData.error || "Failed to update profile");
       }
 
-      // 2. Update Firebase Auth display name
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: name });
-      }
+      const updatedUser = await res.json();
+      updateAuthUser(updatedUser);
 
       setSuccessMessage("Profile updated successfully");
       setTimeout(() => {
@@ -89,16 +84,23 @@ export default function DriverSettings() {
     }
     setLoading(true);
     try {
-      if (auth.currentUser) {
-        await updatePassword(auth.currentUser, newPassword);
-        setSuccessMessage("Password updated successfully");
-        setNewPassword("");
-        setConfirmPassword("");
-        setTimeout(() => {
-          setSuccessMessage(null);
-          setActiveSection(null);
-        }, 2000);
+      const res = await apiFetch(`/api/users/me`, {
+        method: 'PATCH',
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to update password");
       }
+
+      setSuccessMessage("Password updated successfully");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => {
+        setSuccessMessage(null);
+        setActiveSection(null);
+      }, 2000);
     } catch (err: any) {
       alert(err.message);
     } finally {

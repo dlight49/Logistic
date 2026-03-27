@@ -22,13 +22,11 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
-import { updatePassword, updateProfile } from "firebase/auth";
-import { auth } from "../../services/firebase";
 
 type SettingsSection = 'personal' | 'payment' | 'security' | 'notifications' | 'language' | 'legal' | null;
 
 export default function CustomerSettings(): ReactNode {
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser: updateAuthUser } = useAuth();
     const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState<SettingsSection>(null);
     const [loading, setLoading] = useState(false);
@@ -36,7 +34,7 @@ export default function CustomerSettings(): ReactNode {
 
     // Form States
     const [name, setName] = useState(user?.name || "");
-    const [phone, setPhone] = useState(""); // Assuming we'll fetch this or user can add it
+    const [phone, setPhone] = useState(user?.phone || "");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setNewConfirmPassword] = useState("");
 
@@ -44,18 +42,18 @@ export default function CustomerSettings(): ReactNode {
         e.preventDefault();
         setLoading(true);
         try {
-            // 1. Update backend (SQL + Firestore via controller)
-            const res = await apiFetch(`/api/users/${user?.id}`, {
+            const res = await apiFetch(`/api/users/me`, {
                 method: 'PATCH',
                 body: JSON.stringify({ name, phone })
             });
 
-            if (!res.ok) throw new Error("Failed to update profile");
-
-            // 2. Update Firebase Auth display name for consistency
-            if (auth.currentUser) {
-                await updateProfile(auth.currentUser, { displayName: name });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to update profile");
             }
+
+            const updatedUser = await res.json();
+            updateAuthUser(updatedUser);
 
             setSuccessMessage("Profile updated successfully");
             setTimeout(() => {
@@ -77,16 +75,23 @@ export default function CustomerSettings(): ReactNode {
         }
         setLoading(true);
         try {
-            if (auth.currentUser) {
-                await updatePassword(auth.currentUser, newPassword);
-                setSuccessMessage("Password updated successfully");
-                setNewPassword("");
-                setNewConfirmPassword("");
-                setTimeout(() => {
-                    setSuccessMessage(null);
-                    setActiveSection(null);
-                }, 2000);
+            const res = await apiFetch(`/api/users/me`, {
+                method: 'PATCH',
+                body: JSON.stringify({ password: newPassword })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to update password");
             }
+
+            setSuccessMessage("Password updated successfully");
+            setNewPassword("");
+            setNewConfirmPassword("");
+            setTimeout(() => {
+                setSuccessMessage(null);
+                setActiveSection(null);
+            }, 2000);
         } catch (err: any) {
             alert(err.message);
         } finally {

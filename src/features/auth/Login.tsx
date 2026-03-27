@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { apiFetch } from "../../utils/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,17 +19,12 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await apiFetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
 
       // Update local context
       login(data.user, data.token);

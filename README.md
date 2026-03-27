@@ -1,22 +1,51 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Lumin Logistics Platform
 
-# Run and deploy your AI Studio app
+A premium, production-ready logistics management system built with React, Node.js, and Prisma.
 
-This contains everything you need to run your app locally.
+## Key Features
+- **Role-Based Access Control:** Admin, Driver (Operator), and Customer portals.
+- **Local Authentication:** Secure JWT-based auth flow (no Firebase dependency).
+- **Real-time Tracking:** Live GPS syncing for drivers and status updates for customers.
+- **Premium UI:** Responsive, mobile-first design with motion-enhanced interfaces.
 
-View your app in AI Studio: https://ai.studio/apps/e878b58f-e7e6-4eb7-a4e3-da49cc91565a
+## Getting Started
+
+### Local Development
+1. **Clone and Install:**
+   ```bash
+   npm install
+   ```
+
+2. **Environment Setup:**
+   Create a `.env` file based on `.env.example`:
+   ```env
+   DATABASE_URL="your-postgresql-url"
+   JWT_SECRET="your-secure-secret"
+   RESEND_API_KEY="your-email-api-key"
+   APP_URL="http://localhost:5173"
+   ```
+
+3. **Database Initialization:**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   npm run seed:admin # Creates root admin: admin@logistics.com / AdminPassword123!
+   ```
+
+4. **Launch:**
+   ```bash
+   npm run dev
+   ```
 
 ## Deployment
 
-This application is automatically deployed to **Render** via GitHub Actions.
+The app is optimized for **Render** and **Neon**.
 
-**Prerequisites:**  Node.js
+1. **Database:** Use Neon PostgreSQL for the production database.
+2. **Web Service:** Deploy the Node.js backend to Render.
+3. **Environment Variables:** Ensure `DATABASE_URL`, `JWT_SECRET`, and `APP_URL` are set in the Render dashboard.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Tech Stack
+- **Frontend:** React, Tailwind CSS, Lucide React, Framer Motion.
+- **Backend:** Node.js, Express, JWT, Winston (Logging).
+- **Database:** Prisma ORM, PostgreSQL (Neon).

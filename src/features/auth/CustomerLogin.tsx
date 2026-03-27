@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { User, Lock, Eye, EyeOff, HelpCircle, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { apiFetch } from "../../utils/api";
 
 export default function CustomerLogin() {
     const navigate = useNavigate();
@@ -18,17 +19,12 @@ export default function CustomerLogin() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await apiFetch("/api/auth/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || "Login failed");
-            }
 
             login(data.user, data.token);
 

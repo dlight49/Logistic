@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
+import { DashboardSkeleton } from "../../components/Skeleton";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -95,10 +96,7 @@ export default function CustomerDashboard(): ReactNode {
 
                     <div className="space-y-4">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-12 gap-4 bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5">
-                                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                                <p className="text-xs font-bold text-slate-500 animate-pulse">Updating Radar...</p>
-                            </div>
+                            <DashboardSkeleton />
                         ) : activeShipments.length === 0 ? (
                             <div className="py-12 text-center bg-white dark:bg-white/5 rounded-3xl border border-dashed border-slate-200 dark:border-white/5 shadow-inner">
                                 <Package className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3" />

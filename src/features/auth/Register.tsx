@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { apiFetch } from "../../utils/api";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -25,17 +26,12 @@ export default function Register() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/auth/register", {
+            const response = await apiFetch("/api/auth/register", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password }),
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || "Registration failed");
-            }
 
             // Successfully registered! Log the user in automatically with the returned token
             login(data.user, data.token);

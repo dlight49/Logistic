@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Shield, Lock, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { apiFetch } from "../../utils/api";
 
 export default function AdminLogin() {
     const navigate = useNavigate();
@@ -18,17 +19,12 @@ export default function AdminLogin() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await apiFetch("/api/auth/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || "Login failed");
-            }
 
             if (data.user.role !== 'admin') {
                 throw new Error("Access denied. Admin credentials required.");

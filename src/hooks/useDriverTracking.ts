@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "../features/auth/AuthContext";
+import { apiFetch } from "../utils/api";
 
 /**
  * useDriverTracking
@@ -27,12 +28,8 @@ export function useDriverTracking() {
                 const { latitude, longitude } = position.coords;
 
                 try {
-                    const response = await fetch('/api/driver/location', {
+                    const response = await apiFetch('/api/driver/location', {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('lumin_token')}`
-                        },
                         body: JSON.stringify({
                             userId: user.id,
                             lat: latitude,

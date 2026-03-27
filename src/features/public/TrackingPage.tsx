@@ -9,6 +9,7 @@ import { Shipment } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
+import { apiFetch } from "../../utils/api";
 
 export default function TrackingPage(): ReactNode {
   const { user, logout } = useAuth();
@@ -23,12 +24,11 @@ export default function TrackingPage(): ReactNode {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/shipments/${trackingId}/track`);
-      if (!res.ok) throw new Error("Tracking ID not found. Please verify the number.");
+      const res = await apiFetch(`/api/shipments/${trackingId}/track`);
       const data = await res.json();
       setShipment(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Tracking ID not found. Please verify the number.");
       setShipment(null);
     } finally {
       setLoading(false);

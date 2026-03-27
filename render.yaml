@@ -18,5 +18,3 @@ services:
         value: info
       - key: APP_URL
         sync: false
-      - key: FIREBASE_SERVICE_ACCOUNT_KEY
-        sync: false
