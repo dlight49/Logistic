@@ -3,10 +3,11 @@ import { Resend } from 'resend';
 import logger from '../utils/logger.js';
 
 // Validate Resend API key at startup — fail fast rather than silently sending with bogus key
-if (!process.env.RESEND_API_KEY) {
+const resendApiKey = process.env.RESEND_API_KEY;
+if (!resendApiKey) {
     logger.warn('[NOTIFICATIONS] RESEND_API_KEY not set — email delivery will be disabled');
 }
-const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 interface NotificationPayload {
     userId: string;
@@ -34,6 +35,11 @@ class ResendEmailProvider implements NotificationProvider {
             }
 
             logger.info(`[RESEND] Sending email to ${user.email}: ${payload.subject}`);
+
+            if (!resend) {
+                logger.warn("[RESEND] Client not initialized — skipping email send");
+                return false;
+            }
 
             const { data, error } = await resend.emails.send({
                 from: 'Lumin Logistics <notifications@resend.dev>', // Resend verified domain required for prod

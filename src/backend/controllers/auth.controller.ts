@@ -4,7 +4,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_development_secret_key_change_me_in_prod';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    logger.error('[AUTH] FATAL: JWT_SECRET environment variable is not set!');
+}
 
 export const register = async (req: Request, res: Response) => {
     try {

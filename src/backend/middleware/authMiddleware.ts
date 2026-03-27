@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../config/db.js';
 import logger from '../utils/logger.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_development_secret_key_change_me_in_prod';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Extend Express Request object to include the authenticated user
 declare global {
