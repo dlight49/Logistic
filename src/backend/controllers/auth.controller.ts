@@ -91,10 +91,9 @@ export const login = async (req: Request, res: Response) => {
         res.json({ user: userWithoutPassword, token });
     } catch (error: any) {
         logger.error('[AUTH] Login exception:', { error: error.message, stack: error.stack });
+        // Put the specific error in the main 'error' field so the frontend shows it
         res.status(500).json({ 
-            error: 'Login failed due to an internal error', 
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            error: `Internal Error: ${error.message}`
         });
     }
 };
