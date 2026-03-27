@@ -64,8 +64,8 @@ export const login = async (req: Request, res: Response) => {
             where: { email }
         });
 
-        if (!user) {
-            logger.warn(`[AUTH] Login attempt for non-existent user: ${email}`);
+        if (!user || !user.password) {
+            logger.warn(`[AUTH] Login failed: User not found or has no password set for ${email}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
