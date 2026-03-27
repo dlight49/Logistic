@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { UserRole } from "../types";
 import { Package } from "lucide-react";
-import VerificationBlocker from "./VerificationBlocker";
+
 
 interface ProtectedRouteProps {
     children: ReactNode;
