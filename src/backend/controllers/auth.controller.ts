@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
 
 export const register = async (req: Request, res: Response) => {
     try {
-        const { email, password, name, role } = req.body;
+        const { email, password, name } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
@@ -33,7 +33,7 @@ export const register = async (req: Request, res: Response) => {
                 email,
                 password: hashedPassword,
                 name: name || email.split('@')[0],
-                role: role || 'customer'
+                role: 'customer'
             }
         });
 

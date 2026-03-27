@@ -37,11 +37,6 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
         return <Navigate to={loginPath} state={{ from: location }} replace />;
     }
 
-    // BLOCK UNVERIFIED USERS
-    if (!user.emailVerified) {
-        return <VerificationBlocker />;
-    }
-
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // Role not authorized, redirect to their respective dashboard
         const redirectPath = user.role === "admin" ? "/admin" : user.role === "operator" ? "/driver" : "/customer";
