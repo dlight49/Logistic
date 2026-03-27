@@ -11,7 +11,7 @@ import shiftsRoutes from './shifts.routes.js';
 
 const router = Router();
 
-router.use('/', authRoutes);
+router.use('/auth', authRoutes);
 router.use('/shipments', shipmentsRoutes);
 router.use('/operators', operatorsRoutes);
 router.use('/users', usersRoutes);
