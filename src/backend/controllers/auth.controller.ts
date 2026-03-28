@@ -90,11 +90,19 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
+        // Diagnostic Logging for Password Hashing
+        const hashPrefix = user.password.substring(0, 7);
+        const hashLength = user.password.length;
+        logger.debug(`[AUTH] Diagnostic: Comparing password (len: ${password.length}) with hash (prefix: ${hashPrefix}, len: ${hashLength}) for ${email}`);
+
         const isMatch = await bcrypt.compare(password, user.password);
+
         if (!isMatch) {
-            logger.warn(`[AUTH] Invalid password for user: ${email}`);
+            logger.warn(`[AUTH] Login failed: Password mismatch for ${email}. Hash Type: ${hashPrefix}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
+
+        logger.info(`[AUTH] Successful login for ${email} (Role: ${user.role})`);
 
         if (!JWT_SECRET) {
             logger.error('[AUTH] Cannot sign token: JWT_SECRET is missing');
