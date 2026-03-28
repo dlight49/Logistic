@@ -47,8 +47,9 @@ export const getShipmentById = async (req: Request, res: Response) => {
 
 export const getMyShipments = async (req: Request, res: Response) => {
     try {
+        const email = req.user?.email?.trim().toLowerCase();
         const shipments = await prisma.shipment.findMany({
-            where: { receiver_email: req.user?.email },
+            where: { receiver_email: email },
             include: { tracking_updates: { orderBy: { timestamp: 'desc' } } }
         });
         res.json(shipments);

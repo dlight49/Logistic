@@ -9,6 +9,8 @@ coverage/
 *-firebase-adminsdk-*.json
 firebase-service-account.json
 prisma/*.db
+*.db
+logistics.db
 .firebase/
 functions/node_modules/
 .agents/

@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cors from "cors";
 import { createServer as createViteServer } from "vite";
 import { prisma } from "./src/backend/config/db.js";
 import apiRoutes from "./src/backend/routes/index.js";
@@ -29,6 +30,12 @@ async function startServer() {
   // Security Headers
   app.use(helmet({
     contentSecurityPolicy: false, // Disable for now to ensure Vite works in dev
+  }));
+
+  // CORS — allow frontend origin in dev, configurable in prod
+  app.use(cors({
+    origin: process.env.APP_URL || 'http://localhost:5173',
+    credentials: true
   }));
 
   // Rate Limiting

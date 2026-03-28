@@ -3,9 +3,11 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../config/db.js';
 import logger from '../utils/logger.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_fallback_secret_change_in_production';
 
-// Extend Express Request object to include the authenticated user
+if (!process.env.JWT_SECRET) {
+    logger.warn('[AUTH] WARNING: Using fallback JWT_SECRET. Set JWT_SECRET in production!');
+}
 declare global {
     namespace Express {
         interface Request {

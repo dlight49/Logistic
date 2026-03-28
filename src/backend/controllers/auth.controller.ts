@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_fallback_secret_change_in_production';
 
 if (!JWT_SECRET) {
     logger.error('[AUTH] FATAL: JWT_SECRET environment variable is not set!');
@@ -105,20 +105,22 @@ export const login = async (req: Request, res: Response) => {
 
         logger.info(`[AUTH] Successful login for ${email} (Role: ${user.role})`);
 
-        if (!JWT_SECRET) {
-            logger.error('[AUTH] Cannot sign token: JWT_SECRET is missing');
-            return res.status(500).json({ error: 'Server configuration error' });
-        }
-
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
 
+        // Long-lived refresh token (30 days) — used to get new access tokens
+        const refreshToken = jwt.sign(
+            { id: user.id, type: 'refresh' },
+            JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+
         const { password: _, ...userWithoutPassword } = user;
         logger.info(`[AUTH] User logged in successfully: ${email}`);
-        res.json({ user: userWithoutPassword, token });
+        res.json({ user: userWithoutPassword, token, refreshToken });
     } catch (error: any) {
         logger.error('[AUTH] Login exception:', { error: error.message, stack: error.stack });
         // Put the specific error in the main 'error' field so the frontend shows it
@@ -133,4 +135,45 @@ export const getMe = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { password: _, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+    try {
+        const { refresh } = req.body;
+
+        if (!refresh) {
+            return res.status(400).json({ error: 'Refresh token is required' });
+        }
+
+        const decoded = jwt.verify(refresh, JWT_SECRET) as any;
+
+        if (decoded.type !== 'refresh') {
+            return res.status(401).json({ error: 'Invalid token type' });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.id }
+        });
+
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        const newToken = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({ token: newToken });
+    } catch (error: any) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Refresh token expired' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid refresh token' });
+        }
+        logger.error('[AUTH] Refresh token error:', { error: error.message });
+        res.status(500).json({ error: 'Token refresh failed' });
+    }
 };

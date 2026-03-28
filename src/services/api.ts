@@ -38,7 +38,7 @@ api.interceptors.response.use(
                 }
 
                 // Attempt to refresh the token
-                const response = await axios.post(`${API_URL}/token/refresh/`, {
+                const response = await axios.post(`${API_URL}/auth/refresh`, {
                     refresh: refreshToken
                 });
 

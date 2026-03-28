@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { login, register, getMe } from '../controllers/auth.controller.js';
+import jwt from 'jsonwebtoken';
+import { login, register, getMe, refreshToken } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -17,6 +18,13 @@ router.post('/register', register);
  * @access  Public
  */
 router.post('/login', login);
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
+router.post('/refresh', refreshToken);
 
 /**
  * @route   GET /api/auth/me

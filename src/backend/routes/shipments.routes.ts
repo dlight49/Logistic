@@ -22,9 +22,10 @@ router.post('/', requireAdmin, createShipment);
 router.get('/admin/quotes', requireAdmin, getPendingQuotes);
 router.post('/admin/quotes/:id/approve', requireAdmin, approveQuote);
 router.post('/admin/quotes/:id/reject', requireAdmin, rejectQuote);
-router.patch('/:id', requireAdmin, updateShipment);
 
 // Wildcard routes MUST come last (/:id matches anything)
+// NOTE: Specific routes BEFORE wildcard — order matters!
+router.patch('/:id', requireAdmin, updateShipment);
 router.get('/:id', getShipmentById);
 router.post('/:id/updates', updateShipmentTracking);
 router.put('/:id/updates', updateShipmentTracking); // Add PUT to match frontend calls in ShipmentDetails.tsx

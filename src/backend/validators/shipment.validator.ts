@@ -13,7 +13,8 @@ export const CreateShipmentSchema = z.object({
     receiver_email: z.string().email(),
     weight: z.number().positive(),
     type: z.string().min(1),
-    est_delivery: z.string().min(1)
+    est_delivery: z.string().min(1),
+    insurance_selected: z.boolean().optional()
 });
 
 export const UpdateTrackingSchema = z.object({
