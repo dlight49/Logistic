@@ -17,38 +17,46 @@ export const register = async (req: Request, res: Response) => {
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
+        logger.info(`[AUTH] Registration attempt for email: ${email}`);
 
+        // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email }
         });
 
         if (existingUser) {
+            logger.warn(`[AUTH] Registration failed: Email ${email} already in use`);
             return res.status(400).json({ error: 'User already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-
+        
         const user = await prisma.user.create({
             data: {
                 email,
                 password: hashedPassword,
                 name: name || email.split('@')[0],
                 role: 'customer'
+                // Default settings could be added here
             }
         });
 
+        logger.info(`[AUTH] User registered successfully: ${user.id}`);
+
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
-            JWT_SECRET,
-            { expiresIn: '7d' }
+            process.env.JWT_SECRET || 'fallback_secret',
+            { expiresIn: '30d' }
         );
 
-        // Remove password from response
-        const { password: _, ...userWithoutPassword } = user;
-        res.status(201).json({ user: userWithoutPassword, token });
-    } catch (error) {
-        logger.error('[AUTH] Registration error:', error);
-        res.status(500).json({ error: 'Registration failed' });
+        res.status(201).json({ user, token });
+
+    } catch (error: any) {
+        logger.error(`[AUTH] Critical registration error for ${req.body.email}: ${error.message}`, { 
+            stack: error.stack,
+            body: req.body 
+        });
+        res.status(500).json({ error: 'Registration failed. Please try again later.' });
     }
 };
 
@@ -56,33 +64,22 @@ export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
+        logger.info(`[AUTH] Login attempt for email: ${email}`);
 
-        // === LOCAL DEVELOPMENT BYPASS ===
-        // If testing locally, accept ANY password and ANY email.
-        if (process.env.NODE_ENV !== 'production' && (req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
-            let devUser = await prisma.user.findUnique({ where: { email } });
-            
-            // If the email they typed doesn't exist, just grab the first admin account
-            if (!devUser) {
-                devUser = await prisma.user.findFirst({ where: { role: 'admin' } });
-            }
-
-            if (devUser) {
-                logger.info(`[AUTH] Development bypass used for local testing. Logging in as ${devUser.email}`);
+        // 1. Development login bypass (ONLY in dev, ONLY for specific hostnames)
+        const isLocalhost = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
+        if (process.env.NODE_ENV === 'development' && isLocalhost && password === 'local-dev-bypass') {
+            const user = await prisma.user.findUnique({ where: { email } });
+            if (user) {
+                logger.info(`[AUTH] Successful Dev-Bypass login for ${email}`);
                 const token = jwt.sign(
-                    { id: devUser.id, email: devUser.email, role: devUser.role },
-                    JWT_SECRET || 'dev_secret',
-                    { expiresIn: '7d' }
+                    { id: user.id, email: user.email, role: user.role },
+                    process.env.JWT_SECRET || 'dev_secret',
+                    { expiresIn: '30d' }
                 );
-                const { password: _, ...userWithoutPassword } = devUser;
-                res.json({ user: userWithoutPassword, token });
-                return;
+                return res.json({ user, token });
             }
         }
-        // ================================
 
         const user = await prisma.user.findUnique({
             where: { email }
