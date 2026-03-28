@@ -1,6 +1,7 @@
 import { createAuthClient } from '@neondatabase/neon-js/auth';
 
-// Use environment variable with fallback to the corrected production URL
-const AUTH_URL = import.meta.env.VITE_NEON_AUTH_URL || "https://ep-floral-sunset-aebbrnxj.us-east-2.aws.neon.build/neondb/auth";
+// Use environment variable with fallback to the confirmed production URL
+// The .tech suffix matches the provisioned Data API for this project
+const AUTH_URL = import.meta.env.VITE_NEON_AUTH_URL || "https://ep-floral-sunset-aebbrnxj.neonauth.us-east-2.aws.neon.tech/neondb/auth";
 
 export const authClient = createAuthClient(AUTH_URL);
