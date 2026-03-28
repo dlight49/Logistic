@@ -1,6 +1,16 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 
+export const healthCheck = async (req: Request, res: Response) => {
+    try {
+        // Ping the database to ensure it's awake
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ status: 'healthy', database: 'connected', timestamp: new Date() });
+    } catch (err: any) {
+        res.status(503).json({ status: 'unhealthy', database: 'disconnected', error: err.message });
+    }
+};
+
 // ---- Settings Controller ----
 export const getSettings = async (req: Request, res: Response) => {
     try {

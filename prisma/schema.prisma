@@ -75,6 +75,9 @@ model Shipment {
   notification_logs  NotificationLog[]
   operator           User?             @relation("OperatorShipments", fields: [operator_id], references: [id])
   tracking_updates   TrackingUpdate[]
+
+  @@index([status])
+  @@index([operator_id])
 }
 
 model TrackingUpdate {

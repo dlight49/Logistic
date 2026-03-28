@@ -184,3 +184,30 @@ export const resetUserPassword = async (req: Request, res: Response) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const updateLocation = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const validation = updateLocationSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({ error: 'Invalid location data', details: validation.error.format() });
+        }
+
+        const { lat, lng } = validation.data;
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { 
+                current_lat: lat, 
+                current_lng: lng 
+            }
+        });
+
+        res.json({ success: true });
+    } catch (error: any) {
+        logger.error('[UserController] Error in updateLocation:', { error: error.message || error });
+        res.status(500).json({ error: 'Failed to update location' });
+    }
+};

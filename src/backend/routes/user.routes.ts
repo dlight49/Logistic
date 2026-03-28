@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getUsers, createUser, updateUser, deleteUser, resetUserPassword, getAdmins, updateSelf } from '../controllers/user.controller.js';
+import { getUsers, createUser, updateUser, deleteUser, resetUserPassword, getAdmins, updateSelf, updateLocation } from '../controllers/user.controller.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -8,6 +8,7 @@ router.use(requireAuth);
 
 router.get('/admins', getAdmins);
 router.patch('/me', updateSelf);
+router.patch('/location', updateLocation);
 
 router.use(requireAdmin);
 

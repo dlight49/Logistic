@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { prisma } from '../config/db.js';
-import { getSettings, updateSettings, getNotificationLogs, uploadDoc, updateDocStatus } from '../controllers/misc.controller.js';
+import { getSettings, updateSettings, getNotificationLogs, uploadDoc, updateDocStatus, healthCheck } from '../controllers/misc.controller.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 
 const router = Router();
+
+router.get('/health', healthCheck);
 
 router.put('/users/me', requireAuth, async (req, res) => {
     try {

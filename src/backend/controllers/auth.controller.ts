@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
 
         // === LOCAL DEVELOPMENT BYPASS ===
         // If testing locally, accept ANY password and ANY email.
-        if (req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
+        if (process.env.NODE_ENV !== 'production' && (req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
             let devUser = await prisma.user.findUnique({ where: { email } });
             
             // If the email they typed doesn't exist, just grab the first admin account
@@ -71,7 +71,7 @@ export const login = async (req: Request, res: Response) => {
             }
 
             if (devUser) {
-                logger.info(`[AUTH] Development bypass used. Logging in as ${devUser.email}`);
+                logger.info(`[AUTH] Development bypass used for local testing. Logging in as ${devUser.email}`);
                 const token = jwt.sign(
                     { id: devUser.id, email: devUser.email, role: devUser.role },
                     JWT_SECRET || 'dev_secret',

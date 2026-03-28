@@ -1,22 +1,22 @@
-# 1. Use a lightweight Node.js image
 FROM node:20-alpine
 
-# 2. Set the working directory
+# 1. Install necessary library for Prisma/Node on Alpine
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
-# 3. Copy only the compiled code and production dependencies
+# 2. Copy package files and install ALL dependencies
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install
 
-# 4. Copy the compiled backend from your 'dist' folder
-COPY dist/ ./dist/
+# 3. Copy your entire project (including server.ts and prisma folder)
+COPY . .
 
-# 5. Copy the Prisma folder (needed for the client to talk to Neon)
-COPY prisma/ ./prisma/
+# 4. Generate the Prisma client for your Neon database
 RUN npx prisma generate
 
-# 6. Expose the port your Express app uses
+# 5. Expose the port
 EXPOSE 3000
 
-# 7. Start the app
-CMD ["node", "dist/index.js"]
+# 6. Use 'npm start' which triggers 'tsx server.ts'
+CMD ["npm", "start"]

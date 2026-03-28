@@ -52,24 +52,6 @@ async function startServer() {
   // Modular routes
   app.use('/api', apiRoutes);
 
-  // Real GPS Tracking Endpoint
-  app.put('/api/driver/location', async (req, res) => {
-    const { userId, lat, lng } = req.body;
-    if (!userId || lat === undefined || lng === undefined) {
-      return res.status(400).json({ error: "Missing userId, lat, or lng" });
-    }
-    try {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { current_lat: lat, current_lng: lng }
-      });
-      res.json({ success: true });
-    } catch (err) {
-      logger.error("Failed to update location:", { error: err });
-      res.status(500).json({ error: "Database update failed" });
-    }
-  });
-
   logger.info("[Server] API routes registered");
 
   // Global Error Handler

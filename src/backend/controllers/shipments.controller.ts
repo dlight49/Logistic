@@ -229,8 +229,8 @@ export const assignOperator = async (req: Request, res: Response) => {
         // Notify operator
         await NotificationService.notifyUser(
             operator.id,
-            `New shipment assigned: ${shipmentId}`,
-            'Assignment',
+            `New shipment assigned: ${shipmentId}. Please check your dashboard for details.`,
+            `Assignment: ${shipmentId}`,
             shipmentId
         );
 

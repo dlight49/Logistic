@@ -1,12 +1,18 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
+import { directMessageSchema } from '../validators/support.validator.js';
 
 export const sendDirectMessage = async (req: Request, res: Response) => {
     try {
-        const { receiver_id, text } = req.body;
         const senderId = req.user?.id;
-
         if (!senderId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const validation = directMessageSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({ error: 'Validation failed', details: validation.error.format() });
+        }
+
+        const { receiver_id, text } = validation.data;
 
         const message = await prisma.directMessage.create({
             data: {

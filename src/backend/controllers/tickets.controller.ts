@@ -1,13 +1,19 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { NotificationService } from '../services/notificationService.js';
+import { createTicketSchema, replyTicketSchema } from '../validators/support.validator.js';
 
 export const createTicket = async (req: Request, res: Response) => {
     try {
-        const { subject, text, priority } = req.body;
         const userId = req.user?.id;
-
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const validation = createTicketSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({ error: 'Validation failed', details: validation.error.format() });
+        }
+
+        const { subject, text, priority } = validation.data;
 
         const ticket = await prisma.supportTicket.create({
             data: {

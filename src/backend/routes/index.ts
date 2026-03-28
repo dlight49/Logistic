@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
+import driverRoutes from './driver.routes.js';
 import shipmentsRoutes from './shipments.routes.js';
 import operatorsRoutes from './operators.routes.js';
 import usersRoutes from './user.routes.js';
@@ -12,6 +13,7 @@ import shiftsRoutes from './shifts.routes.js';
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/driver', driverRoutes);
 router.use('/shipments', shipmentsRoutes);
 router.use('/operators', operatorsRoutes);
 router.use('/users', usersRoutes);

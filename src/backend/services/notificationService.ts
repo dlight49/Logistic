@@ -10,7 +10,8 @@ if (!resendApiKey) {
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 interface NotificationPayload {
-    userId: string;
+    userId?: string;
+    receiverEmail?: string;
     type: 'EMAIL' | 'SMS' | 'PUSH';
     subject?: string;
     message: string;
@@ -27,23 +28,29 @@ class ResendEmailProvider implements NotificationProvider {
         if (payload.type !== 'EMAIL') return false;
 
         try {
-            // Find the user's email if not provided in metadata
-            const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-            if (!user?.email) {
-                logger.error(`User ${payload.userId} has no email address`);
-                return false;
+            let targetEmail = payload.receiverEmail;
+
+            // If userId is provided, try to find their email
+            if (!targetEmail && payload.userId) {
+                const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+                targetEmail = user?.email || undefined;
             }
 
-            logger.info(`[RESEND] Sending email to ${user.email}: ${payload.subject}`);
+            if (!targetEmail) {
+                logger.error(`No target email found for notification (userId: ${payload.userId}, shipmentId: ${payload.shipmentId})`);
+                return false;
+            }
 
             if (!resend) {
-                logger.warn("[RESEND] Client not initialized — skipping email send");
-                return false;
+                logger.warn(`[RESEND] Client not initialized — logging intent to send email to ${targetEmail}`);
+                return true; // Return true as we've "handled" it by logging
             }
+
+            logger.info(`[RESEND] Sending email to ${targetEmail}: ${payload.subject}`);
 
             const { data, error } = await resend.emails.send({
                 from: 'Lumin Logistics <notifications@resend.dev>', // Resend verified domain required for prod
-                to: user.email,
+                to: targetEmail,
                 subject: payload.subject || 'Shipment Update',
                 html: `<p>${payload.message}</p><br/><strong>Lumin Logistics Team</strong>`,
             });
@@ -116,6 +123,16 @@ export class NotificationService {
     static async notifyUser(userId: string, message: string, subject?: string, shipmentId?: string) {
         return await this.notify({
             userId,
+            type: 'EMAIL',
+            subject: subject || 'Logistics Update',
+            message,
+            shipmentId
+        });
+    }
+
+    static async notifyEmail(email: string, message: string, subject?: string, shipmentId?: string) {
+        return await this.notify({
+            receiverEmail: email,
             type: 'EMAIL',
             subject: subject || 'Logistics Update',
             message,
