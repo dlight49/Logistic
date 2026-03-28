@@ -11,33 +11,31 @@ export default function AdminLogin() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
+    const { login, user } = useAuth();
+    ...
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         setLoading(true);
 
         try {
-            const response = await apiFetch("/api/auth/login", {
-                method: "POST",
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await response.json();
-
-            if (data.user.role !== 'admin') {
-                throw new Error("Access denied. Admin credentials required.");
-            }
-
-            login(data.user, data.token);
-            navigate('/admin');
+            await login(email, password);
         } catch (err: any) {
             setError(err.message || "Login failed. Please check your credentials.");
-        } finally {
             setLoading(false);
         }
     };
+
+    // Separate effect for navigation after login success
+    React.useEffect(() => {
+        if (user) {
+            if (user.role !== 'admin') {
+                setError("Access denied. Admin credentials required.");
+            } else {
+                navigate('/admin');
+            }
+        }
+    }, [user, navigate]);
 
     return (
         <div className="relative flex min-h-screen w-full flex-col bg-slate-950 text-white overflow-x-hidden font-sans">

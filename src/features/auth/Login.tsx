@@ -19,28 +19,23 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await apiFetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      // Update local context
-      login(data.user, data.token);
-
-      // Navigate based on role
-      const userRole = data.user.role;
-      if (userRole === 'admin') navigate('/admin');
-      else if (userRole === 'operator') navigate('/driver');
-      else navigate('/customer');
+      await login(email, password);
+      // AuthContext will update 'user', we can navigate now
     } catch (err: any) {
       console.error("[LOGIN ERROR]", err);
       setError(err.message || "Invalid email or password. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
+
+  // Separate effect for navigation after login success
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'operator') navigate('/driver');
+      else navigate('/customer');
+    }
+  }, [user, navigate]);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">

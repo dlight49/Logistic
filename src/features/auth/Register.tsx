@@ -13,8 +13,8 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
+    const { register } = useAuth();
+    ...
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -26,17 +26,8 @@ export default function Register() {
         setLoading(true);
 
         try {
-            const response = await apiFetch("/api/auth/register", {
-                method: "POST",
-                body: JSON.stringify({ name, email, password }),
-            });
-
-            const data = await response.json();
-
-            // Successfully registered! Log the user in automatically with the returned token
-            login(data.user, data.token);
-
-            // Redirect to customer dashboard (default for new registrations)
+            await register(name, email, password);
+            // Redirect to customer dashboard
             navigate('/customer');
         } catch (err: any) {
             console.error("[REGISTER ERROR]", err);

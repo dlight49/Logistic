@@ -11,35 +11,30 @@ export default function CustomerLogin() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
+    const { login, user } = useAuth();
+    ...
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         setLoading(true);
 
         try {
-            const response = await apiFetch("/api/auth/login", {
-                method: "POST",
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await response.json();
-
-            login(data.user, data.token);
-
-            // Navigate based on role (even though this is a customer login page, 
-            // the system should handle existing logins gracefully)
-            const userRole = data.user.role;
-            if (userRole === 'admin') navigate('/admin');
-            else if (userRole === 'operator') navigate('/driver');
-            else navigate('/customer');
+            await login(email, password);
         } catch (err: any) {
             setError(err.message || "Login failed. Please check your credentials.");
-        } finally {
             setLoading(false);
         }
     };
+
+    // Separate effect for navigation after login success
+    React.useEffect(() => {
+        if (user) {
+            const userRole = user.role;
+            if (userRole === 'admin') navigate('/admin');
+            else if (userRole === 'operator') navigate('/driver');
+            else navigate('/customer');
+        }
+    }, [user, navigate]);
 
     return (
         <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden font-sans">

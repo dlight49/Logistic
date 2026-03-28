@@ -11,34 +11,31 @@ export default function DriverLogin() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
+    const { login, user } = useAuth();
+    ...
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         setLoading(true);
 
         try {
-            const response = await apiFetch("/api/auth/login", {
-                method: "POST",
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await response.json();
-
-            // NOTE: Drivers are stored with role='operator' (canonical DB value).
-            if (data.user.role !== 'operator' && data.user.role !== 'admin') {
-                throw new Error("Access denied. Driver credentials required.");
-            }
-
-            login(data.user, data.token);
-            navigate('/driver');
+            await login(email, password);
         } catch (err: any) {
             setError(err.message || "Login failed. Please check your credentials.");
-        } finally {
             setLoading(false);
         }
     };
+
+    // Separate effect for navigation after login success
+    React.useEffect(() => {
+        if (user) {
+            if (user.role !== 'operator' && user.role !== 'admin') {
+                setError("Access denied. Driver credentials required.");
+            } else {
+                navigate('/driver');
+            }
+        }
+    }, [user, navigate]);
 
     return (
         <div className="relative flex min-h-screen w-full flex-col bg-slate-900 text-white overflow-x-hidden font-sans">
