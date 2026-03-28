@@ -1,18 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, Lock, Eye, EyeOff, HelpCircle, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { apiFetch } from "../../utils/api";
 
 export default function CustomerLogin() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const { login, user } = useAuth();
-    ...
+    const [loading, setLoading] = useState(false);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -27,7 +26,7 @@ export default function CustomerLogin() {
     };
 
     // Separate effect for navigation after login success
-    React.useEffect(() => {
+    useEffect(() => {
         if (user) {
             const userRole = user.role;
             if (userRole === 'admin') navigate('/admin');

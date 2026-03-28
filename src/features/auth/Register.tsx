@@ -2,19 +2,18 @@ import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { apiFetch } from "../../utils/api";
 
 export default function Register() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { register } = useAuth();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const { register } = useAuth();
-    ...
+    const [loading, setLoading] = useState(false);
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");

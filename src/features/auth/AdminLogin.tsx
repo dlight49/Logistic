@@ -1,18 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Shield, Lock, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { apiFetch } from "../../utils/api";
 
 export default function AdminLogin() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const { login, user } = useAuth();
-    ...
+    const [loading, setLoading] = useState(false);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -27,7 +26,7 @@ export default function AdminLogin() {
     };
 
     // Separate effect for navigation after login success
-    React.useEffect(() => {
+    useEffect(() => {
         if (user) {
             if (user.role !== 'admin') {
                 setError("Access denied. Admin credentials required.");
