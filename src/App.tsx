@@ -35,7 +35,7 @@ import TicketList from "./features/customer/TicketList";
 import TicketDetail from "./features/customer/TicketDetail";
 import PrivacyPolicy from "./features/public/PrivacyPolicy";
 import TermsOfService from "./features/public/TermsOfService";
-import CookieConsent from "./components/CookieConsent";
+import { NeonAuthPage, NeonAccountPage } from "./features/auth/NeonAuth";
 
 export default function App(): ReactNode {
   return (
@@ -50,10 +50,11 @@ export default function App(): ReactNode {
               <Route path="/track" element={<TrackingPage />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/login" element={<Login mode="customer" />} />
-              <Route path="/admin/login" element={<Login mode="admin" />} />
-              <Route path="/driver/login" element={<Login mode="driver" />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<NeonAuthPage />} />
+              <Route path="/admin/login" element={<NeonAuthPage />} />
+              <Route path="/driver/login" element={<NeonAuthPage />} />
+              <Route path="/account" element={<ProtectedRoute><NeonAccountPage /></ProtectedRoute>} />
+              <Route path="/register" element={<Navigate to="/login" replace />} />
 
               {/* Customer Routes */}
               <Route path="/customer" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerDashboard /></ProtectedRoute>} />

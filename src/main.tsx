@@ -1,5 +1,7 @@
 import React, { StrictMode, Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
+import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth';
+import { authClient } from './auth';
 import App from './App.tsx';
 import './index.css';
 
@@ -28,7 +30,9 @@ if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <ErrorBoundary>
-        <App />
+        <NeonAuthUIProvider authClient={authClient}>
+          <App />
+        </NeonAuthUIProvider>
       </ErrorBoundary>
     </StrictMode>,
   );
