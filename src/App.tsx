@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./features/auth/AuthContext";
+import { ToastProvider } from "./components/ToastProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./features/public/LandingPage";
 import TrackingPage from "./features/public/TrackingPage";
@@ -18,9 +19,6 @@ import DriverDashboard from "./features/driver/DriverDashboard";
 import ShipmentDetails from "./features/driver/ShipmentDetails";
 import CustomsPortal from "./features/driver/CustomsPortal";
 import Login from "./features/auth/Login";
-import AdminLogin from "./features/auth/AdminLogin";
-import DriverLogin from "./features/auth/DriverLogin";
-import CustomerLogin from "./features/auth/CustomerLogin";
 import Register from "./features/auth/Register";
 import CustomerSettings from "./features/customer/CustomerSettings";
 import AdminSettings from "./features/admin/AdminSettings";
@@ -42,59 +40,60 @@ import CookieConsent from "./components/CookieConsent";
 export default function App(): ReactNode {
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
-          <CookieConsent />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/track" element={<TrackingPage />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/login" element={<CustomerLogin />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/driver/login" element={<DriverLogin />} />
-            <Route path="/register" element={<Register />} />
+      <ToastProvider>
+        <Router>
+          <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+            <CookieConsent />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/track" element={<TrackingPage />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/login" element={<Login mode="customer" />} />
+              <Route path="/admin/login" element={<Login mode="admin" />} />
+              <Route path="/driver/login" element={<Login mode="driver" />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Customer Routes */}
-            <Route path="/customer" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerDashboard /></ProtectedRoute>} />
-            <Route path="/customer/history" element={<ProtectedRoute allowedRoles={["customer"]}><ShipmentHistory /></ProtectedRoute>} />
-            <Route path="/customer/settings" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerSettings /></ProtectedRoute>} />
-            <Route path="/customer/tickets" element={<ProtectedRoute allowedRoles={["customer"]}><TicketList /></ProtectedRoute>} />
-            <Route path="/customer/tickets/:id" element={<ProtectedRoute allowedRoles={["customer"]}><TicketDetail /></ProtectedRoute>} />
-            <Route path="/customer/shipment/:id" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerShipmentDetail /></ProtectedRoute>} />
+              {/* Customer Routes */}
+              <Route path="/customer" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerDashboard /></ProtectedRoute>} />
+              <Route path="/customer/history" element={<ProtectedRoute allowedRoles={["customer"]}><ShipmentHistory /></ProtectedRoute>} />
+              <Route path="/customer/settings" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerSettings /></ProtectedRoute>} />
+              <Route path="/customer/tickets" element={<ProtectedRoute allowedRoles={["customer"]}><TicketList /></ProtectedRoute>} />
+              <Route path="/customer/tickets/:id" element={<ProtectedRoute allowedRoles={["customer"]}><TicketDetail /></ProtectedRoute>} />
+              <Route path="/customer/shipment/:id" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerShipmentDetail /></ProtectedRoute>} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/shipments" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentRegistry /></ProtectedRoute>} />
-            <Route path="/admin/create" element={<ProtectedRoute allowedRoles={["admin"]}><CreateShipment /></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
-            <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><AdminNotifications /></ProtectedRoute>} />
-            <Route path="/admin/operators" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorManagement /></ProtectedRoute>} />
-            <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><UserManagement /></ProtectedRoute>} />
-            <Route path="/admin/drivers" element={<ProtectedRoute allowedRoles={["admin"]}><DriverDirectory /></ProtectedRoute>} />
-            <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSupport /></ProtectedRoute>} />
-            <Route path="/admin/support/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTicketDetail /></ProtectedRoute>} />
-            <Route path="/admin/chat" element={<ProtectedRoute allowedRoles={["admin"]}><AdminChat /></ProtectedRoute>} />
-            <Route path="/admin/operator/:id" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorProfileView /></ProtectedRoute>} />
-            <Route path="/admin/shipment/:id" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentDetailView /></ProtectedRoute>} />
-            <Route path="/admin/quotes" element={<ProtectedRoute allowedRoles={["admin"]}><QuoteManagement /></ProtectedRoute>} />
-            <Route path="/admin/quotes/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminQuoteDetail /></ProtectedRoute>} />
+              {/* Admin Routes */}
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/shipments" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentRegistry /></ProtectedRoute>} />
+              <Route path="/admin/create" element={<ProtectedRoute allowedRoles={["admin"]}><CreateShipment /></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
+              <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><AdminNotifications /></ProtectedRoute>} />
+              <Route path="/admin/operators" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorManagement /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><UserManagement /></ProtectedRoute>} />
+              <Route path="/admin/drivers" element={<ProtectedRoute allowedRoles={["admin"]}><DriverDirectory /></ProtectedRoute>} />
+              <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSupport /></ProtectedRoute>} />
+              <Route path="/admin/support/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTicketDetail /></ProtectedRoute>} />
+              <Route path="/admin/chat" element={<ProtectedRoute allowedRoles={["admin"]}><AdminChat /></ProtectedRoute>} />
+              <Route path="/admin/operator/:id" element={<ProtectedRoute allowedRoles={["admin"]}><OperatorProfileView /></ProtectedRoute>} />
+              <Route path="/admin/shipment/:id" element={<ProtectedRoute allowedRoles={["admin"]}><ShipmentDetailView /></ProtectedRoute>} />
+              <Route path="/admin/quotes" element={<ProtectedRoute allowedRoles={["admin"]}><QuoteManagement /></ProtectedRoute>} />
+              <Route path="/admin/quotes/:id" element={<ProtectedRoute allowedRoles={["admin"]}><AdminQuoteDetail /></ProtectedRoute>} />
 
-            {/* Driver Routes — NOTE: allowedRoles uses 'operator' (canonical DB value).
-                The UI displays this role as "Driver". */}
-            <Route path="/driver" element={<ProtectedRoute allowedRoles={["operator"]}><DriverDashboard /></ProtectedRoute>} />
-            <Route path="/driver/shipment/:id" element={<ProtectedRoute allowedRoles={["operator"]}><ShipmentDetails /></ProtectedRoute>} />
-            <Route path="/driver/customs/:id" element={<ProtectedRoute allowedRoles={["operator"]}><CustomsPortal /></ProtectedRoute>} />
-            <Route path="/driver/documents" element={<ProtectedRoute allowedRoles={["operator"]}><CustomsPortal /></ProtectedRoute>} />
-            <Route path="/driver/chat" element={<ProtectedRoute allowedRoles={["operator"]}><DriverChat /></ProtectedRoute>} />
-            <Route path="/driver/profile" element={<ProtectedRoute allowedRoles={["operator"]}><DriverSettings /></ProtectedRoute>} />
+              {/* Driver Routes */}
+              <Route path="/driver" element={<ProtectedRoute allowedRoles={["operator"]}><DriverDashboard /></ProtectedRoute>} />
+              <Route path="/driver/shipment/:id" element={<ProtectedRoute allowedRoles={["operator"]}><ShipmentDetails /></ProtectedRoute>} />
+              <Route path="/driver/customs/:id" element={<ProtectedRoute allowedRoles={["operator"]}><CustomsPortal /></ProtectedRoute>} />
+              <Route path="/driver/documents" element={<ProtectedRoute allowedRoles={["operator"]}><CustomsPortal /></ProtectedRoute>} />
+              <Route path="/driver/chat" element={<ProtectedRoute allowedRoles={["operator"]}><DriverChat /></ProtectedRoute>} />
+              <Route path="/driver/profile" element={<ProtectedRoute allowedRoles={["operator"]}><DriverSettings /></ProtectedRoute>} />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Router>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </Router>
+      </ToastProvider>
     </AuthProvider>
   );
 }

@@ -31,12 +31,17 @@ import { motion } from "motion/react";
 export default function AdminDashboard(): ReactNode {
   const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
 
   useEffect(() => {
-    apiFetch("/api/stats")
-      .then(res => res.json())
-      .then(setStats)
-      .catch(console.error);
+    // Parallel fetch for speed
+    Promise.all([
+      apiFetch("/api/stats").then(res => res.json()),
+      apiFetch("/api/shipments?limit=5").then(res => res.json())
+    ]).then(([statsData, shipmentsData]) => {
+      setStats(statsData);
+      setRecentShipments(shipmentsData.shipments || []);
+    }).catch(console.error);
   }, []);
 
   return (
@@ -84,14 +89,41 @@ export default function AdminDashboard(): ReactNode {
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-4">
             <div className="flex items-center justify-between">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Network Overview</h2>
-                <span className="text-[9px] font-bold bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">LIVE</span>
+                <TrendingUp className="w-4 h-4 text-blue-500/50" />
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="w-5 h-5 text-blue-400" />} />
-              <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="w-5 h-5 text-cyan-400" />} />
+              <StatCard label="Total Volume" value={stats?.total || 0} icon={<Package className="w-5 h-5 text-blue-400" />} trend="+12%" />
+              <StatCard label="In Transit" value={stats?.inTransit || 0} icon={<Truck className="w-5 h-5 text-cyan-400" />} trend="+5%" />
               <StatCard label="Customs Hold" value={stats?.inCustoms || 0} icon={<Gavel className="w-5 h-5 text-amber-400" />} alert={stats?.inCustoms && stats.inCustoms > 0 ? true : false} />
               <StatCard label="Exceptions" value={stats?.issues || 0} icon={<AlertTriangle className="w-5 h-5 text-rose-400" />} alert={stats?.issues && stats.issues > 0 ? true : false} />
+            </div>
+        </motion.section>
+
+        {/* Volume Trend */}
+        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-4">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">7-Day Volume Trend</h2>
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group">
+                <div className="flex items-end justify-between gap-2 h-24">
+                    {[35, 45, 30, 60, 40, 75, 55].map((val, i) => (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                           <motion.div 
+                              initial={{ height: 0 }}
+                              animate={{ height: `${val}%` }}
+                              transition={{ duration: 1, delay: 0.5 + (i * 0.1) }}
+                              className={cn(
+                                "w-full min-w-[8px] max-w-[12px] rounded-full bg-gradient-to-t transition-all",
+                                i === 5 ? "from-blue-600 to-cyan-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "from-slate-700 to-slate-500 opacity-40 group-hover:opacity-60"
+                              )}
+                           />
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-between mt-4">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                        <span key={i} className={cn("text-[8px] font-black uppercase tracking-widest", i === 5 ? "text-blue-400" : "text-slate-500")}>{day}</span>
+                    ))}
+                </div>
             </div>
         </motion.section>
 
@@ -115,8 +147,46 @@ export default function AdminDashboard(): ReactNode {
             </div>
         </motion.section>
 
+        {/* Recent Activity */}
+        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Recent Activity</h2>
+                <Link to="/admin/shipments" className="text-[9px] font-black text-blue-400 uppercase tracking-widest hover:underline">View All</Link>
+            </div>
+            
+            <div className="space-y-3">
+                {recentShipments.length > 0 ? recentShipments.map((s, i) => (
+                    <Link key={s.id} to={`/admin/shipments/${s.id}`} className="flex items-center justify-between p-4 glass-panel bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-hover:scale-110 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all">
+                                <Package className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h4 className="text-xs font-bold text-white truncate max-w-[120px]">{s.id}</h4>
+                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{s.sender_city} → {s.receiver_city}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                           <span className={cn(
+                             "text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full border",
+                             s.status === 'Delivered' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                             s.status === 'Delayed' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                             "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                           )}>
+                             {s.status}
+                           </span>
+                        </div>
+                    </Link>
+                )) : (
+                    <div className="text-center py-8 glass-panel rounded-2xl border border-dashed border-white/10">
+                        <p className="text-xs text-slate-500 font-bold">No recent shipments found.</p>
+                    </div>
+                )}
+            </div>
+        </motion.section>
+
         {/* Action Banners */}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="space-y-3">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.35 }} className="space-y-3 pb-8">
             <Link to="/admin/create" className="flex items-center justify-between p-5 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-[2rem] hover:bg-blue-600/30 transition-colors active:scale-98">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-500 shadow-lg shadow-blue-500/40 rounded-2xl flex items-center justify-center text-white">
@@ -156,20 +226,36 @@ function QuickAction({ icon, label, path, color, badge }: { icon: ReactNode, lab
     );
 }
 
-function StatCard({ label, value, icon, alert }: { label: string, value: number, icon: ReactNode, alert?: boolean }) {
+function StatCard({ label, value, icon, alert, trend }: { label: string, value: number, icon: ReactNode, alert?: boolean, trend?: string }) {
   return (
     <div className={cn(
-        "p-4 rounded-[1.5rem] border backdrop-blur-md shadow-lg flex flex-col justify-between min-h-[110px]",
+        "p-4 rounded-[1.5rem] border backdrop-blur-md shadow-lg flex flex-col justify-between min-h-[114px] overflow-hidden relative group",
         alert ? "bg-rose-500/10 border-rose-500/20" : "bg-white/5 border-white/10"
     )}>
-      <div className="flex justify-between items-start">
-        <div className="p-2 bg-[#020617]/50 rounded-xl shadow-inner">
+      <div className="flex justify-between items-start z-10">
+        <div className="p-2 bg-[#020617]/50 rounded-xl shadow-inner border border-white/5">
           {icon}
         </div>
+        {trend && (
+            <span className="text-[8px] font-black text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded-full border border-blue-500/20">{trend}</span>
+        )}
       </div>
-      <div>
+      <div className="z-10 mt-auto">
         <h3 className={cn("text-2xl font-black tracking-tighter leading-none mb-1", alert ? "text-rose-400" : "text-white")}>{value}</h3>
         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
+      </div>
+
+      {/* Background Sparkline Simulation */}
+      <div className="absolute bottom-0 right-0 left-0 h-1/2 opacity-10 group-hover:opacity-20 transition-opacity">
+          <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+              <path 
+                d="M0,40 Q20,10 40,30 T80,0 T100,40" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                className={alert ? "text-rose-500" : "text-blue-500"} 
+              />
+          </svg>
       </div>
     </div>
   );

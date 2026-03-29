@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Truck, HelpCircle, User, Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { motion } from "motion/react";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -49,11 +50,20 @@ export default function Register() {
             </header>
 
             <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-                <div className="w-full max-w-md">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full max-w-md"
+                >
                     <div className="text-center mb-10">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/20 dark:bg-primary/30 rounded-full mb-6 ring-4 ring-primary/5">
+                        <motion.div 
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.2 }}
+                          className="inline-flex items-center justify-center w-20 h-20 bg-primary/20 dark:bg-primary/30 rounded-full mb-6 ring-4 ring-primary/5"
+                        >
                             <User className="text-primary w-10 h-10" />
-                        </div>
+                        </motion.div>
                         <h1 className="text-3xl font-bold leading-tight tracking-tight">Create Account</h1>
                         <p className="text-slate-500 dark:text-slate-400 mt-2 text-base">Sign up to manage your shipments</p>
                     </div>
@@ -152,7 +162,7 @@ export default function Register() {
                             Already have an account? <Link to="/login" className="text-primary dark:text-primary-light font-bold hover:underline">Log In</Link>
                         </p>
                     </div>
-                </div>
+                </motion.div>
             </main>
 
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">

@@ -10,7 +10,7 @@ import { apiFetch } from "../utils/api";
 export function useDriverTracking() {
     const { user } = useAuth();
     const lastSyncRef = useRef<number>(0);
-    const syncInterval = 60000; // Sync every 60 seconds
+    const syncInterval = 30000; // Sync every 30 seconds for better real-time accuracy
 
     useEffect(() => {
         if (!user || user.role !== "operator") return;
@@ -22,6 +22,11 @@ export function useDriverTracking() {
 
         const watchId = navigator.geolocation.watchPosition(
             async (position) => {
+                if (!navigator.onLine) {
+                    console.warn("[Tracking] Device is offline. Skipping sync.");
+                    return;
+                }
+
                 const now = Date.now();
                 if (now - lastSyncRef.current < syncInterval) return;
 
@@ -39,10 +44,11 @@ export function useDriverTracking() {
 
                     if (response.ok) {
                         lastSyncRef.current = now;
-                        console.log(`[Tracking] Synced location: ${latitude}, ${longitude}`);
+                    } else {
+                        throw new Error(`Server responded with ${response.status}`);
                     }
                 } catch (err) {
-                    console.error("[Tracking] Failed to sync driver location", err);
+                    console.error("[Tracking] Sync failed. Will retry on next movement.", err);
                 }
             },
             (error) => {
@@ -50,8 +56,8 @@ export function useDriverTracking() {
             },
             {
                 enableHighAccuracy: true,
-                maximumAge: 30000,
-                timeout: 27000
+                maximumAge: 15000, // Reduced for better accuracy
+                timeout: 20000
             }
         );
 

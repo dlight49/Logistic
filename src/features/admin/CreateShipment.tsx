@@ -2,11 +2,13 @@ import React, { useState, InputHTMLAttributes, ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, User, MapPin, Package, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 import { motion } from "motion/react";
 import { cn } from "../../utils";
 
 export default function CreateShipment(): ReactNode {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     sender_name: "",
@@ -40,10 +42,13 @@ export default function CreateShipment(): ReactNode {
         method: "POST",
         body: JSON.stringify(formData)
       });
+      showToast("Shipment initialized successfully!", "success");
       navigate("/admin");
     } catch (error) {
       console.error("Failed to create shipment:", error);
-      setSubmitError(error instanceof Error ? error.message : "Failed to create shipment. Please try again.");
+      const msg = error instanceof Error ? error.message : "Failed to create shipment.";
+      setSubmitError(msg);
+      showToast(msg, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,11 +62,13 @@ export default function CreateShipment(): ReactNode {
         method: "POST",
         body: JSON.stringify({ ...formData, status: "Draft" })
       });
-      alert("Draft saved successfully!");
+      showToast("Draft saved successfully!", "success");
       navigate("/admin");
     } catch (error) {
       console.error("Failed to save draft:", error);
-      setSubmitError(error instanceof Error ? error.message : "Failed to save draft. Please try again.");
+      const msg = error instanceof Error ? error.message : "Failed to save draft.";
+      setSubmitError(msg);
+      showToast(msg, "error");
     } finally {
       setIsSubmitting(false);
     }

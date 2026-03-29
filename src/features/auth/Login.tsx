@@ -1,17 +1,35 @@
-import React, { useState } from "react";
-import { Truck, HelpCircle, User, Lock, Eye, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { apiFetch } from "../../utils/api";
+import { motion } from "motion/react";
+import { Truck, User, Lock, Eye, EyeOff, HelpCircle } from "lucide-react";
 
-export default function Login() {
+interface LoginProps {
+  mode?: "customer" | "admin" | "driver";
+}
+
+export default function Login({ mode = "customer" }: LoginProps) {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const getThemeColor = () => {
+    if (mode === 'admin') return 'rose';
+    if (mode === 'driver') return 'amber';
+    return 'accent';
+  };
+
+  const getIcon = () => {
+    if (mode === 'admin') return <Lock className="text-rose-500 w-10 h-10" />;
+    if (mode === 'driver') return <Truck className="text-amber-500 w-10 h-10" />;
+    return <User className="text-accent w-10 h-10" />;
+  };
+
+  const themeClass = getThemeColor();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +38,6 @@ export default function Login() {
 
     try {
       await login(email, password);
-      // AuthContext will update 'user', we can navigate now
     } catch (err: any) {
       console.error("[LOGIN ERROR]", err);
       setError(err.message || "Invalid email or password. Please try again.");
@@ -28,7 +45,6 @@ export default function Login() {
     }
   };
 
-  // Separate effect for navigation after login success
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') navigate('/admin');
@@ -50,13 +66,26 @@ export default function Login() {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
+        >
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/20 dark:bg-primary/30 rounded-full mb-6 ring-4 ring-primary/5">
-              <User className="text-accent w-10 h-10" />
-            </div>
-            <h1 className="text-3xl font-bold leading-tight tracking-tight">Welcome Back</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 text-base">Please sign in to access your dashboard</p>
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className={`inline-flex items-center justify-center w-20 h-20 bg-primary/20 dark:bg-primary/30 rounded-full mb-6 ring-4 ring-primary/5`}
+            >
+              {getIcon()}
+            </motion.div>
+            <h1 className="text-3xl font-bold leading-tight tracking-tight">
+              {mode === 'admin' ? 'Admin Access' : mode === 'driver' ? 'Driver Portal' : 'Welcome Back'}
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-base">
+              {mode === 'admin' ? 'Secure terminal for authorized staff' : 'Sign in to start your shift'}
+            </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -127,10 +156,10 @@ export default function Login() {
 
           <div className="mt-12 text-center">
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              New customer? <button onClick={() => navigate('/register')} className="text-primary dark:text-slate-200 font-bold hover:underline">Create an Account</button>
+              New customer? <button onClick={() => navigate('/register')} className="text-accent font-bold hover:underline">Create an Account</button>
             </p>
           </div>
-        </div>
+        </motion.div>
       </main>
 
       <footer className="p-6 text-center">

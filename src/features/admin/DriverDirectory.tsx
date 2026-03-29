@@ -112,7 +112,24 @@ export default function DriverDirectory() {
                                 </div>
 
                                 <h3 className="text-base sm:text-lg font-bold mb-1 truncate">{driver.name}</h3>
-                                <p className="text-xs sm:text-sm text-slate-500 mb-6 truncate">{driver.email}</p>
+                                <div className="flex items-center gap-4 mb-4">
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Performance</span>
+                                    <div className="flex items-center gap-1">
+                                      <div className="flex">
+                                        {[1, 2, 3, 4, 5].map(s => (
+                                          <div key={s} className={cn("w-1.5 h-3 rounded-full mr-0.5", s <= 4 ? "bg-emerald-500" : "bg-slate-700")} />
+                                        ))}
+                                      </div>
+                                      <span className="text-[10px] font-black text-emerald-400 ml-1">4.8</span>
+                                    </div>
+                                  </div>
+                                  <div className="w-px h-6 bg-white/5" />
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Active Loads</span>
+                                    <span className="text-xs font-black text-white">3 Units</span>
+                                  </div>
+                                </div>
 
                                 <div className="space-y-3 pt-4 border-t border-slate-800">
                                     <div className="flex items-center gap-2 text-[11px] sm:text-sm text-slate-400">

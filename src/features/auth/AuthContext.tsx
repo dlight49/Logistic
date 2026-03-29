@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { authClient } from "../../auth";
+import { api } from "../../services/api";
 
 type UserRole = 'customer' | 'admin' | 'operator';
 
@@ -29,69 +29,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sync session on mount
   useEffect(() => {
     const syncSession = async () => {
-      try {
-        const result = await authClient.getSession();
-        if (result.data?.session && result.data?.user) {
-          // Map Neon Auth user to our application User type
-          // Note: In a real app, you might fetch additional metadata (like 'role') from a custom table
-          const neonUser = result.data.user;
-          setUser({
-            id: neonUser.id,
-            email: neonUser.email,
-            name: neonUser.name || '',
-            role: (neonUser as any).role || 'customer', // Use metadata if available, else default
-            image: neonUser.image || undefined
-          });
+      const token = localStorage.getItem('lumin_token');
+      const savedUser = localStorage.getItem('lumin_user');
+      
+      if (token && savedUser) {
+        try {
+          // Verify token with backend
+          const response = await api.get('/auth/me');
+          setUser(response.data);
+          localStorage.setItem('lumin_user', JSON.stringify(response.data));
+        } catch (err) {
+          console.error("[AUTH] Session sync failed:", err);
+          localStorage.removeItem('lumin_token');
+          localStorage.removeItem('lumin_user');
+          setUser(null);
         }
-      } catch (err) {
-        console.error("[AUTH] Session sync failed:", err);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     syncSession();
+
+    // Listen for session expiration from api.ts
+    const handleSessionExpired = () => {
+      setUser(null);
+    };
+    window.addEventListener('session-expired', handleSessionExpired);
+    return () => window.removeEventListener('session-expired', handleSessionExpired);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const result = await authClient.signIn.email({ email, password });
-    if (result.error) throw new Error(result.error.message);
-
-    const session = await authClient.getSession();
-    if (session.data?.user) {
-        const u = session.data.user;
-        setUser({
-            id: u.id,
-            email: u.email,
-            name: u.name || '',
-            role: (u as any).role || 'customer'
-        });
-    }
+    const response = await api.post('/auth/login', { email, password });
+    const { user: userData, token, refreshToken } = response.data;
+    
+    localStorage.setItem('lumin_token', token);
+    localStorage.setItem('lumin_refresh_token', refreshToken);
+    localStorage.setItem('lumin_user', JSON.stringify(userData));
+    
+    setUser(userData);
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const result = await authClient.signUp.email({ name, email, password });
-    if (result.error) throw new Error(result.error.message);
-
-    const session = await authClient.getSession();
-    if (session.data?.user) {
-        const u = session.data.user;
-        setUser({
-            id: u.id,
-            email: u.email,
-            name: u.name || '',
-            role: 'customer'
-        });
-    }
+    const response = await api.post('/auth/register', { name, email, password });
+    const { user: userData, token } = response.data;
+    
+    localStorage.setItem('lumin_token', token);
+    localStorage.setItem('lumin_user', JSON.stringify(userData));
+    
+    setUser(userData);
   };
 
   const logout = async () => {
-    await authClient.signOut();
+    localStorage.removeItem('lumin_token');
+    localStorage.removeItem('lumin_refresh_token');
+    localStorage.removeItem('lumin_user');
     setUser(null);
   };
 
   const updateUser = (userData: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...userData } : null);
+    setUser(prev => {
+      const newUser = prev ? { ...prev, ...userData } : null;
+      if (newUser) {
+        localStorage.setItem('lumin_user', JSON.stringify(newUser));
+      }
+      return newUser;
+    });
   };
 
   return (

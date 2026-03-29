@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Bell, CloudUpload, CheckCircle2, Clock, Eye, Download, AlertCircle, Home, Truck, FileText, User, X } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "motion/react";
 import { Shipment, CustomsDoc } from "../../types";
+import { useToast } from "../../components/ToastProvider";
 import { cn } from "../../utils";
 import { apiFetch } from "../../utils/api";
 
@@ -11,10 +12,13 @@ type CustomsShipment = Shipment & { docs: CustomsDoc[] };
 export default function CustomsPortal(): ReactNode {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [shipment, setShipment] = useState<CustomsShipment | null>(null);
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
   const [newDocType, setNewDocType] = useState<string>("Bill of Lading");
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const fetchShipment = () => {
@@ -26,20 +30,31 @@ export default function CustomsPortal(): ReactNode {
   }, [id]);
 
   const handleUpload = async () => {
+    if (!selectedFile) {
+      showToast("Please select a file to upload.", "error");
+      return;
+    }
     setLoading(true);
     try {
-      // Simulate premium loading delay
-      await new Promise(r => setTimeout(r, 800));
+      // simulate realistic file upload
+      await new Promise(r => setTimeout(r, 1200));
       const res = await apiFetch(`/api/shipments/${id}/docs`, {
         method: "POST",
-        body: JSON.stringify({ doc_type: newDocType })
+        body: JSON.stringify({ 
+          doc_type: newDocType,
+          file_name: selectedFile.name,
+          file_size: selectedFile.size
+        })
       });
       if (res.ok) {
+        showToast(`${newDocType} uploaded successfully!`, "success");
         setShowUploadModal(false);
+        setSelectedFile(null);
         fetchShipment();
       }
     } catch (err) {
       console.error(err);
+      showToast("Failed to upload document. Please try again.", "error");
     } finally {
       setLoading(false);
     }
@@ -51,9 +66,13 @@ export default function CustomsPortal(): ReactNode {
         method: "PATCH",
         body: JSON.stringify({ status })
       });
-      if (res.ok) fetchShipment();
+      if (res.ok) {
+        showToast(`Document status updated to ${status}.`, "success");
+        fetchShipment();
+      }
     } catch (err) {
       console.error(err);
+      showToast("Failed to update document status.", "error");
     }
   };
 
@@ -190,31 +209,59 @@ export default function CustomsPortal(): ReactNode {
                 </button>
               </div>
               <div className="p-6 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Document Type</label>
-                  <select
-                    className="w-full px-4 py-4 glass-panel bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white outline-none focus:ring-2 focus:ring-accent appearance-none"
-                    value={newDocType}
-                    onChange={e => setNewDocType(e.target.value)}
-                  >
-                    {requiredDocs.map(d => <option key={d} value={d} className="bg-slate-900">{d}</option>)}
-                    <option value="Other" className="bg-slate-900">Other</option>
-                  </select>
-                </div>
-
-                <div className="border-2 border-dashed border-white/20 rounded-2xl p-10 text-center flex flex-col items-center gap-4 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
-                  <div className="bg-accent/20 p-4 rounded-full group-hover:scale-110 transition-transform duration-300">
-                    <CloudUpload className="w-8 h-8 text-accent" />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Document Type</label>
+                    <select
+                      className="w-full px-4 py-4 glass-panel bg-white/5 border border-white/10 rounded-2xl text-sm font-bold text-white outline-none focus:ring-2 focus:ring-accent appearance-none transition-all"
+                      value={newDocType}
+                      onChange={e => setNewDocType(e.target.value)}
+                    >
+                      {requiredDocs.map(d => <option key={d} value={d} className="bg-slate-900">{d}</option>)}
+                      <option value="Other" className="bg-slate-900">Other</option>
+                    </select>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-white">Tap to select or drag file here</p>
-                    <p className="text-xs text-slate-400 mt-1">PDF, JPG, PNG up to 10MB</p>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">File Upload</label>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                    />
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className={cn(
+                        "border-2 border-dashed rounded-2xl p-8 text-center flex flex-col items-center gap-4 bg-white/5 hover:bg-white/10 transition-all cursor-pointer group",
+                        selectedFile ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/20"
+                      )}
+                    >
+                      <div className={cn(
+                        "p-4 rounded-full transition-all duration-300",
+                        selectedFile ? "bg-emerald-500/20 text-emerald-500" : "bg-accent/20 text-accent group-hover:scale-110"
+                      )}>
+                        {selectedFile ? <CheckCircle2 className="w-8 h-8" /> : <CloudUpload className="w-8 h-8" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">
+                          {selectedFile ? selectedFile.name : "Tap to select or drag file here"}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          {selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB` : "PDF, JPG, PNG up to 10MB"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setShowUploadModal(false)}
+                    onClick={() => {
+                      setShowUploadModal(false);
+                      setSelectedFile(null);
+                    }}
                     className="flex-1 glass-panel bg-white/5 py-4 rounded-xl font-bold text-slate-300 border border-white/5 hover:bg-white/10 transition-all"
                   >
                     Cancel
