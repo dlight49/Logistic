@@ -19,8 +19,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         // Only clear if we actually had a token (to avoid clearing during initial login check)
         if (token) {
             localStorage.removeItem("logistics_token");
-            // Optional: window.location.href = '/login'; 
-            // Better to let AuthContext handle this via state
+            localStorage.removeItem("logistics_refresh_token");
+            localStorage.removeItem("logistics_user");
+            window.dispatchEvent(new Event('session-expired'));
         }
     }
 

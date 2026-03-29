@@ -29,19 +29,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sync session on mount
   useEffect(() => {
     const syncSession = async () => {
-      const token = localStorage.getItem('lumin_token');
-      const savedUser = localStorage.getItem('lumin_user');
+      const token = localStorage.getItem('logistics_token');
+      const savedUser = localStorage.getItem('logistics_user');
       
       if (token && savedUser) {
         try {
           // Verify token with backend
           const response = await api.get('/auth/me');
           setUser(response.data);
-          localStorage.setItem('lumin_user', JSON.stringify(response.data));
+          localStorage.setItem('logistics_user', JSON.stringify(response.data));
         } catch (err) {
           console.error("[AUTH] Session sync failed:", err);
-          localStorage.removeItem('lumin_token');
-          localStorage.removeItem('lumin_user');
+          localStorage.removeItem('logistics_token');
+          localStorage.removeItem('logistics_user');
           setUser(null);
         }
       }
@@ -62,9 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await api.post('/auth/login', { email, password });
     const { user: userData, token, refreshToken } = response.data;
     
-    localStorage.setItem('lumin_token', token);
-    localStorage.setItem('lumin_refresh_token', refreshToken);
-    localStorage.setItem('lumin_user', JSON.stringify(userData));
+    localStorage.setItem('logistics_token', token);
+    localStorage.setItem('logistics_refresh_token', refreshToken);
+    localStorage.setItem('logistics_user', JSON.stringify(userData));
     
     setUser(userData);
   };
@@ -73,16 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await api.post('/auth/register', { name, email, password });
     const { user: userData, token } = response.data;
     
-    localStorage.setItem('lumin_token', token);
-    localStorage.setItem('lumin_user', JSON.stringify(userData));
+    localStorage.setItem('logistics_token', token);
+    localStorage.setItem('logistics_user', JSON.stringify(userData));
     
     setUser(userData);
   };
 
   const logout = async () => {
-    localStorage.removeItem('lumin_token');
-    localStorage.removeItem('lumin_refresh_token');
-    localStorage.removeItem('lumin_user');
+    localStorage.removeItem('logistics_token');
+    localStorage.removeItem('logistics_refresh_token');
+    localStorage.removeItem('logistics_user');
     setUser(null);
   };
 
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(prev => {
       const newUser = prev ? { ...prev, ...userData } : null;
       if (newUser) {
-        localStorage.setItem('lumin_user', JSON.stringify(newUser));
+        localStorage.setItem('logistics_user', JSON.stringify(newUser));
       }
       return newUser;
     });
