@@ -27,8 +27,13 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        // If error is 401 Unauthorized and we haven't retried yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // SKIP refresh logic for login/register/refresh routes
+        const isAuthRoute = originalRequest.url?.includes('/auth/login') || 
+                            originalRequest.url?.includes('/auth/register') ||
+                            originalRequest.url?.includes('/auth/refresh');
+
+        // If error is 401 Unauthorized and we haven't retried yet and it's NOT an auth route
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
             originalRequest._retry = true;
 
             try {
@@ -42,13 +47,16 @@ api.interceptors.response.use(
                     refresh: refreshToken
                 });
 
-                const { access } = response.data;
+                // In our native backend, it returns { token: "..." }
+                const { token } = response.data;
                 
+                if (!token) throw new Error('Refresh failed - No token returned');
+
                 // Save new token
-                localStorage.setItem('lumin_token', access);
+                localStorage.setItem('lumin_token', token);
                 
                 // Retry the original request with the new token
-                originalRequest.headers.Authorization = `Bearer ${access}`;
+                originalRequest.headers.Authorization = `Bearer ${token}`;
                 return api(originalRequest);
             } catch (refreshError) {
                 // If refresh fails, clear auth state
