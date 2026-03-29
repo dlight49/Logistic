@@ -1,21 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { prisma } from '../config/db.js';
 import logger from '../utils/logger.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_fallback_secret_change_in_production';
-
-if (!process.env.JWT_SECRET) {
-    logger.warn('[AUTH] WARNING: Using fallback JWT_SECRET. Set JWT_SECRET in production!');
-}
-declare global {
-    namespace Express {
-        interface Request {
-            user?: any;
-        }
-    }
-}
-
+/**
+ * PRODUCTION AUTH MIDDLEWARE (Neon Auth Compatible)
+ * 
+ * This middleware verifies tokens using the database.
+ * Since Neon Auth and the Data API share the same session store, 
+ * we can verify a session directly via SQL.
+ */
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
@@ -30,22 +23,48 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     }
 
     try {
-        const decodedPayload = jwt.verify(token, JWT_SECRET) as any;
-        
-        const user = await prisma.user.findUnique({
-            where: { id: decodedPayload.id },
+        // 1. Check Neon Auth Session table
+        const session = await prisma.$queryRaw`
+            SELECT s.user_id, u.email, u.name 
+            FROM "neon_auth"."session" s
+            JOIN "neon_auth"."user" u ON s.user_id = u.id
+            WHERE s.token = ${token} AND s.expires_at > NOW()
+            LIMIT 1
+        ` as any[];
+
+        if (!session || session.length === 0) {
+            // FALLBACK: Check if it's a legacy native JWT (useful during transition)
+            // But for a fresh Neon Auth start, we expect the token in the session table.
+            return res.status(401).json({ error: 'Unauthorized: Invalid or expired session' });
+        }
+
+        const authUser = session[0];
+
+        // 2. Map Neon Auth User to our Logistics Public User (Roles, etc.)
+        let user = await prisma.user.findUnique({
+            where: { email: authUser.email },
         });
 
+        // 3. Auto-Provision Profile in Public Schema if missing
         if (!user) {
-            return res.status(401).json({ error: 'Unauthorized: User not found' });
+            logger.info(`[AUTH] Auto-provisioning profile for Neon user: ${authUser.email}`);
+            user = await prisma.user.create({
+                data: {
+                    id: authUser.user_id,
+                    email: authUser.email,
+                    name: authUser.name,
+                    password: 'NEON_AUTH_MANAGED', // No local password needed
+                    role: 'customer' // Default role for new signups
+                }
+            });
         }
 
         // Add user to request object
         req.user = user;
         next();
     } catch (error: any) {
-        logger.error('[AUTH] JWT verification failed:', { error: error.message });
-        res.status(401).json({ error: 'Unauthorized: Session expired or invalid' });
+        logger.error('[AUTH] Neon Session verification failed:', { error: error.message });
+        res.status(401).json({ error: 'Unauthorized: Session verification failed' });
     }
 };
 

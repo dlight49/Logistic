@@ -1,7 +1,7 @@
 import { createAuthClient } from '@neondatabase/neon-js/auth';
 
-// Use environment variable with fallback to the confirmed production URL
-// The .tech suffix matches the provisioned Data API for this project
-const AUTH_URL = import.meta.env.VITE_NEON_AUTH_URL || "https://ep-floral-sunset-aebbrnxj.neonauth.us-east-2.aws.neon.tech/neondb/auth";
+// Your Neon project endpoint — the base for Neon Auth
+const ENDPOINT = "https://ep-floral-sunset-aebbrnxj.c-2.us-east-2.aws.neon.tech";
 
-export const authClient = createAuthClient(AUTH_URL);
+// Initialize the Auth Client pointing to your specific project's Auth URL
+export const authClient = createAuthClient(`${ENDPOINT}/neondb/auth`);
